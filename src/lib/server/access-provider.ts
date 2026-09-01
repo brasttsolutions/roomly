@@ -1,0 +1,22 @@
+import "server-only";
+import type { AccessProvider } from "@/integrations/contracts";
+import { TTLockSimulator } from "@/integrations/simulators";
+import { integrationMode } from "@/lib/supabase/config";
+
+let provider: AccessProvider | undefined;
+
+export function accessProvider() {
+  if (provider) return provider;
+  const mode = process.env.ROOMLY_ACCESS_MODE ?? "simulator";
+  if (mode !== "simulator") {
+    throw new Error("ttlock_provider_requires_completed_physical_poc");
+  }
+  if (
+    process.env.NODE_ENV === "production" &&
+    integrationMode() === "supabase"
+  ) {
+    throw new Error("access_simulator_forbidden_in_production");
+  }
+  provider = new TTLockSimulator();
+  return provider;
+}

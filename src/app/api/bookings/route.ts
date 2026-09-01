@@ -1,0 +1,87 @@
+import { createBookingSchema } from "@/modules/reservations/schemas";
+import { createBooking } from "@/modules/reservations/application";
+import { bookingRepository } from "@/lib/server/booking-repository";
+import { paymentProvider } from "@/lib/server/payment-provider";
+import { clientAddress, json, rateLimit, requestId } from "@/lib/server/http";
+import { requestIdentity } from "@/lib/server/identity";
+import { logEvent } from "@/lib/server/logger";
+import { integrationMode } from "@/lib/supabase/config";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export async function POST(request: Request) {
+  const id = requestId(request);
+  const contentLength = Number(request.headers.get("content-length") ?? 0);
+  if (contentLength > 32_768)
+    return json({ error: "Payload muito grande." }, 413, id);
+  if (!rateLimit(`bookings:${clientAddress(request)}`, 12)) {
+    logEvent("warn", "booking.rate_limited", { requestId: id });
+    return json({ error: "Muitas tentativas. Aguarde um minuto." }, 429, id);
+  }
+  const identity = await requestIdentity();
+  if (!identity) {
+    logEvent("warn", "booking.unauthorized", { requestId: id });
+    return json({ error: "Autenticação necessária." }, 401, id);
+  }
+  if (integrationMode() === "supabase") {
+    const supabase = await createSupabaseServerClient();
+    const { data: allowed, error: limiterError } = await supabase.rpc(
+      "consume_rate_limit",
+      {
+        target_scope: "bookings.create",
+        target_limit: 12,
+        target_window_seconds: 60,
+      },
+    );
+    if (limiterError || !allowed) {
+      logEvent("warn", "booking.rate_limited_distributed", { requestId: id });
+      return json({ error: "Muitas tentativas. Aguarde um minuto." }, 429, id);
+    }
+  }
+  let raw: unknown;
+  try {
+    raw = await request.json();
+  } catch {
+    return json({ error: "JSON inválido." }, 400, id);
+  }
+  const parsed = createBookingSchema.safeParse(raw);
+  if (!parsed.success)
+    return json(
+      { error: "Dados inválidos.", issues: parsed.error.flatten().fieldErrors },
+      422,
+      id,
+    );
+  try {
+    const result = await createBooking(bookingRepository(), paymentProvider(), {
+      companyId: identity.companyId,
+      profileId: identity.profileId,
+      payerEmail: identity.email,
+      ...parsed.data,
+    });
+    logEvent(
+      "info",
+      result.duplicate ? "booking.duplicate" : "booking.hold_created",
+      {
+        requestId: id,
+        bookingId: result.booking.id,
+        companyId: identity.companyId,
+        roomId: result.booking.roomId,
+      },
+    );
+    return json(
+      {
+        booking: result.booking,
+        checkout: result.checkout,
+        duplicate: result.duplicate || undefined,
+        expiresInSeconds: 600,
+      },
+      result.duplicate ? 200 : 201,
+      id,
+    );
+  } catch (error) {
+    logEvent("error", "booking.create_failed", {
+      requestId: id,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    return json({ error: "Não foi possível concluir a reserva." }, 503, id);
+  }
+}

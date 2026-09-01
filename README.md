@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Roomly
 
-## Getting Started
+MVP da plataforma multi-tenant de reservas descrita em `Cowork Booking Platform (roomly).md`.
 
-First, run the development server:
+## Execução local
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra `http://localhost:3000`. Sem variáveis de ambiente, a aplicação usa simuladores determinísticos e não envia dados a provedores externos.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verificação
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run verify
+```
 
-## Learn More
+O comando executa ESLint, TypeScript, Vitest, build de produção e Playwright em desktop e mobile. Os testes PostgreSQL exigem Docker:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npx supabase start
+npx supabase db reset --local
+npm run test:db
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Modos
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `ROOMLY_INTEGRATION_MODE=simulator`: catálogo, identidade e reservas efêmeros para desenvolvimento.
+- `ROOMLY_INTEGRATION_MODE=supabase`: Auth, tenant, catálogo, reservas, pagamentos, jobs e administração persistidos.
+- `ROOMLY_PAYMENT_MODE=simulator|mercado_pago`: adaptador de cobrança explicitamente selecionado.
+- `ROOMLY_ACCESS_MODE=simulator|ttlock`: o simulador é proibido em produção com Supabase; TTLock permanece bloqueado até a POC física.
 
-## Deploy on Vercel
+Copie os nomes de `.env.example` para o gerenciador de segredos do ambiente. Nunca exponha `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, credenciais TTLock ou tokens dos provedores ao navegador.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Superfícies
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `/`: catálogo e filtros.
+- `/salas/[slug]`: disponibilidade, checkout PIX/cartão e confirmação.
+- `/entrar`, `/cadastro`: autenticação e cadastro por convite.
+- `/minhas-reservas`: próximas reservas, acesso, histórico e cancelamento.
+- `/admin`: operação multi-tenant, cadastros, pagamentos, limpeza e auditoria.
+- `/api/bookings`: criação idempotente com preço calculado no servidor e no banco.
+- `/api/webhooks/mercado-pago`: assinatura, consulta ao provedor e deduplicação.
+- `/api/internal/jobs/run`: consumo de jobs duráveis, protegido por `CRON_SECRET`.
+- `/api/health`, `/api/ready`: liveness e readiness.
+
+## Operação
+
+A migration em `supabase/migrations/0001_roomly_foundation.sql` contém RLS, FKs multi-tenant, exclusão temporal GiST, RPCs transacionais, rate limit distribuído e fila durável. A CI está em `.github/workflows/verify.yml`; o container de produção está em `Dockerfile`.
+
+Leia [arquitetura](docs/ARCHITECTURE.md), [operação](docs/OPERATIONS.md), [verificação](docs/VERIFICATION.md) e [POC TTLock](docs/TTLOCK_POC.md).

@@ -1,0 +1,56 @@
+import "server-only";
+import { createClient } from "@supabase/supabase-js";
+import { rooms as demoRooms, type Room } from "@/lib/demo-data";
+import {
+  integrationMode,
+  requireSupabasePublicConfig,
+} from "@/lib/supabase/config";
+
+export async function catalogRooms(): Promise<readonly Room[]> {
+  if (integrationMode() === "simulator") return demoRooms;
+  const config = requireSupabasePublicConfig();
+  const supabase = createClient(config.url, config.anonKey, {
+    auth: { persistSession: false },
+  });
+  const { data, error } = await supabase
+    .from("rooms")
+    .select(
+      "id,slug,name,description,capacity,hourly_price_cents,locations(name),room_images(url,position),room_feature_relations(room_features(name))",
+    )
+    .eq("status", "active")
+    .order("name");
+  if (error) throw new Error(`catalog_rooms_failed:${error.code}`);
+  return (data ?? []).map(mapRoom);
+}
+
+export async function catalogRoomBySlug(slug: string) {
+  return (await catalogRooms()).find((room) => room.slug === slug) ?? null;
+}
+
+function mapRoom(row: Record<string, unknown>): Room {
+  const location = row.locations as { name?: string } | null;
+  const images = row.room_images as
+    Array<{ url: string; position: number }> | undefined;
+  const relations = row.room_feature_relations as
+    Array<{ room_features?: { name?: string } | null }> | undefined;
+  const slug = String(row.slug);
+  return {
+    id: String(row.id),
+    slug,
+    name: String(row.name),
+    description: String(row.description),
+    image:
+      images?.sort((a, b) => a.position - b.position)[0]?.url ??
+      demoRooms.find((room) => room.slug === slug)?.image ??
+      "/rooms/executiva.png",
+    capacity: Number(row.capacity),
+    hourlyPriceCents: Number(row.hourly_price_cents),
+    location: location?.name ?? "Unidade",
+    floor: "",
+    features:
+      relations
+        ?.map((relation) => relation.room_features?.name)
+        .filter((name): name is string => Boolean(name)) ?? [],
+    accent: demoRooms.find((room) => room.slug === slug)?.accent ?? "green",
+  };
+}
