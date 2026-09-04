@@ -62,9 +62,6 @@ test("header shows the signed-in account and opens its menu", async ({
   await expect(
     page.getByRole("menuitem", { name: "Editar conta" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("menuitem", { name: "Configurações" }),
-  ).toBeVisible();
   await expect(page.getByTestId("sign-out")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("menu", { name: "Conta" })).toHaveCount(0);
@@ -94,6 +91,29 @@ test("admin exposes operational status", async ({ page }, testInfo) => {
     path: testInfo.outputPath("admin-locks.png"),
     fullPage: false,
   });
+});
+
+test("room form swaps automatic images for an upload field", async ({
+  page,
+}) => {
+  await page.goto("/admin/salas");
+  await page.getByRole("button", { name: "Nova sala" }).click();
+  const automatic = page.getByLabel("Adicionar imagens aleatórias");
+  await expect(automatic).toBeChecked();
+  await expect(page.getByLabel("Fotos da sala")).toHaveCount(0);
+  await expect(page.getByLabel("Sala possui câmera?")).not.toBeChecked();
+
+  await automatic.uncheck();
+  const upload = page.getByLabel("Fotos da sala");
+  await expect(upload).toBeVisible();
+  await expect(upload).toHaveAttribute("multiple", "");
+  await expect(upload).toHaveAttribute(
+    "accept",
+    "image/jpeg,image/png,image/webp",
+  );
+
+  await automatic.check();
+  await expect(page.getByLabel("Fotos da sala")).toHaveCount(0);
 });
 
 test("internal worker rejects requests without the cron secret", async ({

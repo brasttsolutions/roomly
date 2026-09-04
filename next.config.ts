@@ -19,9 +19,33 @@ const securityHeaders = [
   },
 ];
 
+// As fotos das salas ficam no Storage do Supabase, então só o host do projeto
+// configurado é liberado para o otimizador de imagens.
+const supabaseImageHost = (() => {
+  try {
+    const url = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
+    return [
+      {
+        protocol: url.protocol.replace(":", "") as "http" | "https",
+        hostname: url.hostname,
+        port: url.port,
+        pathname: "/storage/v1/object/public/**",
+        search: "",
+      },
+    ];
+  } catch {
+    return [];
+  }
+})();
+
 const nextConfig: NextConfig = {
   output: process.env.NEXT_STANDALONE === "true" ? "standalone" : undefined,
   poweredByHeader: false,
+  images: { remotePatterns: supabaseImageHost },
+  experimental: {
+    // Até seis fotos de 2 MB, mais a borda do multipart.
+    serverActions: { bodySizeLimit: "13mb" },
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

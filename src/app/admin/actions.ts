@@ -6,6 +6,12 @@ import { requestIdentity } from "@/lib/server/identity";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendInvitationEmail } from "@/integrations/resend";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  invalidImage,
+  randomStockImage,
+  uploadRoomImages,
+} from "@/lib/server/room-images";
 
 export type AdminActionState = {
   ok: boolean;
@@ -29,6 +35,7 @@ const unitSchema = z.object({
     .transform((value) => value.toUpperCase()),
   zipCode: z.string().trim().min(8).max(10),
 });
+const checkbox = z.literal("on").optional();
 const roomSchema = z.object({
   resource: z.literal("salas"),
   locationId: postgresUuid,
@@ -36,6 +43,8 @@ const roomSchema = z.object({
   description: z.string().trim().min(10).max(1000),
   capacity: z.coerce.number().int().min(1).max(100),
   hourlyPriceCents: z.coerce.number().int().min(0).max(10_000_000),
+  randomImages: checkbox,
+  hasCamera: checkbox,
 });
 const lockSchema = z.object({
   resource: z.literal("fechaduras"),
@@ -100,15 +109,50 @@ export async function createAdminResource(
       zip_code: parsed.data.zipCode,
     }));
   } else if (parsed.data.resource === "salas") {
-    ({ error } = await supabase.from("rooms").insert({
-      company_id: identity.companyId,
-      location_id: parsed.data.locationId,
-      name: parsed.data.name,
-      slug: slugify(parsed.data.name),
-      description: parsed.data.description,
-      capacity: parsed.data.capacity,
-      hourly_price_cents: parsed.data.hourlyPriceCents,
-    }));
+    const automatic = parsed.data.randomImages === "on";
+    const files = automatic
+      ? []
+      : formData.getAll("photos").filter((entry): entry is File => {
+          return entry instanceof File && entry.size > 0;
+        });
+    if (!automatic) {
+      const problem = invalidImage(files);
+      if (problem) return { ok: false, error: problem };
+    }
+    const created = await supabase
+      .from("rooms")
+      .insert({
+        company_id: identity.companyId,
+        location_id: parsed.data.locationId,
+        name: parsed.data.name,
+        slug: slugify(parsed.data.name),
+        description: parsed.data.description,
+        capacity: parsed.data.capacity,
+        hourly_price_cents: parsed.data.hourlyPriceCents,
+      })
+      .select("id")
+      .single();
+    if (created.error || !created.data) {
+      return { ok: false, error: "Não foi possível salvar o cadastro." };
+    }
+    try {
+      const urls = automatic
+        ? [randomStockImage()]
+        : await uploadRoomImages({
+            companyId: identity.companyId,
+            roomId: created.data.id,
+            files,
+          });
+      await attachRoomImages(identity.companyId, created.data.id, urls);
+      if (parsed.data.hasCamera === "on") {
+        await attachCameraFeature(identity.companyId, created.data.id);
+      }
+    } catch {
+      return {
+        ok: false,
+        error: "Sala criada, mas as imagens não foram salvas. Edite a sala.",
+      };
+    }
   } else if (parsed.data.resource === "fechaduras") {
     ({ error } = await supabase.from("locks").insert({
       company_id: identity.companyId,
@@ -147,6 +191,44 @@ export async function createAdminResource(
   if (error) return { ok: false, error: "Não foi possível salvar o cadastro." };
   revalidatePath(`/admin/${parsed.data.resource}`);
   return { ok: true, message: "Cadastro salvo." };
+}
+
+/**
+ * `room_images` e `room_feature_relations` só têm política de leitura, então a
+ * escrita usa a chave de serviço com a empresa e a sala vindas da sessão.
+ */
+async function attachRoomImages(
+  companyId: string,
+  roomId: string,
+  urls: string[],
+) {
+  const { error } = await createSupabaseAdminClient()
+    .from("room_images")
+    .insert(
+      urls.map((url, position) => ({
+        company_id: companyId,
+        room_id: roomId,
+        url,
+        position,
+      })),
+    );
+  if (error) throw new Error("room_images_persist_failed");
+}
+
+async function attachCameraFeature(companyId: string, roomId: string) {
+  const admin = createSupabaseAdminClient();
+  const feature = await admin
+    .from("room_features")
+    .upsert({ name: "Câmera" }, { onConflict: "name" })
+    .select("id")
+    .single();
+  if (feature.error || !feature.data) throw new Error("room_feature_failed");
+  const { error } = await admin.from("room_feature_relations").insert({
+    company_id: companyId,
+    room_id: roomId,
+    feature_id: feature.data.id,
+  });
+  if (error) throw new Error("room_feature_relation_failed");
 }
 
 function slugify(value: string) {

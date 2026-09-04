@@ -88,6 +88,7 @@ Resend não estiver configurado, e não impede nada de ser testado.
 | Fila de jobs | devolve vazio | real |
 | Código de acesso temporário | simulado | gravado com janela e máscara |
 | Painel `/admin` | dados fictícios | real, exceto Relatórios e Configurações |
+| Upload de fotos da sala | formulário só | real, no Storage do Supabase |
 | Cancelamento | visual | real |
 | Reembolso | — | precisa do Mercado Pago |
 | E-mail | — | precisa do Resend |
@@ -195,21 +196,25 @@ logada**. Clicando no nome abre um menu com:
 | Item | Para quê |
 | --- | --- |
 | Área administrativa | Só aparece para quem não é `customer` |
-| Editar conta | `/conta` — nome e telefone |
-| Configurações | `/configuracoes` — senha e sessões |
+| Editar conta | `/conta` — tudo da conta em uma página |
 | Sair da conta | Encerra a sessão e volta para o catálogo |
 
 Quem tem papel de operação ou acima ganha também um **botão verde "Área
 administrativa" direto no cabeçalho**, sem precisar digitar `/admin` na URL.
 
-Em `/conta` dá para alterar nome e telefone. E-mail, empresa e papel aparecem
-como leitura: são alterados por um gestor, não pela própria pessoa.
+`/conta` reúne quatro blocos:
 
-Em `/configuracoes` estão a troca de senha (mínimo de 10 caracteres) e o
-encerramento de todas as sessões, útil quando se perde um aparelho ou se
-suspeita que alguém tem a senha. Não há preferências de notificação: elas
-exigiriam uma coluna nova no banco, e um interruptor que não faz nada seria pior
-do que não existir.
+| Bloco | O que faz |
+| --- | --- |
+| Dados pessoais | Altera nome e telefone |
+| Segurança | Troca a senha, com mínimo de 10 caracteres |
+| Sessões | Encerra o acesso em todos os aparelhos, inclusive o atual |
+| Dados da conta | E-mail, empresa, papel e fuso, apenas leitura |
+
+E-mail, empresa e papel são alterados por um gestor, não pela própria pessoa.
+Não há preferências de notificação: elas exigiriam uma coluna nova no banco e
+uma mudança no job que envia os e-mails, e um interruptor que não faz nada seria
+pior do que não existir.
 
 > No modo `simulator` o cabeçalho sempre mostra uma conta fictícia, porque a
 > aplicação assume uma identidade de demonstração. "Sair da conta" apenas volta
@@ -240,9 +245,31 @@ Logado como gerente ou administrador, **nesta ordem**:
 | Descrição | **mínimo de 10 caracteres** |
 | Capacidade | 1 a 100 |
 | Preço por hora | **em centavos**: R$ 120,00 se escreve `12000` |
+| Adicionar imagens aleatórias | Marcado por padrão |
+| Sala possui câmera? | Desmarcado por padrão |
 
 O endereço da sala é gerado a partir do nome: "Sala Executiva" vira
 `/salas/sala-executiva`. Acentos e símbolos são removidos.
+
+**Fotos.** Com "Adicionar imagens aleatórias" marcado, o Roomly escolhe uma foto
+do acervo e o campo de anexo nem aparece. Ao desmarcar, surge o seletor de
+arquivos, e aí o anexo é obrigatório:
+
+| Regra | Valor |
+| --- | --- |
+| Quantidade | de 1 a 6 imagens |
+| Tamanho | até 2 MB por arquivo |
+| Formatos | JPEG, PNG ou WebP |
+
+As fotos anexadas vão para o bucket `room-images` do Storage do Supabase, em
+`empresa/sala/arquivo`, e o bucket é criado sozinho no primeiro envio. A página
+da sala mostra a primeira foto em destaque e as demais como miniaturas
+clicáveis.
+
+**Câmera.** O "Sala possui câmera?" vincula a sala à característica `Câmera`, que
+aparece em "O que você encontra" na página da sala. Optei pela tabela de
+características em vez de uma coluna nova para não exigir uma migration no banco
+hospedado. Se um dia for preciso **filtrar** salas por câmera, aí vale a coluna.
 
 **3. Fechadura** — `/admin/fechaduras` → **Nova fechadura**
 

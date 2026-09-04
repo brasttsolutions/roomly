@@ -15,7 +15,7 @@ export async function catalogRooms(): Promise<readonly Room[]> {
   const { data, error } = await supabase
     .from("rooms")
     .select(
-      "id,slug,name,description,capacity,hourly_price_cents,locations(name),room_images(url,position),room_feature_relations(room_features(name))",
+      "id,slug,name,description,capacity,hourly_price_cents,locations(name,address,city,state),room_images(url,position),room_feature_relations(room_features(name))",
     )
     .eq("status", "active")
     .order("name");
@@ -28,9 +28,17 @@ export async function catalogRoomBySlug(slug: string) {
 }
 
 function mapRoom(row: Record<string, unknown>): Room {
-  const location = row.locations as { name?: string } | null;
+  const location = row.locations as {
+    name?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+  } | null;
   const images = row.room_images as
     Array<{ url: string; position: number }> | undefined;
+  const ordered = [...(images ?? [])]
+    .sort((a, b) => a.position - b.position)
+    .map((image) => image.url);
   const relations = row.room_feature_relations as
     Array<{ room_features?: { name?: string } | null }> | undefined;
   const slug = String(row.slug);
@@ -40,9 +48,16 @@ function mapRoom(row: Record<string, unknown>): Room {
     name: String(row.name),
     description: String(row.description),
     image:
-      images?.sort((a, b) => a.position - b.position)[0]?.url ??
+      ordered[0] ??
       demoRooms.find((room) => room.slug === slug)?.image ??
       "/rooms/executiva.png",
+    images: ordered,
+    address: [
+      location?.address,
+      [location?.city, location?.state].filter(Boolean).join("/"),
+    ]
+      .filter(Boolean)
+      .join(" · "),
     capacity: Number(row.capacity),
     hourlyPriceCents: Number(row.hourly_price_cents),
     location: location?.name ?? "Unidade",

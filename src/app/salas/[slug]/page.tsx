@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, MapPin, UsersRound } from "lucide-react";
 import { BookingFlow } from "@/components/booking-flow";
+import { RoomGallery } from "@/components/room-gallery";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { rooms } from "@/lib/demo-data";
@@ -35,23 +35,22 @@ export default async function RoomPage({
         </Link>
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
           <div>
-            <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-[#e7eae6]">
-              <Image
-                src={room.image}
-                alt={room.name}
-                fill
-                priority
-                sizes="(max-width:1024px) 100vw,70vw"
-                className="object-cover"
-              />
-            </div>
+            <RoomGallery
+              name={room.name}
+              images={room.images?.length ? room.images : [room.image]}
+            />
             <div className="py-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="flex items-center gap-1.5 text-sm font-semibold text-[#66736d]">
                     <MapPin size={16} />
-                    {room.location} · {room.floor}
+                    {[room.location, room.floor].filter(Boolean).join(" · ")}
                   </p>
+                  {room.address && (
+                    <p className="mt-1 text-sm text-[#78837e]">
+                      {room.address}
+                    </p>
+                  )}
                   <h1 className="mt-2 text-3xl font-bold sm:text-4xl">
                     {room.name}
                   </h1>

@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import {
   createAdminResource,
@@ -116,6 +116,8 @@ function UnitFields() {
   );
 }
 function RoomFields({ locations }: { locations: Option[] }) {
+  const [randomImages, setRandomImages] = useState(true);
+  const [chosen, setChosen] = useState(0);
   return (
     <>
       <Select label="Unidade" name="locationId" options={locations} />
@@ -129,7 +131,76 @@ function RoomFields({ locations }: { locations: Option[] }) {
           type="number"
         />
       </div>
+      <Checkbox
+        name="randomImages"
+        label="Adicionar imagens aleatórias"
+        hint="O Roomly escolhe a foto da sala e o anexo fica desabilitado."
+        checked={randomImages}
+        onChange={setRandomImages}
+      />
+      {!randomImages && (
+        <label className="text-sm font-bold">
+          Fotos da sala
+          <input
+            required
+            multiple
+            type="file"
+            name="photos"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(event) => setChosen(event.target.files?.length ?? 0)}
+            className="mt-2 w-full rounded-md border border-[#cfd6d1] p-2 text-sm font-normal file:mr-3 file:rounded file:border-0 file:bg-[#e9ece8] file:px-3 file:py-1.5 file:text-sm file:font-semibold"
+          />
+          <span
+            className={
+              chosen > 6
+                ? "mt-1 block text-xs font-semibold text-[#a84331]"
+                : "mt-1 block text-xs font-normal text-[#78837e]"
+            }
+          >
+            {chosen > 6
+              ? `${chosen} selecionadas. O máximo é 6.`
+              : `De 1 a 6 imagens, até 2 MB cada. ${chosen} selecionada(s).`}
+          </span>
+        </label>
+      )}
+      <Checkbox name="hasCamera" label="Sala possui câmera?" />
     </>
+  );
+}
+function Checkbox({
+  name,
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  name: string;
+  label: string;
+  hint?: string;
+  checked?: boolean;
+  onChange?: (value: boolean) => void;
+}) {
+  return (
+    <label className="flex items-start gap-2.5 text-sm font-bold">
+      <input
+        type="checkbox"
+        name={name}
+        defaultChecked={onChange ? undefined : false}
+        checked={onChange ? checked : undefined}
+        onChange={
+          onChange ? (event) => onChange(event.target.checked) : undefined
+        }
+        className="mt-0.5 size-4 accent-[#176b4d]"
+      />
+      <span>
+        {label}
+        {hint && (
+          <span className="mt-0.5 block text-xs font-normal text-[#78837e]">
+            {hint}
+          </span>
+        )}
+      </span>
+    </label>
   );
 }
 function LockFields({ rooms }: { rooms: Option[] }) {

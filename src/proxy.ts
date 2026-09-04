@@ -34,7 +34,6 @@ export async function proxy(request: NextRequest) {
     "/minhas-reservas",
     "/admin",
     "/conta",
-    "/configuracoes",
   ].some((route) => request.nextUrl.pathname.startsWith(route));
   if (protectedRoute && !user) {
     return NextResponse.redirect(new URL("/entrar", request.url));

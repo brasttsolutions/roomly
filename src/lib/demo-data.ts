@@ -4,6 +4,8 @@ export type Room = Readonly<{
   name: string;
   description: string;
   image: string;
+  images?: readonly string[];
+  address?: string;
   capacity: number;
   hourlyPriceCents: number;
   location: string;
@@ -20,6 +22,7 @@ export const rooms: readonly Room[] = [
     description:
       "Privacidade, luz natural e estrutura completa para decisões importantes.",
     image: "/rooms/executiva.png",
+    address: "Perini Business Park · Joinville/SC",
     capacity: 8,
     hourlyPriceCents: 12000,
     location: "Ágora Tech Park",
@@ -34,6 +37,7 @@ export const rooms: readonly Room[] = [
     description:
       "Um ambiente reservado para conversas objetivas e pequenos times.",
     image: "/rooms/foco.png",
+    address: "Perini Business Park · Joinville/SC",
     capacity: 4,
     hourlyPriceCents: 7500,
     location: "Ágora Tech Park",
@@ -48,6 +52,7 @@ export const rooms: readonly Room[] = [
     description:
       "Mesas modulares e ferramentas visuais para workshops produtivos.",
     image: "/rooms/atelier.png",
+    address: "Rua do Príncipe, 330 · Joinville/SC",
     capacity: 12,
     hourlyPriceCents: 16500,
     location: "Centro Joinville",

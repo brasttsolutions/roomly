@@ -6,7 +6,6 @@ import {
   CircleUserRound,
   LayoutDashboard,
   LogOut,
-  Settings,
   UserPen,
 } from "lucide-react";
 import { signOut } from "@/app/entrar/actions";
@@ -84,12 +83,6 @@ export function UserMenu({
               href="/conta"
               icon={<UserPen size={17} />}
               label="Editar conta"
-              onNavigate={() => setOpen(false)}
-            />
-            <Item
-              href="/configuracoes"
-              icon={<Settings size={17} />}
-              label="Configurações"
               onNavigate={() => setOpen(false)}
             />
           </div>
