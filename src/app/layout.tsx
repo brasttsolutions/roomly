@@ -23,7 +23,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <a className="skip-link" href="#conteudo">
+          Pular para o conteúdo
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

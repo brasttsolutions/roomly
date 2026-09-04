@@ -50,11 +50,11 @@ export function UserMenu({
         aria-expanded={open}
         aria-controls={menuId}
         data-testid="user-menu-trigger"
-        className="inline-flex h-10 max-w-[220px] items-center gap-2 rounded-md border border-[#cfd6d1] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
+        className="inline-flex h-10 max-w-[220px] items-center gap-2 rounded-md border border-[var(--border-control)] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
       >
         <CircleUserRound size={18} className="shrink-0" />
         <span className="hidden truncate sm:inline">{name}</span>
-        <ChevronDown size={16} className="shrink-0 text-[#7a857f]" />
+        <ChevronDown size={16} className="shrink-0 text-[var(--text-secondary)]" />
       </button>
       {open && (
         <div

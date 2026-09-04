@@ -174,7 +174,7 @@ function History({ room, date }: { room: string; date: string }) {
     <div className="flex items-center justify-between gap-4 p-4">
       <div>
         <strong className="text-sm">{room}</strong>
-        <p className="mt-1 text-xs text-[#738079]">{date}</p>
+        <p className="mt-1 text-xs text-[var(--text-secondary)]">{date}</p>
       </div>
       <Badge>Concluída</Badge>
     </div>

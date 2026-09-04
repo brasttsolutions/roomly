@@ -81,7 +81,7 @@ function AdminResourceDialog({
         <button
           onClick={show}
           aria-label={`Editar ${record?.name ?? ""}`}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#cfd6d1] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--border-control)] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
         >
           <Pencil size={15} />
           Editar
@@ -171,7 +171,7 @@ function Field({
         name={name}
         type={type}
         defaultValue={defaultValue}
-        className="mt-2 h-11 w-full rounded-md border border-[#cfd6d1] px-3 font-normal"
+        className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] px-3 font-normal"
       />
     </label>
   );
@@ -197,7 +197,7 @@ function StatusField({ defaultValue }: { defaultValue?: string }) {
       <select
         name="status"
         defaultValue={defaultValue ?? "active"}
-        className="mt-2 h-11 w-full rounded-md border border-[#cfd6d1] px-3 font-normal"
+        className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] px-3 font-normal"
       >
         <option value="active">Ativa</option>
         <option value="inactive">Inativa</option>
@@ -268,13 +268,13 @@ function RoomFields({
             name="photos"
             accept="image/jpeg,image/png,image/webp"
             onChange={(event) => setChosen(event.target.files?.length ?? 0)}
-            className="mt-2 w-full rounded-md border border-[#cfd6d1] p-2 text-sm font-normal file:mr-3 file:rounded file:border-0 file:bg-[#e9ece8] file:px-3 file:py-1.5 file:text-sm file:font-semibold"
+            className="mt-2 w-full rounded-md border border-[var(--border-control)] p-2 text-sm font-normal file:mr-3 file:rounded file:border-0 file:bg-[#e9ece8] file:px-3 file:py-1.5 file:text-sm file:font-semibold"
           />
           <span
             className={
               chosen > 6
                 ? "mt-1 block text-xs font-semibold text-[#a84331]"
-                : "mt-1 block text-xs font-normal text-[#78837e]"
+                : "mt-1 block text-xs font-normal text-[var(--text-secondary)]"
             }
           >
             {chosen > 6
@@ -324,7 +324,7 @@ function Checkbox({
       <span>
         {label}
         {hint && (
-          <span className="mt-0.5 block text-xs font-normal text-[#78837e]">
+          <span className="mt-0.5 block text-xs font-normal text-[var(--text-secondary)]">
             {hint}
           </span>
         )}
@@ -397,7 +397,7 @@ function Select({
         required
         name={name}
         defaultValue={defaultValue ?? ""}
-        className="mt-2 h-11 w-full rounded-md border border-[#cfd6d1] bg-white px-3 font-normal"
+        className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] bg-white px-3 font-normal"
       >
         <option value="">Selecione</option>
         {options.map((option) => (

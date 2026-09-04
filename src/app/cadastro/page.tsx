@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { Brand } from "@/components/brand";
 import { signUp } from "./actions";
+
+export const metadata: Metadata = { title: "Criar conta" };
 
 export default async function Page({
   searchParams,
@@ -8,7 +11,7 @@ export default async function Page({
 }) {
   const { convite = "", erro } = await searchParams;
   return (
-    <main className="grid min-h-screen place-items-center bg-[#f6f7f4] p-5">
+    <main id="conteudo" className="grid min-h-screen place-items-center bg-[#f6f7f4] p-5">
       <section className="w-full max-w-md rounded-lg border border-[#d9ded9] bg-white p-6 sm:p-8">
         <Brand />
         <h1 className="mt-8 text-2xl font-bold">Criar conta</h1>
@@ -67,7 +70,7 @@ function Field({
         type={type}
         autoComplete={autoComplete}
         minLength={minLength}
-        className="mt-2 h-11 w-full rounded-md border border-[#cfd6d1] px-3 font-normal"
+        className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] px-3 font-normal"
       />
     </label>
   );

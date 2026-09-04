@@ -37,7 +37,7 @@ export function RoomGallery({
                   "relative size-20 overflow-hidden rounded-md border-2 bg-[#e7eae6] transition",
                   index === active
                     ? "border-[#176b4d]"
-                    : "border-transparent hover:border-[#cfd6d1]",
+                    : "border-transparent hover:border-[var(--border-control)]",
                 )}
               >
                 <Image

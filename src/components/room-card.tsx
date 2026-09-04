@@ -71,7 +71,7 @@ export function RoomCard({
               href={`/salas/${room.slug}`}
               aria-label={`Ver ${room.name}`}
               title={`Ver ${room.name}`}
-              className="grid size-10 shrink-0 place-items-center rounded-md border border-[#d6dcd7] text-[#176b4d] hover:bg-[#176b4d] hover:text-white"
+              className="grid size-10 shrink-0 place-items-center rounded-md border border-[var(--border-control)] text-[#176b4d] hover:bg-[#176b4d] hover:text-white"
             >
               <ArrowUpRight size={19} />
             </Link>

@@ -26,7 +26,7 @@ export function CatalogBrowser({
         <div className="flex min-h-16 items-center gap-3 border-b border-[#e2e6e2] px-4 md:border-b-0 md:border-r">
           <Building2 size={19} className="text-[#176b4d]" />
           <span>
-            <span className="block text-[11px] font-bold uppercase text-[#7a857f]">
+            <span className="block text-[11px] font-bold uppercase text-[var(--text-secondary)]">
               Unidade
             </span>
             <span className="text-sm font-semibold">Todas as unidades</span>
@@ -35,7 +35,7 @@ export function CatalogBrowser({
         <label className="flex min-h-16 items-center gap-3 border-b border-[#e2e6e2] px-4 md:border-b-0 md:border-r">
           <CalendarDays size={19} className="text-[#176b4d]" />
           <span>
-            <span className="block text-[11px] font-bold uppercase text-[#7a857f]">
+            <span className="block text-[11px] font-bold uppercase text-[var(--text-secondary)]">
               Data
             </span>
             <input
@@ -50,7 +50,7 @@ export function CatalogBrowser({
         <label className="flex min-h-16 items-center gap-3 px-4 md:border-r">
           <UsersRound size={19} className="text-[#176b4d]" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-bold uppercase text-[#7a857f]">
+            <span className="block text-[11px] font-bold uppercase text-[var(--text-secondary)]">
               Pessoas
             </span>
             <select
@@ -73,14 +73,18 @@ export function CatalogBrowser({
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold">Disponíveis para você</h2>
-          <p className="mt-1 text-sm text-[#66736d]">
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-1 text-sm text-[#66736d]"
+          >
             {filtered.length}{" "}
             {filtered.length === 1 ? "sala encontrada" : "salas encontradas"}
           </p>
         </div>
         <select
           aria-label="Ordenar salas"
-          className="h-10 rounded-md border border-[#cfd6d1] bg-white px-3 text-sm font-semibold"
+          className="h-10 rounded-md border border-[var(--border-control)] bg-white px-3 text-sm font-semibold"
         >
           <option>Recomendadas</option>
           <option>Menor preço</option>

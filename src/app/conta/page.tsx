@@ -19,7 +19,7 @@ export default async function Page() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-10">
+      <main id="conteudo" className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-10">
         <div className="mb-7">
           <p className="text-sm font-bold text-[#176b4d]">SUA CONTA</p>
           <h1 className="mt-1 text-3xl font-bold">Editar conta</h1>
@@ -80,7 +80,7 @@ export default async function Page() {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-bold uppercase text-[#7b8680]">{label}</dt>
+      <dt className="text-xs font-bold uppercase text-[var(--text-secondary)]">{label}</dt>
       <dd className="mt-1 break-words text-sm font-semibold">{value}</dd>
     </div>
   );

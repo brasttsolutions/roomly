@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -9,6 +10,8 @@ import {
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { adminDashboardData } from "@/lib/server/admin-data";
+
+export const metadata: Metadata = { title: "Visão geral" };
 const bars = [42, 58, 48, 72, 67, 84, 74];
 export const dynamic = "force-dynamic";
 
@@ -33,7 +36,7 @@ export default async function AdminDashboard() {
         </div>
         <select
           aria-label="Unidade"
-          className="h-10 rounded-md border border-[#cfd6d1] bg-white px-3 text-sm font-semibold"
+          className="h-10 rounded-md border border-[var(--border-control)] bg-white px-3 text-sm font-semibold"
         >
           <option>Todas as unidades</option>
           <option>Ágora Tech Park</option>
@@ -43,7 +46,7 @@ export default async function AdminDashboard() {
       <section className="grid gap-px overflow-hidden border border-[#d9ded9] bg-[#d9ded9] sm:grid-cols-2 xl:grid-cols-4">
         {adminMetrics.map((metric) => (
           <div key={metric.label} className="bg-white p-5">
-            <p className="text-xs font-bold uppercase text-[#75817b]">
+            <p className="text-xs font-bold uppercase text-[var(--text-secondary)]">
               {metric.label}
             </p>
             <div className="mt-3 flex items-end justify-between">
@@ -65,7 +68,7 @@ export default async function AdminDashboard() {
           <div className="flex items-center justify-between border-b border-[#e2e6e2] p-5">
             <div>
               <h2 className="font-bold">Ocupação da semana</h2>
-              <p className="mt-1 text-xs text-[#75817b]">
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">
                 Horas reservadas por dia
               </p>
             </div>
@@ -83,7 +86,7 @@ export default async function AdminDashboard() {
                     style={{ height: `${height}%` }}
                   />
                 </div>
-                <span className="text-center text-[11px] font-bold text-[#7a857f]">
+                <span className="text-center text-[11px] font-bold text-[var(--text-secondary)]">
                   {["S", "T", "Q", "Q", "S", "S", "D"][index]}
                 </span>
               </div>
@@ -121,7 +124,7 @@ export default async function AdminDashboard() {
         <div className="flex items-center justify-between border-b border-[#e2e6e2] p-5">
           <div>
             <h2 className="font-bold">Reservas de hoje</h2>
-            <p className="mt-1 text-xs text-[#75817b]">
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
               18 reservas · 31 horas
             </p>
           </div>
@@ -135,7 +138,7 @@ export default async function AdminDashboard() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-left text-sm">
-            <thead className="bg-[#f5f6f3] text-xs uppercase text-[#75817b]">
+            <thead className="bg-[#f5f6f3] text-xs uppercase text-[var(--text-secondary)]">
               <tr>
                 <th className="px-5 py-3">Horário</th>
                 <th className="px-5 py-3">Sala</th>
@@ -191,7 +194,7 @@ function Health({
       </span>
       <div className="flex-1">
         <p className="text-sm font-semibold">{title}</p>
-        <p className="text-xs text-[#7a857f]">Atualizado agora</p>
+        <p className="text-xs text-[var(--text-secondary)]">Atualizado agora</p>
       </div>
       <Badge tone={tone}>{value}</Badge>
     </div>

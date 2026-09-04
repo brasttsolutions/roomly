@@ -102,7 +102,7 @@ function Field({
       {label}
       <input
         {...props}
-        className="mt-2 h-11 w-full rounded-md border border-[#cfd6d1] px-3 font-normal"
+        className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] px-3 font-normal"
       />
     </label>
   );

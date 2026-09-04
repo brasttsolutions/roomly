@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, MapPin, UsersRound } from "lucide-react";
@@ -9,6 +10,19 @@ import { rooms } from "@/lib/demo-data";
 import { isoDay } from "@/lib/utils";
 import { catalogRoomBySlug } from "@/lib/server/catalog";
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const room = await catalogRoomBySlug((await params).slug);
+  if (!room) return { title: "Sala não encontrada" };
+  return {
+    title: room.name,
+    description: `${room.name} em ${room.location}. Até ${room.capacity} pessoas.`,
+  };
+}
 
 export function generateStaticParams() {
   return rooms.map((room) => ({ slug: room.slug }));
@@ -25,7 +39,7 @@ export default async function RoomPage({
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+      <main id="conteudo" className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
         <Link
           href="/"
           className="mb-5 inline-flex items-center gap-1 text-sm font-bold text-[#53605a]"
@@ -47,7 +61,7 @@ export default async function RoomPage({
                     {[room.location, room.floor].filter(Boolean).join(" · ")}
                   </p>
                   {room.address && (
-                    <p className="mt-1 text-sm text-[#78837e]">
+                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
                       {room.address}
                     </p>
                   )}
@@ -98,7 +112,7 @@ export default async function RoomPage({
 function Spec({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase text-[#7b8680]">{label}</p>
+      <p className="text-xs font-bold uppercase text-[var(--text-secondary)]">{label}</p>
       <p className="mt-1 text-sm font-semibold">{value}</p>
     </div>
   );

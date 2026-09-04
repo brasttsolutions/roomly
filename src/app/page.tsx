@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { SiteHeader } from "@/components/site-header";
 import { catalogRooms } from "@/lib/server/catalog";
 import { isoDay } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  title: "Salas no seu tempo",
+  description:
+    "Reserve salas de reunião prontas para receber você. Pague, receba o código de acesso e entre.",
+};
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
@@ -9,7 +16,7 @@ export default async function HomePage() {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
+      <main id="conteudo" className="mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
         <div className="mb-7 max-w-2xl">
           <p className="mb-2 text-sm font-bold text-[#176b4d]">JOINVILLE, SC</p>
           <h1 className="text-3xl font-bold leading-tight sm:text-4xl">

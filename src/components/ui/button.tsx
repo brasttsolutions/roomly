@@ -17,7 +17,7 @@ export function Button({
         "inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-semibold transition disabled:opacity-50",
         variant === "primary" && "bg-[#176b4d] text-white hover:bg-[#11543d]",
         variant === "secondary" &&
-          "border border-[#cfd6d1] bg-white hover:bg-[#f0f3ef]",
+          "border border-[var(--border-control)] bg-white hover:bg-[#f0f3ef]",
         variant === "ghost" && "text-[#4e5b55] hover:bg-[#e9ece8]",
         variant === "danger" && "bg-[#b94332] text-white",
         size === "sm" && "h-9 px-3 text-sm",

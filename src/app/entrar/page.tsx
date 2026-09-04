@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { signIn } from "./actions";
+
+export const metadata: Metadata = { title: "Entrar" };
 
 export default async function Page({
   searchParams,
@@ -9,7 +12,7 @@ export default async function Page({
 }) {
   const error = (await searchParams).erro;
   return (
-    <main className="grid min-h-screen bg-white lg:grid-cols-[1fr_.9fr]">
+    <main id="conteudo" className="grid min-h-screen bg-white lg:grid-cols-[1fr_.9fr]">
       <section className="flex min-h-[640px] flex-col justify-between p-6 sm:p-10 lg:p-14">
         <Brand />
         <div className="mx-auto w-full max-w-md">
@@ -27,7 +30,7 @@ export default async function Page({
                 autoComplete="email"
                 required
                 placeholder="voce@empresa.com"
-                className="mt-2 h-11 w-full rounded-md border border-[#cfd6d1] px-3 font-normal"
+                className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] px-3 font-normal"
               />
             </label>
             <label className="block text-sm font-bold">
@@ -39,7 +42,7 @@ export default async function Page({
                 minLength={8}
                 required
                 placeholder="••••••••"
-                className="mt-2 h-11 w-full rounded-md border border-[#cfd6d1] px-3 font-normal"
+                className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] px-3 font-normal"
               />
             </label>
             {error && (
@@ -62,7 +65,7 @@ export default async function Page({
             </a>
           </p>
         </div>
-        <p className="flex items-center gap-2 text-xs text-[#7a857f]">
+        <p className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
           <ShieldCheck size={15} />
           Seus dados são protegidos.
         </p>

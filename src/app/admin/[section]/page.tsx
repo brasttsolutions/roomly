@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,16 @@ import {
 } from "@/components/admin/admin-create-dialog";
 import type { AdminResource } from "@/lib/admin-sections";
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ section: string }>;
+}): Promise<Metadata> {
+  const { section } = await params;
+  if (!(section in adminSections)) return { title: "Administração" };
+  return { title: adminSections[section as AdminSection].title };
+}
 export function generateStaticParams() {
   return Object.keys(adminSections).map((section) => ({ section }));
 }
@@ -81,15 +92,17 @@ export default async function SectionPage({
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-[#f4f6f3] text-[11px] uppercase text-[#75817b]">
+            <thead className="bg-[#f4f6f3] text-[11px] uppercase text-[var(--text-secondary)]">
               <tr>
                 {data.columns.map((column) => (
-                  <th key={column} className="px-5 py-3 font-bold">
+                  <th key={column} scope="col" className="px-5 py-3 font-bold">
                     {column}
                   </th>
                 ))}
                 {editable && (
-                  <th className="px-5 py-3 text-right font-bold">Ações</th>
+                  <th scope="col" className="px-5 py-3 text-right font-bold">
+                    Ações
+                  </th>
                 )}
               </tr>
             </thead>
@@ -130,7 +143,7 @@ export default async function SectionPage({
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between border-t border-[#e1e5e2] px-5 py-4 text-xs text-[#75817b]">
+        <div className="flex items-center justify-between border-t border-[#e1e5e2] px-5 py-4 text-xs text-[var(--text-secondary)]">
           <span>{rows.length} registros</span>
           <span>Página 1 de 1</span>
         </div>

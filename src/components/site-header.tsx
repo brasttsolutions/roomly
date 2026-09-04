@@ -43,7 +43,7 @@ export async function SiteHeader() {
           ) : (
             <Link
               href="/entrar"
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-[#cfd6d1] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
+              className="inline-flex h-10 items-center gap-2 rounded-md border border-[var(--border-control)] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
             >
               <CircleUserRound size={18} />
               <span className="hidden sm:inline">Entrar</span>

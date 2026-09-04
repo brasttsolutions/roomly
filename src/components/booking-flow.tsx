@@ -188,7 +188,7 @@ export function BookingFlow({
           />
         )}
         {method === "card" && !mercadoPagoPublicKey && (
-          <div className="mt-4 rounded-md border border-[#d2d9d3] bg-[#f6f7f4] p-4 text-sm text-[#66736d]">
+          <div className="mt-4 rounded-md border border-[var(--border-control)] bg-[#f6f7f4] p-4 text-sm text-[#66736d]">
             Pagamento por cartão em modo simulador. Nenhum dado de cartão é
             coletado.
           </div>
@@ -213,7 +213,7 @@ export function BookingFlow({
             {error}
           </p>
         )}
-        <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-[#78837e]">
+        <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-[var(--text-secondary)]">
           <ShieldCheck size={14} />
           Dados processados pelo Mercado Pago
         </p>
@@ -234,7 +234,7 @@ export function BookingFlow({
           value={selectedDate}
           min={addIsoDays(today, 1)}
           onChange={(event) => setSelectedDate(event.target.value)}
-          className="h-11 w-full rounded-md border border-[#d2d9d3] bg-white px-3 text-sm font-semibold"
+          className="h-11 w-full rounded-md border border-[var(--border-control)] bg-white px-3 text-sm font-semibold"
         />
       </label>
       <div className="mt-5">
@@ -246,7 +246,7 @@ export function BookingFlow({
             <button
               key={time}
               onClick={() => setSelectedTime(time)}
-              className={`h-10 rounded-md border text-sm font-semibold ${selectedTime === time ? "border-[#176b4d] bg-[#176b4d] text-white" : "border-[#d6dcd7] hover:border-[#176b4d]"}`}
+              className={`h-10 rounded-md border text-sm font-semibold ${selectedTime === time ? "border-[#176b4d] bg-[#176b4d] text-white" : "border-[var(--border-control)] hover:border-[#176b4d]"}`}
             >
               {time}
             </button>
@@ -288,7 +288,7 @@ export function BookingFlow({
           </span>
           <strong>{formatMoney(total)}</strong>
         </div>
-        <p className="mt-2 text-xs text-[#7b8680]">
+        <p className="mt-2 text-xs text-[var(--text-secondary)]">
           O horário fica reservado por 10 minutos durante o pagamento.
         </p>
       </div>

@@ -31,7 +31,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <div className="min-w-0 flex-1">
         <header className="flex h-16 items-center justify-between border-b border-[#dce1dc] bg-white px-4 sm:px-6">
           <button
-            className="grid size-10 place-items-center rounded-md border border-[#d6dcd7] lg:hidden"
+            className="grid size-10 place-items-center rounded-md border border-[var(--border-control)] lg:hidden"
             title="Abrir menu"
             aria-controls="admin-mobile-navigation"
             aria-expanded={menuOpen}
@@ -40,7 +40,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <Menu size={19} />
           </button>
           <div className="hidden max-w-sm flex-1 items-center gap-2 rounded-md bg-[#f0f2ef] px-3 md:flex">
-            <Search size={17} className="text-[#7a857f]" />
+            <Search size={17} className="text-[var(--text-secondary)]" />
             <input
               aria-label="Buscar no painel"
               placeholder="Buscar reserva, cliente ou sala"
