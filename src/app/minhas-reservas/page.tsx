@@ -18,7 +18,7 @@ export default async function Page() {
           </p>
         </div>
         <CustomerBookings
-          current={bookings === null ? undefined : bookings.current}
+          current={bookings?.current ?? null}
           history={bookings?.history}
         />
       </main>

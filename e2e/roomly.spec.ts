@@ -37,16 +37,23 @@ test("catalog filters rooms and keeps the booking surface reachable", async ({
  * O mês seguinte está inteiramente livre no simulador, então a escolha não
  * depende da hora em que a suíte roda — depois das 19h o dia de hoje não
  * comporta mais a reserva mínima de uma hora.
+ *
+ * `edge` separa os testes que reservam: o simulador guarda as reservas num mapa
+ * único do processo, e desktop e mobile rodam em paralelo contra ele. Dias
+ * diferentes garantem que um teste nunca veja a reserva do outro.
  */
-async function pickFreeDay(page: Page) {
-  await page.getByRole("button", { name: "Próximo mês" }).click();
-  await page.locator('[data-testid^="day-"][data-state="free"]').first().click();
+async function pickFreeDay(page: Page, edge: "first" | "last" = "first") {
+  await page.getByRole("button", { name: "Próximo mês", exact: true }).click();
+  const days = page.locator('[data-testid^="day-"][data-state="free"]');
+  await (edge === "first" ? days.first() : days.last()).click();
 }
 
 test("customer completes a simulated booking and receives access", async ({
   page,
-}) => {
-  await page.goto("/salas/sala-executiva");
+}, testInfo) => {
+  const slug =
+    testInfo.project.name === "mobile" ? "sala-foco" : "sala-executiva";
+  await page.goto(`/salas/${slug}`);
   await pickFreeDay(page);
   await page.getByTestId("continue-booking").click();
   await expect(
@@ -56,20 +63,35 @@ test("customer completes a simulated booking and receives access", async ({
   await expect(page.getByTestId("booking-confirmation")).toBeVisible();
   await expect(page.getByText("583 921")).toBeVisible();
 });
-test("customer cancellation revokes the visible access code", async ({
-  page,
-}) => {
+test("customer cancellation revokes the access", async ({ page }) => {
   await page.goto("/minhas-reservas");
+  // A listagem nunca mostra o código: ele vive só na página da reserva, com
+  // sessão ativa.
+  await expect(page.getByText("921")).toHaveCount(0);
   await page.getByRole("button", { name: "Cancelar reserva" }).click();
   // O cancelamento é uma server action: a asserção espera uma ida ao servidor,
   // que passa dos 5s padrão quando os projetos rodam em paralelo.
   await expect(page.getByText("Cancelada", { exact: true })).toBeVisible({
     timeout: 20_000,
   });
-  await expect(
-    page.getByText("Acesso revogado", { exact: false }),
-  ).toBeVisible();
-  await expect(page.getByText("583 921")).not.toBeVisible();
+  await expect(page.getByText("Acesso revogado")).toBeVisible();
+});
+
+test("booking detail shows the credential state and the extension offer", async ({
+  page,
+}) => {
+  await page.goto("/minhas-reservas");
+  await page.getByTestId("booking-detail-link").click();
+  await expect(page).toHaveURL(/\/minhas-reservas\/booking_demo/);
+
+  // A reserva começa em 45 minutos: o código ainda não foi liberado, e o card
+  // diz a que horas será — em vez de mostrar um número que não abre a porta.
+  const credential = page.getByRole("region", { name: "Código de acesso" });
+  await expect(credential).toContainText("Seu código aparece 5 minutos antes");
+
+  const extension = page.getByRole("region", { name: "Estender reserva" });
+  await expect(extension).toContainText("O expediente encerra às 20:00.");
+  await expect(page.getByTestId("extend-booking")).toContainText("Estender até");
 });
 test("header shows the signed-in account and opens its menu", async ({
   page,
@@ -176,7 +198,7 @@ test("a booked block cannot be selected and says why", async ({
   const slug =
     testInfo.project.name === "mobile" ? "atelier-criativo" : "sala-foco";
   await page.goto(`/salas/${slug}`);
-  await pickFreeDay(page);
+  await pickFreeDay(page, "last");
 
   const chosen = page.locator('[data-testid^="slot-"][aria-pressed="true"]');
   const day = await page
@@ -190,7 +212,7 @@ test("a booked block cannot be selected and says why", async ({
   await expect(page.getByTestId("booking-confirmation")).toBeVisible();
 
   await page.goto(`/salas/${slug}`);
-  await page.getByRole("button", { name: "Próximo mês" }).click();
+  await page.getByRole("button", { name: "Próximo mês", exact: true }).click();
   await page.getByTestId(String(day)).click();
 
   const taken = page.getByTestId(String(slot));

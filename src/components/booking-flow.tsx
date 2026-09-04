@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import {
   Check,
   ChevronLeft,
@@ -238,12 +239,12 @@ export function BookingFlow({
             </span>
           </div>
         </div>
-        <a
+        <Link
           href="/minhas-reservas"
           className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-md bg-action-primary text-sm font-bold text-text-on-accent"
         >
           Ver minhas reservas
-        </a>
+        </Link>
       </div>
     );
   if (stage === "payment")

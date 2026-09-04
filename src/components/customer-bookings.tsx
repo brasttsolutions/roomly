@@ -1,78 +1,32 @@
 "use client";
 import { useState, useTransition } from "react";
-import { CalendarDays, Clock3, KeyRound, MapPin } from "lucide-react";
+import Link from "next/link";
+import { CalendarDays, Clock3, MapPin } from "lucide-react";
+import { Alert } from "./ui/alert";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { EmptyState } from "./ui/empty-state";
 import { cancelBookingAction } from "@/app/minhas-reservas/actions";
 import type { CustomerBookingView } from "@/lib/server/customer-bookings";
 
-const demoBooking: CustomerBookingView = {
-  id: "booking_demo",
-  room: "Sala Executiva",
-  location: "Ágora Tech Park · 2º andar",
-  date: "03/09/2026",
-  time: "14:00",
-  endTime: "15:00",
-  status: "Confirmada",
-  accessCode: "583 921",
+const ACCESS_LABEL: Record<string, { text: string; tone: "success" | "warning" | "danger" | "neutral" }> = {
+  active: { text: "Acesso liberado", tone: "success" },
+  pending: { text: "Acesso sendo preparado", tone: "warning" },
+  revoked: { text: "Acesso revogado", tone: "neutral" },
+  failed: { text: "Falha ao liberar acesso", tone: "danger" },
 };
-const demoHistory: CustomerBookingView[] = [
-  {
-    id: "history_1",
-    room: "Sala Foco",
-    location: "Ágora Tech Park",
-    date: "28/08/2026",
-    time: "10:00",
-    endTime: "11:00",
-    status: "Concluída",
-  },
-  {
-    id: "history_2",
-    room: "Atelier Criativo",
-    location: "Centro Joinville",
-    date: "21/08/2026",
-    time: "13:00",
-    endTime: "16:00",
-    status: "Concluída",
-  },
-];
 
 export function CustomerBookings({
-  current = demoBooking,
-  history = demoHistory,
+  current,
+  history = [],
 }: {
-  current?: CustomerBookingView | null;
+  current: CustomerBookingView | null;
   history?: CustomerBookingView[];
 }) {
   const [cancelled, setCancelled] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const booking = current === undefined ? demoBooking : current;
-
-  if (!booking) {
-    return (
-      <div>
-        <section className="border-y border-border-subtle bg-white p-6">
-          <h2 className="text-lg font-bold">Nenhuma reserva futura</h2>
-          <p className="mt-2 text-sm text-text-secondary">
-            Suas próximas reservas aparecerão aqui.
-          </p>
-        </section>
-        <h2 className="mb-4 mt-8 text-sm font-bold uppercase text-text-secondary">
-          Histórico
-        </h2>
-        <div className="divide-y divide-border-subtle border-y border-border-subtle bg-white">
-          {history.map((item) => (
-            <History
-              key={item.id}
-              room={item.room}
-              date={`${item.date} · ${item.time} – ${item.endTime}`}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const booking = current;
 
   function cancel(bookingId: string) {
     startTransition(async () => {
@@ -81,102 +35,123 @@ export function CustomerBookings({
       else setCancelError(result.error ?? "Não foi possível cancelar.");
     });
   }
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+    <div className="grid gap-8">
       <section>
         <h2 className="mb-4 text-sm font-bold uppercase text-text-secondary">
           Próxima reserva
         </h2>
-        <article className="rounded-lg border border-border-subtle bg-white p-5 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <Badge tone={cancelled ? "danger" : "success"}>
-                {cancelled ? "Cancelada" : "Confirmada"}
-              </Badge>
-              <h3 className="mt-3 text-2xl font-bold">{booking.room}</h3>
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-text-secondary">
-                <MapPin size={15} />
-                {booking.location}
-              </p>
+        {booking ? (
+          <article className="rounded-lg border border-border-subtle bg-surface-raised p-5 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone={cancelled ? "neutral" : "success"}>
+                    {cancelled ? "Cancelada" : booking.status}
+                  </Badge>
+                  <AccessBadge
+                    status={cancelled ? "revoked" : booking.accessStatus}
+                  />
+                </div>
+                <h3 className="mt-3 text-2xl font-bold">{booking.room}</h3>
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-text-secondary">
+                  <MapPin size={15} aria-hidden="true" />
+                  {booking.location}
+                </p>
+              </div>
+              <div>
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <CalendarDays size={16} aria-hidden="true" />
+                  {booking.date}
+                </p>
+                <p className="mt-2 flex items-center gap-2 text-sm font-semibold">
+                  <Clock3 size={16} aria-hidden="true" />
+                  {booking.time} – {booking.endTime}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="flex items-center gap-2 text-sm font-semibold">
-                <CalendarDays size={16} />
-                {booking.date}
-              </p>
-              <p className="mt-2 flex items-center gap-2 text-sm font-semibold">
-                <Clock3 size={16} />
-                {booking.time} – {booking.endTime}
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 flex flex-wrap gap-2 border-t border-border-subtle pt-5">
-            <Button variant="secondary">Ver detalhes</Button>
-            {!cancelled && (
-              <Button
-                variant="ghost"
-                onClick={() => cancel(booking.id)}
-                disabled={pending}
+            <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-border-subtle pt-5">
+              {/* O código de acesso vive só na página da reserva, com sessão
+                  ativa — nunca numa listagem que cabe numa captura de tela. */}
+              <Link
+                href={`/minhas-reservas/${booking.id}`}
+                data-testid="booking-detail-link"
+                className="inline-flex h-11 items-center justify-center rounded-md border border-border-control px-4 text-sm font-semibold hover:bg-surface-page"
               >
-                {pending ? "Cancelando..." : "Cancelar reserva"}
-              </Button>
-            )}
-            {cancelError && (
-              <p role="alert" className="w-full text-sm text-danger-text">
-                {cancelError}
-              </p>
-            )}
-          </div>
-        </article>
-        <h2 className="mb-4 mt-8 text-sm font-bold uppercase text-text-secondary">
+                Ver acesso e detalhes
+              </Link>
+              {!cancelled && (
+                <Button
+                  variant="ghost"
+                  onClick={() => cancel(booking.id)}
+                  disabled={pending}
+                >
+                  {pending ? "Cancelando..." : "Cancelar reserva"}
+                </Button>
+              )}
+              {cancelError && (
+                <Alert tone="danger" className="w-full">
+                  {cancelError}
+                </Alert>
+              )}
+            </div>
+          </article>
+        ) : (
+          <EmptyState
+            title="Nenhuma reserva futura"
+            description="Escolha uma sala e um horário para ver sua reserva aqui."
+            action={
+              <Link
+                href="/"
+                className="inline-flex h-11 items-center justify-center rounded-md bg-action-primary px-5 text-sm font-bold text-text-on-accent"
+              >
+                Ver salas
+              </Link>
+            }
+          />
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-sm font-bold uppercase text-text-secondary">
           Histórico
         </h2>
-        <div className="divide-y divide-border-subtle border-y border-border-subtle bg-white">
-          {history.map((item) => (
-            <History
-              key={item.id}
-              room={item.room}
-              date={`${item.date} · ${item.time} – ${item.endTime}`}
-            />
-          ))}
-        </div>
-      </section>
-      <aside className="rounded-lg bg-surface-inverse p-6 text-white lg:sticky lg:top-24 lg:self-start">
-        <p className="flex items-center gap-2 text-sm text-white/70">
-          <KeyRound size={17} />
-          Código de acesso
-        </p>
-        {cancelled ? (
-          <p className="mt-5 text-sm leading-6 text-[var(--color-coral-300)]">
-            Acesso revogado. O estorno sera processado conforme a politica da
-            reserva.
+        {history.length === 0 ? (
+          <p className="rounded-lg border border-border-subtle bg-surface-raised p-5 text-sm text-text-secondary">
+            Suas reservas anteriores aparecem aqui.
           </p>
         ) : (
-          <>
-            <p className="mt-5 font-mono text-3xl font-bold">583 921</p>
-            <p className="mt-3 text-sm leading-6 text-white/65">
-              Válido em 03/09, das 13:55 às 15:05.
-            </p>
-            <div className="mt-6 h-1.5 overflow-hidden rounded bg-white/15">
-              <div className="h-full w-[72%] bg-[var(--color-success-400)]" />
-            </div>
-            <p className="mt-2 text-xs text-white/50">
-              Disponível 5 minutos antes do início
-            </p>
-          </>
+          <div className="divide-y divide-border-subtle rounded-lg border border-border-subtle bg-surface-raised">
+            {history.map((item) => (
+              <Link
+                key={item.id}
+                href={`/minhas-reservas/${item.id}`}
+                className="flex items-center justify-between gap-4 p-4 hover:bg-surface-page"
+              >
+                <div>
+                  <strong className="text-sm">{item.room}</strong>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    {item.date} · {item.time} – {item.endTime}
+                  </p>
+                </div>
+                <Badge>{item.status}</Badge>
+              </Link>
+            ))}
+          </div>
         )}
-      </aside>
+      </section>
     </div>
   );
 }
-function History({ room, date }: { room: string; date: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 p-4">
-      <div>
-        <strong className="text-sm">{room}</strong>
-        <p className="mt-1 text-xs text-[var(--text-secondary)]">{date}</p>
-      </div>
-      <Badge>Concluída</Badge>
-    </div>
-  );
+
+function AccessBadge({
+  status,
+}: {
+  status: CustomerBookingView["accessStatus"];
+}) {
+  if (!status) return null;
+  const label = ACCESS_LABEL[status];
+  if (!label) return null;
+  return <Badge tone={label.tone}>{label.text}</Badge>;
 }
