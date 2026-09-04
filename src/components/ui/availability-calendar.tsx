@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { DaySummary } from "@/modules/availability/domain";
 import { Button } from "./button";
 import { Skeleton, LoadingRegion } from "./skeleton";
-import { cn } from "@/lib/utils";
+import { addIsoMonths, capitalizeFirst, cn } from "@/lib/utils";
 
 const WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
@@ -17,13 +17,6 @@ const fmt = (day: string, options: Intl.DateTimeFormatOptions) =>
 
 const shiftDay = (day: string, amount: number) =>
   new Date(noon(day).getTime() + amount * 86_400_000).toISOString().slice(0, 10);
-
-const shiftMonth = (month: string, amount: number) => {
-  const [year, index] = month.split("-").map(Number);
-  return new Date(Date.UTC(year, index - 1 + amount, 1))
-    .toISOString()
-    .slice(0, 7);
-};
 
 const selectable = (summary?: DaySummary) =>
   summary?.state === "free" || summary?.state === "partial";
@@ -83,8 +76,8 @@ export function AvailabilityCalendar({
       ArrowDown: () => move(shiftDay(day, 7)),
       Home: () => move(shiftDay(day, -weekday)),
       End: () => move(shiftDay(day, 6 - weekday)),
-      PageUp: () => move(`${shiftMonth(month, -1)}-${day.slice(8)}`),
-      PageDown: () => move(`${shiftMonth(month, 1)}-${day.slice(8)}`),
+      PageUp: () => move(`${addIsoMonths(month, -1)}-${day.slice(8)}`),
+      PageDown: () => move(`${addIsoMonths(month, 1)}-${day.slice(8)}`),
     };
     const action = moves[event.key];
     if (!action) return;
@@ -109,7 +102,7 @@ export function AvailabilityCalendar({
           variant="icon"
           size="sm"
           aria-label="Mês anterior"
-          onClick={() => onMonthChange(shiftMonth(month, -1))}
+          onClick={() => onMonthChange(addIsoMonths(month, -1))}
         >
           <ChevronLeft size={18} />
         </Button>
@@ -120,7 +113,7 @@ export function AvailabilityCalendar({
           variant="icon"
           size="sm"
           aria-label="Próximo mês"
-          onClick={() => onMonthChange(shiftMonth(month, 1))}
+          onClick={() => onMonthChange(addIsoMonths(month, 1))}
         >
           <ChevronRight size={18} />
         </Button>
@@ -276,8 +269,5 @@ function shortLabel(summary?: DaySummary) {
   return summary.free;
 }
 
-/** "outubro de 2026" vira "Outubro de 2026", não "Outubro De 2026". */
-function monthTitle(month: string) {
-  const label = fmt(`${month}-01`, { month: "long", year: "numeric" });
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
+const monthTitle = (month: string) =>
+  capitalizeFirst(fmt(`${month}-01`, { month: "long", year: "numeric" }));

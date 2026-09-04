@@ -65,7 +65,7 @@ está ocupado é informação pública de uma sala à venda.
     "state": "partial",
     "free": 14,
     "total": 24,
-    "nextFree": "08:00",
+    "nextFreeTimes": ["08:00", "08:30", "09:00"],
     "label": "14 livres"
   }
 }
@@ -89,6 +89,22 @@ sem essa distinção um dia intocado apareceria como parcial.
 Resumo de todas as salas ativas num dia, para o filtro do catálogo. `unidade`
 casa com o nome da unidade, sem diferenciar maiúsculas. Unidade inexistente
 devolve `200` com lista vazia, não erro.
+
+Cada sala traz `nextFreeTimes` — até três horários, que é o que cabe na linha do
+card — e, **só quando o dia pedido não tem nenhum**, `nextDay` com o primeiro
+dia livre nas duas semanas seguintes:
+
+```json
+{
+  "slug": "sala-executiva",
+  "state": "full",
+  "nextFreeTimes": [],
+  "nextDay": { "day": "2026-09-05", "time": "08:00" }
+}
+```
+
+A busca à frente cabe na mesma ida ao banco: a janela de ocupação já é buscada
+para quinze dias, e cada dia extra é aritmética.
 
 ## Consumidores
 

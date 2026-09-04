@@ -82,6 +82,26 @@ export function useDayAvailability(slug: string, day: string | null) {
   );
 }
 
+export type RoomDayAvailability = DaySummary & {
+  slug: string;
+  name: string;
+  unit: string;
+  /** Primeiro dia com horário livre, quando o dia pedido não tem nenhum. */
+  nextDay: { day: string; time: string } | null;
+};
+
+export type CatalogAvailability = {
+  day: string;
+  unit: string | null;
+  rooms: RoomDayAvailability[];
+};
+
+export function useCatalogAvailability(day: string, unit: string | null) {
+  const query = new URLSearchParams({ data: day });
+  if (unit) query.set("unidade", unit);
+  return useJson<CatalogAvailability>(`/api/disponibilidade?${query}`);
+}
+
 export function useMonthAvailability(slug: string, month: string | null) {
   return useJson<MonthAvailability>(
     month ? `/api/salas/${slug}/calendario?mes=${month}` : null,

@@ -1,5 +1,8 @@
 import { createBookingSchema } from "@/modules/reservations/schemas";
-import { createBooking } from "@/modules/reservations/application";
+import {
+  createBooking,
+  PaymentFailedAfterHold,
+} from "@/modules/reservations/application";
 import { bookingRepository } from "@/lib/server/booking-repository";
 import { paymentProvider } from "@/lib/server/payment-provider";
 import { clientAddress, json, rateLimit, requestId } from "@/lib/server/http";
@@ -44,12 +47,10 @@ export async function POST(request: Request) {
     return json({ error: "JSON inválido." }, 400, id);
   }
   const parsed = createBookingSchema.safeParse(raw);
-  if (!parsed.success)
-    return json(
-      { error: "Dados inválidos.", issues: parsed.error.flatten().fieldErrors },
-      422,
-      id,
-    );
+  if (!parsed.success) {
+    const issues = parsed.error.flatten().fieldErrors;
+    return json({ error: describeIssues(issues), issues }, 422, id);
+  }
   try {
     const result = await createBooking(bookingRepository(), paymentProvider(), {
       companyId: identity.companyId,
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
         booking: result.booking,
         checkout: result.checkout,
         duplicate: result.duplicate || undefined,
-        expiresInSeconds: 600,
+        holdExpiresAt: result.booking.holdExpiresAt,
       },
       result.duplicate ? 200 : 201,
       id,
@@ -82,6 +83,47 @@ export async function POST(request: Request) {
       requestId: id,
       error: error instanceof Error ? error.message : "unknown",
     });
+    if (error instanceof PaymentFailedAfterHold) {
+      return json(
+        {
+          error:
+            "Não foi possível concluir o pagamento. Seu horário segue reservado enquanto o contador estiver correndo.",
+          holdExpiresAt: error.holdExpiresAt,
+        },
+        503,
+        id,
+      );
+    }
     return json({ error: "Não foi possível concluir a reserva." }, 503, id);
   }
+}
+
+/** Nomes dos campos como a pessoa os vê na tela, não como o schema os chama. */
+const FIELD_LABELS: Record<string, string> = {
+  roomId: "Sala",
+  startAt: "Início",
+  endAt: "Término",
+  paymentMethod: "Forma de pagamento",
+  cardToken: "Dados do cartão",
+  paymentMethodId: "Bandeira do cartão",
+  issuerId: "Emissor do cartão",
+  installments: "Parcelas",
+  idempotencyKey: "Identificador da tentativa",
+};
+
+/**
+ * "Dados inválidos" obriga a pessoa a adivinhar qual campo corrigir (WCAG
+ * 3.3.3). A mensagem nomeia o campo e diz o que se espera dele.
+ */
+function describeIssues(issues: Record<string, string[] | undefined>) {
+  const described = Object.entries(issues)
+    .map(([field, messages]) => {
+      const message = messages?.[0];
+      if (!message) return null;
+      return `${FIELD_LABELS[field] ?? field}: ${message}`;
+    })
+    .filter(Boolean);
+  return described.length > 0
+    ? described.join(" ")
+    : "Não foi possível validar os dados da reserva.";
 }

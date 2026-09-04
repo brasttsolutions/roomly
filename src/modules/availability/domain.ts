@@ -32,8 +32,8 @@ export type DaySummary = Readonly<{
   state: DayState;
   free: number;
   total: number;
-  /** Primeiro horário que aceita a duração mínima, ou `null`. */
-  nextFree: string | null;
+  /** Até três horários que aceitam a duração mínima. Vazio quando não há. */
+  nextFreeTimes: readonly string[];
   label: string;
 }>;
 
@@ -197,7 +197,9 @@ export function summariseDay(
     state,
     free,
     total,
-    nextFree: bookable[0]?.time ?? null,
+    // Três bastam para o card responder "posso usar hoje?"; a lista inteira
+    // está na página da sala.
+    nextFreeTimes: bookable.slice(0, 3).map((block) => block.time),
     label: dayLabel(state, free),
   };
 }

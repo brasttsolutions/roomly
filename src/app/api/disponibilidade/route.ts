@@ -3,11 +3,15 @@ import {
   summariseDay,
   zonedInstant,
 } from "@/modules/availability/domain";
+import type { AvailabilityConfig, BusyInterval } from "@/modules/availability/domain";
 import { daySchema } from "@/modules/availability/schemas";
 import { availabilityRooms, busyIntervals } from "@/lib/server/availability";
 import { clientAddress, json, rateLimit, requestId } from "@/lib/server/http";
 import { logEvent } from "@/lib/server/logger";
-import { isoDay } from "@/lib/utils";
+import { addIsoDays, isoDay } from "@/lib/utils";
+
+/** Dias à frente que o catálogo olha para responder "e quando, então?". */
+const LOOKAHEAD_DAYS = 14;
 
 /** Disponibilidade de todas as salas num dia — alimenta o filtro do catálogo. */
 export async function GET(request: Request) {
@@ -35,33 +39,38 @@ export async function GET(request: Request) {
     if (rooms.length === 0) {
       return json({ day, unit: requestedUnit ?? null, rooms: [] }, 200, id);
     }
-    // A janela usa o fuso da primeira sala apenas para buscar; o estado de cada
-    // bloco é calculado com o fuso da própria sala.
+    // Uma consulta cobre o dia pedido e a janela de busca do próximo dia livre.
+    // Repetir a ida ao banco por dia transformaria um card em quinze consultas.
+    const zone = rooms[0].config.timeZone;
     const busy = await busyIntervals(
       rooms,
-      zonedInstant(day, 0, rooms[0].config.timeZone),
-      zonedInstant(day, 24 * 60, rooms[0].config.timeZone),
+      zonedInstant(day, 0, zone),
+      zonedInstant(addIsoDays(day, LOOKAHEAD_DAYS + 1), 0, zone),
     );
     const now = new Date();
     return json(
       {
         day,
         unit: requestedUnit ?? null,
-        rooms: rooms.map((room) => ({
-          slug: room.slug,
-          name: room.name,
-          unit: room.locationName,
-          ...summariseDay(
+        rooms: rooms.map((room) => {
+          const intervals = busy.get(room.id) ?? [];
+          const summary = summariseDay(
             day,
-            buildDayBlocks({
-              day,
-              config: room.config,
-              busy: busy.get(room.id) ?? [],
-              now,
-            }),
+            buildDayBlocks({ day, config: room.config, busy: intervals, now }),
             room.config.minimumMinutes,
-          ),
-        })),
+          );
+          return {
+            slug: room.slug,
+            name: room.name,
+            unit: room.locationName,
+            ...summary,
+            // Só faz sentido dizer "próximo: amanhã às 9h" quando hoje não serve.
+            nextDay:
+              summary.nextFreeTimes.length > 0
+                ? null
+                : lookAhead(day, room.config, intervals, now),
+          };
+        }),
       },
       200,
       id,
@@ -73,4 +82,23 @@ export async function GET(request: Request) {
     });
     return json({ error: "Não foi possível ler a disponibilidade." }, 503, id);
   }
+}
+
+function lookAhead(
+  from: string,
+  config: AvailabilityConfig,
+  busy: readonly BusyInterval[],
+  now: Date,
+) {
+  for (let ahead = 1; ahead <= LOOKAHEAD_DAYS; ahead += 1) {
+    const day = addIsoDays(from, ahead);
+    const summary = summariseDay(
+      day,
+      buildDayBlocks({ day, config, busy, now }),
+      config.minimumMinutes,
+    );
+    const time = summary.nextFreeTimes[0];
+    if (time) return { day, time };
+  }
+  return null;
 }

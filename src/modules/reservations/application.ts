@@ -24,6 +24,8 @@ export type BookingRecord = Readonly<{
   endAt: string;
   status: "awaiting_payment";
   amountCents: number;
+  /** Instante em que o hold vence. É o relógio real do contador do checkout. */
+  holdExpiresAt: string;
   paymentId?: string;
 }>;
 
@@ -40,6 +42,17 @@ export interface BookingRepository {
   }): Promise<void>;
 }
 
+/** Pagamento falhou com o hold já criado — o horário continua reservado. */
+export class PaymentFailedAfterHold extends Error {
+  constructor(
+    readonly holdExpiresAt: string,
+    cause: unknown,
+  ) {
+    super("payment_failed_after_hold", { cause });
+    this.name = "PaymentFailedAfterHold";
+  }
+}
+
 export async function createBooking(
   repository: BookingRepository,
   paymentProvider: PaymentProvider,
@@ -50,23 +63,30 @@ export async function createBooking(
     return { ...hold, checkout: `existing:${hold.booking.paymentId}` };
   }
 
-  const charge = await paymentProvider.createCharge({
-    bookingId: hold.booking.id,
-    amountCents: hold.booking.amountCents,
-    method: command.paymentMethod,
-    idempotencyKey: command.idempotencyKey,
-    payerEmail: command.payerEmail,
-    cardToken: command.cardToken,
-    paymentMethodId: command.paymentMethodId,
-    issuerId: command.issuerId,
-    installments: command.installments,
-  });
-  await repository.recordPendingPayment({
-    booking: hold.booking,
-    externalPaymentId: charge.externalId,
-    paymentMethod: command.paymentMethod,
-    idempotencyKey: command.idempotencyKey,
-  });
+  let charge;
+  try {
+    charge = await paymentProvider.createCharge({
+      bookingId: hold.booking.id,
+      amountCents: hold.booking.amountCents,
+      method: command.paymentMethod,
+      idempotencyKey: command.idempotencyKey,
+      payerEmail: command.payerEmail,
+      cardToken: command.cardToken,
+      paymentMethodId: command.paymentMethodId,
+      issuerId: command.issuerId,
+      installments: command.installments,
+    });
+    await repository.recordPendingPayment({
+      booking: hold.booking,
+      externalPaymentId: charge.externalId,
+      paymentMethod: command.paymentMethod,
+      idempotencyKey: command.idempotencyKey,
+    });
+  } catch (cause) {
+    // A sala já está bloqueada por este hold. Quem vai tentar de novo precisa
+    // saber por quanto tempo o horário ainda é dele.
+    throw new PaymentFailedAfterHold(hold.booking.holdExpiresAt, cause);
+  }
   return {
     booking: { ...hold.booking, paymentId: charge.externalId },
     duplicate: hold.duplicate,

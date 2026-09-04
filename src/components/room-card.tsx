@@ -1,31 +1,47 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, MapPin, UsersRound } from "lucide-react";
+import { CalendarClock, MapPin, UsersRound } from "lucide-react";
 import type { Room } from "@/lib/demo-data";
-import { formatMoney } from "@/lib/utils";
+import type { RoomDayAvailability } from "./use-availability";
+import { formatIsoDay, formatMoney } from "@/lib/utils";
 import { Badge } from "./ui/badge";
+import { Skeleton } from "./ui/skeleton";
+import { cn } from "@/lib/utils";
+
+/**
+ * O card mais importante do produto: é onde a decisão de reservar começa. A
+ * linha de horários é o que o separa de um card de e-commerce — responde
+ * "posso usar hoje?" sem exigir clique.
+ */
 export function RoomCard({
   room,
+  availability,
+  loading = false,
   featured = false,
 }: {
   room: Room;
+  availability?: RoomDayAvailability;
+  loading?: boolean;
   featured?: boolean;
 }) {
+  const closed =
+    availability?.state === "full" ||
+    availability?.state === "past" ||
+    availability?.state === "closed";
   return (
     <article
-      className={
-        featured
-          ? "group grid overflow-hidden rounded-lg border border-border-subtle bg-white lg:grid-cols-[1.35fr_1fr]"
-          : "group overflow-hidden rounded-lg border border-border-subtle bg-white"
-      }
+      className={cn(
+        "group overflow-hidden rounded-lg border border-border-subtle bg-surface-raised",
+        featured && "grid lg:grid-cols-[1.35fr_1fr]",
+      )}
     >
-      <Link
-        href={`/salas/${room.slug}`}
-        className={
-          featured
-            ? "relative block min-h-[280px] overflow-hidden lg:min-h-[410px]"
-            : "relative block aspect-[4/3] overflow-hidden"
-        }
+      {/* Um destino, um link: a foto deixou de ser link para o leitor de tela
+          anunciar "Sala Executiva, link" uma vez, e não o card inteiro duas. */}
+      <div
+        className={cn(
+          "relative overflow-hidden",
+          featured ? "min-h-[280px] lg:min-h-[410px]" : "aspect-[4/3]",
+        )}
       >
         <Image
           src={room.image}
@@ -36,7 +52,10 @@ export function RoomCard({
               ? "(max-width:1024px) 100vw,55vw"
               : "(max-width:768px) 100vw,40vw"
           }
-          className="object-cover transition duration-500 group-hover:scale-[1.025]"
+          className={cn(
+            "object-cover transition duration-500 group-hover:scale-[1.025]",
+            closed && "opacity-60",
+          )}
           priority={featured}
         />
         {featured && (
@@ -44,64 +63,132 @@ export function RoomCard({
             Mais reservada
           </Badge>
         )}
-      </Link>
+      </div>
       <div
-        className={
-          featured ? "flex flex-col justify-between p-6 sm:p-8" : "p-5"
-        }
+        className={cn(
+          "flex flex-col justify-between",
+          featured ? "p-6 sm:p-8" : "p-5",
+        )}
       >
         <div>
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <div>
-              <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
-                <MapPin size={14} />
-                {room.location}
-              </p>
-              <h2
-                className={
-                  featured
-                    ? "text-2xl font-bold sm:text-3xl"
-                    : "text-xl font-bold"
-                }
-              >
-                {room.name}
-              </h2>
-            </div>
+          <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+            <MapPin size={14} aria-hidden="true" />
+            {room.location}
+          </p>
+          {/* h3: o nome da sala vive sob o "Disponíveis hoje" da lista, e um h2
+              aqui quebraria o sumário do documento. */}
+          <h3
+            className={
+              featured ? "text-2xl font-bold sm:text-3xl" : "text-xl font-bold"
+            }
+          >
             <Link
               href={`/salas/${room.slug}`}
-              aria-label={`Ver ${room.name}`}
-              title={`Ver ${room.name}`}
-              className="grid size-10 shrink-0 place-items-center rounded-md border border-[var(--border-control)] text-text-link hover:bg-action-primary hover:text-text-on-accent"
+              className="hover:text-text-link focus-visible:text-text-link"
             >
-              <ArrowUpRight size={19} />
+              {room.name}
             </Link>
-          </div>
-          <p className="mb-5 text-sm leading-6 text-text-secondary">
-            {room.description}
-          </p>
-          <div className="flex flex-wrap gap-2">
+          </h3>
+          {room.address && (
+            <p className="mt-1 text-xs text-text-secondary">{room.address}</p>
+          )}
+
+          <div className="mt-4 flex flex-wrap gap-2">
             <Badge>
-              <UsersRound size={13} className="mr-1" /> até {room.capacity}
+              <UsersRound size={13} aria-hidden="true" /> até {room.capacity}
             </Badge>
-            {room.features.slice(0, featured ? 4 : 2).map((f) => (
-              <Badge key={f}>{f}</Badge>
+            {room.features.slice(0, featured ? 4 : 2).map((feature) => (
+              <Badge key={feature}>{feature}</Badge>
             ))}
+            {room.features.length > (featured ? 4 : 2) && (
+              <Badge>+{room.features.length - (featured ? 4 : 2)}</Badge>
+            )}
+          </div>
+
+          <div className="mt-4 min-h-11">
+            {loading ? (
+              <Skeleton className="h-7 w-48" />
+            ) : (
+              <AvailabilityLine availability={availability} />
+            )}
           </div>
         </div>
-        <div
-          className={
-            featured
-              ? "mt-10 border-t border-border-subtle pt-5"
-              : "mt-5 border-t border-border-subtle pt-4"
-          }
-        >
-          <span className="text-xs text-text-secondary">a partir de</span>
-          <p className="text-xl font-bold">
-            {formatMoney(room.hourlyPriceCents)}
-            <span className="text-sm font-normal text-text-secondary"> / hora</span>
+
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-3 border-t border-border-subtle pt-4">
+          <p>
+            <span className="block text-xs text-text-secondary">
+              a partir de
+            </span>
+            <span
+              className="text-xl font-bold"
+              aria-label={`${Math.round(room.hourlyPriceCents / 100)} reais por hora`}
+            >
+              {formatMoney(room.hourlyPriceCents)}
+              <span className="text-sm font-normal text-text-secondary">
+                {" "}
+                / hora
+              </span>
+            </span>
           </p>
+          <Link
+            href={`/salas/${room.slug}`}
+            data-testid={`book-${room.slug}`}
+            className={cn(
+              "inline-flex h-11 shrink-0 items-center justify-center rounded-md px-5 text-sm font-bold",
+              closed
+                ? "border border-border-control text-text-primary hover:bg-surface-page"
+                : "bg-action-primary text-text-on-accent hover:bg-action-primary-hover",
+            )}
+          >
+            {closed ? "Ver agenda" : "Reservar"}
+          </Link>
         </div>
       </div>
     </article>
+  );
+}
+
+function AvailabilityLine({
+  availability,
+}: {
+  availability?: RoomDayAvailability;
+}) {
+  if (!availability) return null;
+
+  if (availability.nextFreeTimes.length > 0) {
+    return (
+      <p className="flex flex-wrap items-center gap-2 text-sm">
+        <Badge tone="success">Livre</Badge>
+        <span className="font-semibold tabular-nums">
+          {availability.nextFreeTimes.join(" · ")}
+        </span>
+        {availability.free > availability.nextFreeTimes.length && (
+          <span className="text-text-secondary">
+            +{availability.free - availability.nextFreeTimes.length}
+          </span>
+        )}
+      </p>
+    );
+  }
+
+  if (availability.nextDay) {
+    return (
+      <p className="flex flex-wrap items-center gap-2 text-sm">
+        <Badge>
+          <CalendarClock size={13} aria-hidden="true" />
+          Próximo
+        </Badge>
+        <span className="font-semibold">
+          {formatIsoDay(availability.nextDay.day)} às{" "}
+          {availability.nextDay.time}
+        </span>
+      </p>
+    );
+  }
+
+  return (
+    <p className="text-sm">
+      <Badge tone="warning">Sem horário nas próximas duas semanas</Badge>
+    </p>
   );
 }

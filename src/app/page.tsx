@@ -26,7 +26,11 @@ export default async function HomePage() {
             Escolha o espaço, reserve seu horário e receba o acesso sem espera.
           </p>
         </div>
-        <CatalogBrowser rooms={rooms} today={isoDay()} />
+        <CatalogBrowser
+          rooms={rooms}
+          units={[...new Set(rooms.map((room) => room.location))].sort()}
+          today={isoDay()}
+        />
       </main>
     </>
   );

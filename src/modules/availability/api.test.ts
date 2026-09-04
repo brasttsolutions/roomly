@@ -16,6 +16,7 @@ const DAY = "2026-09-10";
 const NEXT_DAY = "2026-09-11";
 const ZONE = "America/Sao_Paulo";
 const NOW = new Date("2026-09-10T13:00:00-03:00");
+const LAST_YEAR = "2025-09-10";
 
 const at = (day: string, time: string) =>
   zonedInstant(
@@ -147,10 +148,32 @@ describe("GET /api/disponibilidade", () => {
     const response = await catalogRoute(get(`/api/disponibilidade?data=${DAY}`));
     expect(response.status).toBe(200);
     const body = (await response.json()) as {
-      rooms: Array<{ slug: string; state: string; nextFree: string | null }>;
+      rooms: Array<{
+        slug: string;
+        state: string;
+        nextFreeTimes: string[];
+        nextDay: { day: string; time: string } | null;
+      }>;
     };
     expect(body.rooms).toHaveLength(rooms.length);
-    expect(body.rooms.find((r) => r.slug === ROOM.slug)?.state).toBe("partial");
+    const room = body.rooms.find((item) => item.slug === ROOM.slug);
+    expect(room?.state).toBe("partial");
+    // 13:00 é o agora do teste; 15:00 está reservado e 16:00 em limpeza.
+    expect(room?.nextFreeTimes).toEqual(["13:00", "13:30", "14:00"]);
+    expect(room?.nextDay).toBeNull();
+  });
+
+  it("aponta o próximo dia livre quando o dia pedido não tem horário", async () => {
+    const response = await catalogRoute(
+      get(`/api/disponibilidade?data=${LAST_YEAR}`),
+    );
+    const body = (await response.json()) as {
+      rooms: Array<{ nextFreeTimes: string[]; nextDay: unknown }>;
+    };
+    // Um dia inteiramente vencido não tem horário, e o dia seguinte também não:
+    // a busca de catorze dias devolve nada em vez de mentir.
+    expect(body.rooms[0].nextFreeTimes).toEqual([]);
+    expect(body.rooms[0].nextDay).toBeNull();
   });
 
   it("filtra pela unidade", async () => {

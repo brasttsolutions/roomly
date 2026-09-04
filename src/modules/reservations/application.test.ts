@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { PaymentProvider } from "@/integrations/contracts";
 import {
   createBooking,
+  PaymentFailedAfterHold,
   type BookingCommand,
   type BookingRepository,
 } from "./application";
@@ -25,6 +26,7 @@ const booking = {
   endAt: command.endAt,
   status: "awaiting_payment" as const,
   amountCents: 18000,
+  holdExpiresAt: "2026-09-03T16:10:00.000Z",
 };
 
 function dependencies(duplicate = false, paymentId?: string) {
@@ -74,7 +76,24 @@ describe("booking application", () => {
     );
     await expect(
       createBooking(repository, paymentProvider, command),
-    ).rejects.toThrow("provider_offline");
+    ).rejects.toBeInstanceOf(PaymentFailedAfterHold);
     expect(repository.recordPendingPayment).not.toHaveBeenCalled();
+  });
+
+  it("reports the live hold when the payment fails", async () => {
+    const { repository, paymentProvider } = dependencies();
+    vi.mocked(paymentProvider.createCharge).mockRejectedValue(
+      new Error("provider_offline"),
+    );
+    // O hold já bloqueou a sala: a falha precisa dizer até quando, e sem perder
+    // a causa original para o log.
+    let failure: PaymentFailedAfterHold | undefined;
+    try {
+      await createBooking(repository, paymentProvider, command);
+    } catch (error) {
+      failure = error as PaymentFailedAfterHold;
+    }
+    expect(failure?.holdExpiresAt).toBe(booking.holdExpiresAt);
+    expect((failure?.cause as Error).message).toBe("provider_offline");
   });
 });

@@ -63,3 +63,26 @@ export const formatIsoWeekday = (day: string) =>
     timeZone: BOOKING_TIME_ZONE,
     weekday: "long",
   }).format(dayInBookingZone(day));
+
+/** "1h30" em vez de "1.5h": ninguém pensa a duração de uma sala em decimal. */
+export const formatDuration = (minutes: number) => {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest}min`;
+  return rest === 0 ? `${hours}h` : `${hours}h${String(rest).padStart(2, "0")}`;
+};
+
+/** Soma meses a um `AAAA-MM`, virando o ano quando precisa. */
+export const addIsoMonths = (month: string, amount: number) => {
+  const [year, index] = month.split("-").map(Number);
+  return new Date(Date.UTC(year, index - 1 + amount, 1))
+    .toISOString()
+    .slice(0, 7);
+};
+
+/**
+ * Maiúscula só na primeira letra. A classe `capitalize` do CSS trataria cada
+ * palavra e escreveria "Quinta-Feira" e "Outubro De 2026".
+ */
+export const capitalizeFirst = (text: string) =>
+  text.charAt(0).toUpperCase() + text.slice(1);

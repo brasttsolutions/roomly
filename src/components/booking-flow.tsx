@@ -14,12 +14,20 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { Room } from "@/lib/demo-data";
-import { formatIsoDay, formatIsoWeekday, formatMoney } from "@/lib/utils";
+import {
+  addIsoMonths,
+  formatDuration,
+  formatIsoDay,
+  formatIsoWeekday,
+  formatMoney,
+} from "@/lib/utils";
 import { useDayAvailability, useMonthAvailability } from "./use-availability";
 import { Alert } from "./ui/alert";
+import { BookingSummary } from "./ui/booking-summary";
 import { AvailabilityCalendar } from "./ui/availability-calendar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { Stepper } from "./ui/stepper";
 import { TimeSlotPicker } from "./ui/time-slot-picker";
 import type { CardPaymentData } from "./mercado-pago-card";
 
@@ -29,6 +37,7 @@ const MercadoPagoCard = dynamic(
 );
 
 type Stage = "schedule" | "payment" | "confirmed";
+const STEPS = ["Horário", "Pagamento", "Confirmação"] as const;
 export function BookingFlow({
   room,
   today,
@@ -50,6 +59,7 @@ export function BookingFlow({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<ConfirmedSlot | null>(null);
+  const [holdExpiresAt, setHoldExpiresAt] = useState<string | null>(null);
   const idempotencyKey = useRef<string | null>(null);
 
   const day = useDayAvailability(room.slug, selectedDate);
@@ -93,6 +103,12 @@ export function BookingFlow({
     () => Math.round((room.hourlyPriceCents * activeDuration) / 60),
     [activeDuration, room.hourlyPriceCents],
   );
+  const nextOpenDay =
+    calendar.data?.days.find(
+      (summary) =>
+        summary.day > selectedDate &&
+        (summary.state === "free" || summary.state === "partial"),
+    )?.day ?? null;
   const timeZone = available?.timeZone ?? "America/Sao_Paulo";
   const endHour = selectedBlock
     ? clockLabel(
@@ -100,6 +116,13 @@ export function BookingFlow({
         timeZone,
       )
     : "--:--";
+
+  /** O hold venceu: o horário voltou para a grade e o pagamento não vale mais. */
+  function expireHold() {
+    setHoldExpiresAt(null);
+    setError("O horário reservado expirou. Escolha outro horário.");
+    setStage("schedule");
+  }
 
   async function confirm(card?: CardPaymentData) {
     setSubmitting(true);
@@ -132,8 +155,14 @@ export function BookingFlow({
           idempotencyKey: idempotencyKey.current,
         }),
       });
+      const body = (await response.json()) as {
+        error?: string;
+        holdExpiresAt?: string;
+      };
+      // Mesmo quando o pagamento falha, o hold pode já existir: o contador do
+      // resumo passa a valer para quem vai tentar de novo.
+      if (body.holdExpiresAt) setHoldExpiresAt(body.holdExpiresAt);
       if (!response.ok) {
-        const body = (await response.json()) as { error?: string };
         throw new Error(body.error ?? "Não foi possível criar a reserva.");
       }
       localStorage.setItem(
@@ -172,6 +201,7 @@ export function BookingFlow({
         className="rounded-lg border border-border-subtle bg-white p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-8"
         data-testid="booking-confirmation"
       >
+        <Stepper steps={STEPS} current={2} className="mb-6" />
         <div className="mb-6 grid size-12 place-items-center rounded-md bg-action-primary text-text-on-accent">
           <Check size={25} />
         </div>
@@ -219,6 +249,7 @@ export function BookingFlow({
   if (stage === "payment")
     return (
       <div className="rounded-lg border border-border-subtle bg-white p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
+        <Stepper steps={STEPS} current={1} className="mb-5" />
         <button
           onClick={() => setStage("schedule")}
           className="mb-5 inline-flex items-center gap-1 text-sm font-bold text-text-secondary"
@@ -226,6 +257,23 @@ export function BookingFlow({
           <ChevronLeft size={17} />
           Alterar horário
         </button>
+        {selectedBlock && (
+          <BookingSummary
+            className="mb-5"
+            roomName={room.name}
+            unit={room.location}
+            address={room.address}
+            day={selectedDate}
+            startTime={selectedBlock.time}
+            endTime={endHour}
+            durationMinutes={activeDuration}
+            hourlyPriceCents={room.hourlyPriceCents}
+            totalCents={total}
+            holdExpiresAt={holdExpiresAt}
+            onChange={() => setStage("schedule")}
+            onExpired={expireHold}
+          />
+        )}
         <p className="text-xs font-bold uppercase text-text-link">
           Pagamento seguro
         </p>
@@ -257,25 +305,21 @@ export function BookingFlow({
             coletado.
           </div>
         )}
-        <div className="my-5 flex items-center justify-between border-y border-border-subtle py-4">
-          <span className="text-sm text-text-secondary">Total</span>
-          <strong className="text-xl">{formatMoney(total)}</strong>
-        </div>
         {(method === "pix" || !mercadoPagoPublicKey) && (
           <Button
-            className="w-full"
+            className="mt-5 w-full"
             onClick={() => void confirm()}
             disabled={submitting}
             data-testid="confirm-payment"
           >
             <LockKeyhole size={17} />
-            {submitting ? "Processando..." : "Confirmar e pagar"}
+            {submitting ? "Processando..." : `Pagar ${formatMoney(total)}`}
           </Button>
         )}
         {error && (
-          <p role="alert" className="mt-3 text-sm font-semibold text-danger-text">
+          <Alert tone="danger" className="mt-3">
             {error}
-          </p>
+          </Alert>
         )}
         <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-[var(--text-secondary)]">
           <ShieldCheck size={14} />
@@ -285,10 +329,16 @@ export function BookingFlow({
     );
   return (
     <div className="rounded-lg border border-border-subtle bg-white p-5 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
+      <Stepper steps={STEPS} current={0} className="mb-5" />
       <p className="text-xs font-bold uppercase text-text-link">
         Reserve agora
       </p>
       <h2 className="mt-1 text-2xl font-bold">Escolha seu horário</h2>
+      {error && (
+        <Alert tone="danger" className="mt-4">
+          {error}
+        </Alert>
+      )}
       <div className="mt-5">
         <span className="mb-2 block text-xs font-bold text-text-secondary">
           DATA
@@ -322,8 +372,24 @@ export function BookingFlow({
             />
             {!day.loading && bookable.length === 0 && (
               <Alert tone="warning" className="mt-3">
-                Nenhum horário livre em {formatIsoDay(selectedDate)}. Escolha
-                outra data no calendário.
+                Nenhum horário livre em {formatIsoDay(selectedDate)}.{" "}
+                {/* Beco sem saída não é resposta: quem chega às 20h precisa de
+                    um caminho, não de um aviso. */}
+                {nextOpenDay ? (
+                  <Button
+                    variant="link"
+                    onClick={() => setSelectedDate(nextOpenDay)}
+                  >
+                    Ver {formatIsoDay(nextOpenDay)}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="link"
+                    onClick={() => setMonth(addIsoMonths(month, 1))}
+                  >
+                    Procurar no próximo mês
+                  </Button>
+                )}
               </Alert>
             )}
           </>
@@ -372,18 +438,25 @@ export function BookingFlow({
           </Button>
         </div>
       </div>
-      <div className="my-5 border-y border-border-subtle py-4">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-sm text-text-secondary">
-            <Clock3 size={16} />
-            {selectedBlock ? `${selectedBlock.time} – ${endHour}` : "Sem horário"}
-          </span>
-          <strong>{formatMoney(total)}</strong>
-        </div>
-        <p className="mt-2 text-xs text-[var(--text-secondary)]">
-          O horário fica reservado por 10 minutos durante o pagamento.
+      {selectedBlock ? (
+        <BookingSummary
+          className="my-5"
+          roomName={room.name}
+          unit={room.location}
+          address={room.address}
+          day={selectedDate}
+          startTime={selectedBlock.time}
+          endTime={endHour}
+          durationMinutes={activeDuration}
+          hourlyPriceCents={room.hourlyPriceCents}
+          totalCents={total}
+        />
+      ) : (
+        <p className="my-5 flex items-center gap-2 text-sm text-text-secondary">
+          <Clock3 size={16} aria-hidden="true" />
+          Escolha um horário para ver o total.
         </p>
-      </div>
+      )}
       <Button
         className="w-full"
         disabled={!selectedBlock}
@@ -448,9 +521,3 @@ function clampDuration(minutes: number, minimum: number, ceiling: number) {
   return Math.min(Math.max(minutes, minimum), top);
 }
 
-function formatDuration(minutes: number) {
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  if (hours === 0) return `${rest}min`;
-  return rest === 0 ? `${hours}h` : `${hours}h${String(rest).padStart(2, "0")}`;
-}

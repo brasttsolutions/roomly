@@ -37,6 +37,8 @@ class SimulatorBookingRepository implements BookingRepository {
       amountCents: Math.round(
         (minutes / 60) * (demoPrices[command.roomId] ?? 12000),
       ),
+      // Mesmos dez minutos que `create_booking_hold` grava no banco.
+      holdExpiresAt: new Date(Date.now() + 600_000).toISOString(),
     };
     demoBookings.set(command.idempotencyKey, booking);
     return { booking, duplicate: false };
@@ -114,7 +116,7 @@ class SupabaseBookingRepository implements BookingRepository {
     const { data, error } = await supabase
       .from("bookings")
       .select(
-        "id,company_id,user_id,room_id,start_at,end_at,status,total_cents,payments(provider_payment_id)",
+        "id,company_id,user_id,room_id,start_at,end_at,status,total_cents,hold_expires_at,payments(provider_payment_id)",
       )
       .eq("idempotency_key", idempotencyKey)
       .maybeSingle();
@@ -135,6 +137,7 @@ function mapBooking(data: Record<string, unknown>): BookingRecord {
     endAt: String(data.end_at),
     status: "awaiting_payment",
     amountCents: Number(data.total_cents),
+    holdExpiresAt: String(data.hold_expires_at),
     paymentId: payments?.[0]?.provider_payment_id ?? undefined,
   };
 }

@@ -1,61 +1,128 @@
 "use client";
 import { useMemo, useState } from "react";
-import { Building2, CalendarDays, Search, UsersRound } from "lucide-react";
+import { Building2, CalendarDays, UsersRound, X } from "lucide-react";
 import type { Room } from "@/lib/demo-data";
-import { addIsoDays, nextBookableDay } from "@/lib/utils";
+import { formatIsoDay } from "@/lib/utils";
+import { useCatalogAvailability } from "./use-availability";
 import { RoomCard } from "./room-card";
+import { Alert } from "./ui/alert";
+import { Button } from "./ui/button";
+import { EmptyState } from "./ui/empty-state";
+
+type Sort = "recommended" | "price" | "capacity";
+
+const SORT_LABELS: Record<Sort, string> = {
+  recommended: "Recomendadas",
+  price: "Menor preço",
+  capacity: "Maior capacidade",
+};
+
 export function CatalogBrowser({
   rooms,
+  units,
   today,
 }: {
   rooms: readonly Room[];
+  /** Unidades ativas, para o filtro deixar de ser um rótulo. */
+  units: readonly string[];
   /** Dia corrente no fuso da operação, calculado no servidor. */
   today: string;
 }) {
+  const [unit, setUnit] = useState("all");
+  const [day, setDay] = useState(today);
   const [capacity, setCapacity] = useState("all");
-  const filtered = useMemo(
+  const [sort, setSort] = useState<Sort>("recommended");
+
+  const availability = useCatalogAvailability(day, unit === "all" ? null : unit);
+  const byRoom = useMemo(
     () =>
-      capacity === "all"
-        ? rooms
-        : rooms.filter((r) => r.capacity >= Number(capacity)),
-    [capacity, rooms],
+      new Map(
+        (availability.data?.rooms ?? []).map((room) => [room.slug, room]),
+      ),
+    [availability.data],
   );
+
+  const filtered = useMemo(() => {
+    const list = rooms.filter(
+      (room) =>
+        (unit === "all" || room.location === unit) &&
+        (capacity === "all" || room.capacity >= Number(capacity)),
+    );
+    if (sort === "price")
+      return [...list].sort((a, b) => a.hourlyPriceCents - b.hourlyPriceCents);
+    if (sort === "capacity")
+      return [...list].sort((a, b) => b.capacity - a.capacity);
+    return list;
+  }, [rooms, unit, capacity, sort]);
+
+  const chips = [
+    unit !== "all" && { label: unit, clear: () => setUnit("all") },
+    day !== today && {
+      label: formatIsoDay(day),
+      clear: () => setDay(today),
+    },
+    capacity !== "all" && {
+      label: `${capacity} ou mais pessoas`,
+      clear: () => setCapacity("all"),
+    },
+    sort !== "recommended" && {
+      label: SORT_LABELS[sort],
+      clear: () => setSort("recommended"),
+    },
+  ].filter((chip): chip is { label: string; clear: () => void } => Boolean(chip));
+
   return (
     <>
-      <div className="mb-8 grid border border-border-subtle bg-white md:grid-cols-[1.2fr_1fr_1fr_auto]">
-        <div className="flex min-h-16 items-center gap-3 border-b border-border-subtle px-4 md:border-b-0 md:border-r">
-          <Building2 size={19} className="text-text-link" />
-          <span>
-            <span className="block text-[11px] font-bold uppercase text-[var(--text-secondary)]">
+      <div className="mb-5 grid rounded-lg border border-border-subtle bg-surface-raised md:grid-cols-3">
+        <label className="flex min-h-16 items-center gap-3 border-b border-border-subtle px-4 md:border-b-0 md:border-r">
+          <Building2 size={19} className="text-text-link" aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[11px] font-bold uppercase text-text-secondary">
               Unidade
             </span>
-            <span className="text-sm font-semibold">Todas as unidades</span>
+            <select
+              aria-label="Unidade"
+              value={unit}
+              onChange={(event) => setUnit(event.target.value)}
+              className="w-full bg-transparent text-sm font-semibold"
+            >
+              <option value="all">Todas as unidades</option>
+              {units.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
           </span>
-        </div>
+        </label>
         <label className="flex min-h-16 items-center gap-3 border-b border-border-subtle px-4 md:border-b-0 md:border-r">
-          <CalendarDays size={19} className="text-text-link" />
-          <span>
-            <span className="block text-[11px] font-bold uppercase text-[var(--text-secondary)]">
+          <CalendarDays size={19} className="text-text-link" aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[11px] font-bold uppercase text-text-secondary">
               Data
             </span>
             <input
               aria-label="Data da reserva"
               type="date"
-              defaultValue={nextBookableDay(today)}
-              min={addIsoDays(today, 1)}
-              className="bg-transparent text-sm font-semibold"
+              value={day}
+              // Hoje é reservável: os horários já vencidos vêm marcados na
+              // resposta, então não há motivo para empurrar a busca para amanhã.
+              min={today}
+              onChange={(event) => setDay(event.target.value || today)}
+              className="w-full bg-transparent text-sm font-semibold"
             />
           </span>
         </label>
-        <label className="flex min-h-16 items-center gap-3 px-4 md:border-r">
-          <UsersRound size={19} className="text-text-link" />
+        <label className="flex min-h-16 items-center gap-3 px-4">
+          <UsersRound size={19} className="text-text-link" aria-hidden="true" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-bold uppercase text-[var(--text-secondary)]">
+            <span className="block text-[11px] font-bold uppercase text-text-secondary">
               Pessoas
             </span>
             <select
+              aria-label="Pessoas"
               value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
+              onChange={(event) => setCapacity(event.target.value)}
               className="w-full bg-transparent text-sm font-semibold"
             >
               <option value="all">Qualquer capacidade</option>
@@ -65,14 +132,42 @@ export function CatalogBrowser({
             </select>
           </span>
         </label>
-        <button className="m-2 inline-flex h-12 items-center justify-center gap-2 rounded-md bg-action-primary px-5 text-sm font-bold text-text-on-accent hover:bg-action-primary-hover">
-          <Search size={18} />
-          Buscar
-        </button>
       </div>
-      <div className="mb-5 flex items-end justify-between gap-4">
+
+      {chips.length > 0 && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          {chips.map((chip) => (
+            <button
+              key={chip.label}
+              type="button"
+              onClick={chip.clear}
+              aria-label={`Remover filtro ${chip.label}`}
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border-control px-3 text-xs font-semibold hover:bg-surface-page"
+            >
+              {chip.label}
+              <X size={13} aria-hidden="true" />
+            </button>
+          ))}
+          <Button
+            variant="link"
+            className="text-xs"
+            onClick={() => {
+              setUnit("all");
+              setDay(today);
+              setCapacity("all");
+              setSort("recommended");
+            }}
+          >
+            Limpar filtros
+          </Button>
+        </div>
+      )}
+
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold">Disponíveis para você</h2>
+          <h2 className="text-xl font-bold">
+            {day === today ? "Disponíveis hoje" : `Disponíveis em ${formatIsoDay(day)}`}
+          </h2>
           <p
             role="status"
             aria-live="polite"
@@ -82,22 +177,59 @@ export function CatalogBrowser({
             {filtered.length === 1 ? "sala encontrada" : "salas encontradas"}
           </p>
         </div>
-        <select
-          aria-label="Ordenar salas"
-          className="h-10 rounded-md border border-[var(--border-control)] bg-white px-3 text-sm font-semibold"
-        >
-          <option>Recomendadas</option>
-          <option>Menor preço</option>
-          <option>Maior capacidade</option>
-        </select>
+        <label className="text-sm">
+          <span className="sr-only">Ordenar salas</span>
+          <select
+            aria-label="Ordenar salas"
+            value={sort}
+            onChange={(event) => setSort(event.target.value as Sort)}
+            className="h-11 rounded-md border border-border-control bg-surface-raised px-3 text-sm font-semibold"
+          >
+            {Object.entries(SORT_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
-      <div className="grid gap-5 lg:grid-cols-2">
-        {filtered.map((room, index) => (
-          <div key={room.id} className={index === 0 ? "lg:col-span-2" : ""}>
-            <RoomCard room={room} featured={index === 0} />
-          </div>
-        ))}
-      </div>
+
+      {availability.error && (
+        <Alert tone="danger" title="Sem disponibilidade agora" className="mb-5">
+          {availability.error} As salas continuam listadas, mas sem os horários.
+        </Alert>
+      )}
+
+      {filtered.length === 0 ? (
+        <EmptyState
+          title="Nenhuma sala com esses filtros"
+          description="Tente outra unidade ou uma capacidade menor."
+          action={
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setUnit("all");
+                setCapacity("all");
+              }}
+            >
+              Limpar filtros
+            </Button>
+          }
+        />
+      ) : (
+        <div className="grid gap-5 lg:grid-cols-2">
+          {filtered.map((room, index) => (
+            <div key={room.id} className={index === 0 ? "lg:col-span-2" : ""}>
+              <RoomCard
+                room={room}
+                availability={byRoom.get(room.slug)}
+                loading={availability.loading}
+                featured={index === 0}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </>
   );
 }

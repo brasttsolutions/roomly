@@ -212,3 +212,37 @@ test("a booked block cannot be selected and says why", async ({
     /indisponível, limpeza entre reservas$/,
   );
 });
+
+test("catalog filters by unit and shows real availability", async ({ page }) => {
+  await page.goto("/");
+
+  // A linha de horários é o que separa este card de um card de e-commerce.
+  const executiva = page
+    .locator("article")
+    .filter({ has: page.getByRole("heading", { name: "Sala Executiva" }) });
+  await expect(
+    executiva.getByText(/Livre|Próximo|Sem horário/).first(),
+  ).toBeVisible();
+  await expect(executiva.getByTestId("book-sala-executiva")).toBeVisible();
+
+  await page.getByLabel("Unidade").selectOption("Centro Joinville");
+  await expect(page.getByText("1 sala encontrada")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Atelier Criativo" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Sala Executiva" }),
+  ).toHaveCount(0);
+
+  // O chip devolve o filtro ao estado inicial, e a contagem acompanha.
+  await page.getByRole("button", { name: "Remover filtro Centro Joinville" }).click();
+  await expect(page.getByText("3 salas encontradas")).toBeVisible();
+});
+
+test("ordering by price rearranges the catalog", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Ordenar salas").selectOption("price");
+  const names = await page.getByRole("heading", { level: 3 }).allInnerTexts();
+  // Sala Foco custa R$ 75/h, a menor tarifa do acervo.
+  expect(names[0]).toBe("Sala Foco");
+});

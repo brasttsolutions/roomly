@@ -69,7 +69,7 @@ describe("dia inteiro livre", () => {
   it("resume o dia como livre", () => {
     const summary = summariseDay(DAY, blocks, config.minimumMinutes);
     expect(summary.state).toBe("free");
-    expect(summary.nextFree).toBe("08:00");
+    expect(summary.nextFreeTimes).toEqual(["08:00", "08:30", "09:00"]);
     expect(summary.label).toBe("19 livres");
   });
 
@@ -171,7 +171,7 @@ describe("bloco passado", () => {
     const summary = summariseDay(DAY, vencido, config.minimumMinutes);
     expect(summary.state).toBe("past");
     expect(summary.label).toBe("Data passada");
-    expect(summary.nextFree).toBeNull();
+    expect(summary.nextFreeTimes).toEqual([]);
   });
 });
 
