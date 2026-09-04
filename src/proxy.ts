@@ -30,9 +30,12 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const protectedRoute =
-    request.nextUrl.pathname.startsWith("/minhas-reservas") ||
-    request.nextUrl.pathname.startsWith("/admin");
+  const protectedRoute = [
+    "/minhas-reservas",
+    "/admin",
+    "/conta",
+    "/configuracoes",
+  ].some((route) => request.nextUrl.pathname.startsWith(route));
   if (protectedRoute && !user) {
     return NextResponse.redirect(new URL("/entrar", request.url));
   }

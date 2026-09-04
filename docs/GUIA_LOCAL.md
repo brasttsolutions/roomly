@@ -145,8 +145,7 @@ const h={apikey:sr,authorization:'Bearer '+sr,'content-type':'application/json'}
 " 'SenhaForteAqui'
 ```
 
-Troque `role:'admin'` por `role:'super_admin'` se esse usuário precisar criar
-outros administradores depois.
+Troque `role:'admin'` por `role:'super_admin'` se esse usuário precisar criar outros administradores depois.
 
 Para descobrir o ID da empresa:
 
@@ -187,6 +186,34 @@ qual foi emitido. O token nunca é gravado: o banco guarda apenas o hash SHA-256
 | `manager` | `customer`, `employee` |
 | `admin` | `customer`, `employee`, `manager` |
 | `super_admin` | todos, inclusive `admin` |
+
+### 4.3. O cabeçalho depois do login
+
+Assim que a sessão existe, o botão "Entrar" dá lugar ao **nome da pessoa
+logada**. Clicando no nome abre um menu com:
+
+| Item | Para quê |
+| --- | --- |
+| Área administrativa | Só aparece para quem não é `customer` |
+| Editar conta | `/conta` — nome e telefone |
+| Configurações | `/configuracoes` — senha e sessões |
+| Sair da conta | Encerra a sessão e volta para o catálogo |
+
+Quem tem papel de operação ou acima ganha também um **botão verde "Área
+administrativa" direto no cabeçalho**, sem precisar digitar `/admin` na URL.
+
+Em `/conta` dá para alterar nome e telefone. E-mail, empresa e papel aparecem
+como leitura: são alterados por um gestor, não pela própria pessoa.
+
+Em `/configuracoes` estão a troca de senha (mínimo de 10 caracteres) e o
+encerramento de todas as sessões, útil quando se perde um aparelho ou se
+suspeita que alguém tem a senha. Não há preferências de notificação: elas
+exigiriam uma coluna nova no banco, e um interruptor que não faz nada seria pior
+do que não existir.
+
+> No modo `simulator` o cabeçalho sempre mostra uma conta fictícia, porque a
+> aplicação assume uma identidade de demonstração. "Sair da conta" apenas volta
+> para o catálogo. Para exercitar o login de verdade, use o modo `supabase`.
 
 ---
 

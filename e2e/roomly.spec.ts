@@ -50,6 +50,26 @@ test("customer cancellation revokes the visible access code", async ({
   ).toBeVisible();
   await expect(page.getByText("583 921")).not.toBeVisible();
 });
+test("header shows the signed-in account and opens its menu", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const trigger = page.getByTestId("user-menu-trigger");
+  await expect(trigger).toBeVisible();
+  await expect(page.getByRole("link", { name: "Entrar" })).toHaveCount(0);
+  await trigger.click();
+  await expect(page.getByRole("menu", { name: "Conta" })).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "Editar conta" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("menuitem", { name: "Configurações" }),
+  ).toBeVisible();
+  await expect(page.getByTestId("sign-out")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("menu", { name: "Conta" })).toHaveCount(0);
+});
+
 test("admin exposes operational status", async ({ page }, testInfo) => {
   await page.goto("/admin");
   await expect(

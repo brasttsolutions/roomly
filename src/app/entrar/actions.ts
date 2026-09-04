@@ -47,3 +47,11 @@ export async function signOut() {
   }
   redirect("/");
 }
+
+export async function signOutEverywhere() {
+  if (integrationMode() === "supabase") {
+    const supabase = await createSupabaseServerClient();
+    await supabase.auth.signOut({ scope: "global" });
+  }
+  redirect("/");
+}

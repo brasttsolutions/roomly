@@ -7,6 +7,7 @@ export type RequestIdentity = Readonly<{
   companyId: string;
   profileId: string;
   email: string;
+  name: string;
   role: "customer" | "employee" | "manager" | "admin" | "super_admin";
 }>;
 
@@ -15,6 +16,7 @@ const demoIdentity: RequestIdentity = {
   companyId: "company_demo",
   profileId: "profile_demo",
   email: "cliente@roomly.local",
+  name: "Cliente Roomly",
   role: "customer",
 };
 
@@ -30,7 +32,7 @@ export async function requestIdentity(): Promise<RequestIdentity | null> {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id,company_id,role,email")
+    .select("id,company_id,role,email,name")
     .eq("auth_user_id", user.id)
     .eq("status", "active")
     .limit(1)
@@ -42,6 +44,7 @@ export async function requestIdentity(): Promise<RequestIdentity | null> {
     companyId: data.company_id,
     profileId: data.id,
     email: data.email,
+    name: data.name,
     role: data.role,
   } as RequestIdentity;
 }
