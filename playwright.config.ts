@@ -16,6 +16,12 @@ export default defineConfig({
     url: "http://127.0.0.1:3100/api/health",
     reuseExistingServer: false,
     timeout: 120_000,
+    env: {
+      ...process.env,
+      ROOMLY_INTEGRATION_MODE: "simulator",
+      ROOMLY_PAYMENT_MODE: "simulator",
+      ROOMLY_ACCESS_MODE: "simulator",
+    },
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
