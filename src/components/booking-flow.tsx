@@ -114,7 +114,7 @@ export function BookingFlow({
         <div className="mb-6 grid size-12 place-items-center rounded-md bg-[#176b4d] text-white">
           <Check size={25} />
         </div>
-        <Badge tone="green">Reserva confirmada</Badge>
+        <Badge tone="success">Reserva confirmada</Badge>
         <h2 className="mt-3 text-2xl font-bold">
           Tudo certo para {formatIsoWeekday(selectedDate)}.
         </h2>

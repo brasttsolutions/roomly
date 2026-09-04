@@ -8,7 +8,7 @@ import {
   DoorClosed,
 } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { adminDashboardData } from "@/lib/server/admin-data";
 
 export const metadata: Metadata = { title: "Visão geral" };
@@ -72,7 +72,7 @@ export default async function AdminDashboard() {
                 Horas reservadas por dia
               </p>
             </div>
-            <Badge tone="green">74% média</Badge>
+            <Badge tone="success">74% média</Badge>
           </div>
           <div className="flex h-64 items-end gap-3 p-6">
             {bars.map((height, index) => (
@@ -103,19 +103,19 @@ export default async function AdminDashboard() {
               icon={<DoorClosed size={18} />}
               title="Fechaduras online"
               value={locksOnline}
-              tone="blue"
+              tone="info"
             />
             <Health
               icon={<CalendarDays size={18} />}
               title="Próxima limpeza"
               value="15:10"
-              tone="green"
+              tone="success"
             />
             <Health
               icon={<CircleAlert size={18} />}
               title="Ações pendentes"
               value={pendingActions}
-              tone="coral"
+              tone="warning"
             />
           </div>
         </section>
@@ -158,10 +158,10 @@ export default async function AdminDashboard() {
                     <Badge
                       tone={
                         row.status === "Em andamento"
-                          ? "green"
+                          ? "success"
                           : row.status === "Aguardando"
-                            ? "coral"
-                            : "blue"
+                            ? "warning"
+                            : "info"
                       }
                     >
                       {row.status}
@@ -185,7 +185,7 @@ function Health({
   icon: React.ReactNode;
   title: string;
   value: string;
-  tone: "green" | "blue" | "coral";
+  tone: BadgeTone;
 }) {
   return (
     <div className="flex items-center gap-3 p-5">

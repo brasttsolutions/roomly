@@ -40,7 +40,7 @@ export function RoomCard({
           priority={featured}
         />
         {featured && (
-          <Badge tone="green" className="absolute left-4 top-4">
+          <Badge tone="accent" className="absolute left-4 top-4">
             Mais reservada
           </Badge>
         )}

@@ -1,12 +1,15 @@
 "use client";
-import { useActionState, useEffect, useRef, useState } from "react";
-import { Pencil, Plus, X } from "lucide-react";
+import { useActionState, useEffect, useState } from "react";
+import { Pencil, Plus } from "lucide-react";
 import {
   createAdminResource,
   updateAdminResource,
   type AdminActionState,
 } from "@/app/admin/actions";
 import type { AdminRecord, AdminResource } from "@/lib/admin-sections";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Dialog, useCloseDialog } from "@/components/ui/dialog";
 
 type Option = { id: string; name: string };
 
@@ -57,96 +60,83 @@ function AdminResourceDialog({
   rooms: Option[];
   record?: AdminRecord;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null);
   const editing = Boolean(record);
-  // Uma linha da tabela abre o seu próprio diálogo, então o formulário só é
-  // montado quando ele abre: sem isso a página carregaria um formulário
-  // completo, com rótulos repetidos, para cada registro listado.
-  const [open, setOpen] = useState(false);
+  return (
+    <Dialog
+      title={editing ? `Editar ${record?.name ?? ""}` : label}
+      trigger={
+        editing
+          ? {
+              label: "Editar",
+              icon: <Pencil size={15} />,
+              variant: "secondary",
+              size: "sm",
+              ariaLabel: `Editar ${record?.name ?? ""}`,
+            }
+          : { label, icon: <Plus size={17} /> }
+      }
+    >
+      <DialogForm
+        section={section}
+        record={record}
+        locations={locations}
+        rooms={rooms}
+      />
+    </Dialog>
+  );
+}
+
+function DialogForm({
+  section,
+  record,
+  locations,
+  rooms,
+}: {
+  section: AdminResource | "clientes";
+  record?: AdminRecord;
+  locations: Option[];
+  rooms: Option[];
+}) {
+  const close = useCloseDialog();
   const [state, action, pending] = useActionState<AdminActionState, FormData>(
-    editing ? updateAdminResource : createAdminResource,
+    record ? updateAdminResource : createAdminResource,
     { ok: false },
   );
-  const close = () => dialog.current?.close();
-  const show = () => {
-    setOpen(true);
-    dialog.current?.showModal();
-  };
+  // O convite mostra o link na própria tela quando o Resend não está
+  // configurado, então esse diálogo não pode fechar sozinho ao salvar.
+  const fechaAoSalvar = section !== "clientes";
   useEffect(() => {
-    if (state.ok && section !== "clientes") dialog.current?.close();
-  }, [section, state]);
+    if (state.ok && fechaAoSalvar) close();
+  }, [state, fechaAoSalvar, close]);
+
   return (
-    <>
-      {editing ? (
-        <button
-          onClick={show}
-          aria-label={`Editar ${record?.name ?? ""}`}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--border-control)] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
-        >
-          <Pencil size={15} />
-          Editar
-        </button>
-      ) : (
-        <button
-          onClick={show}
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-[#176b4d] px-4 text-sm font-bold text-white"
-        >
-          <Plus size={17} />
-          {label}
-        </button>
-      )}
-      <dialog
-        ref={dialog}
-        onClose={() => setOpen(false)}
-        className="m-auto w-[min(92vw,520px)] rounded-lg border border-[#d9ded9] bg-white p-0 backdrop:bg-black/35"
-      >
-        {open && (
-          <form action={action} className="p-6">
-            <input type="hidden" name="resource" value={section} />
-            {record?.id && <input type="hidden" name="id" value={record.id} />}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">
-                {editing ? `Editar ${record?.name ?? ""}` : label}
-              </h2>
-              <button
-                type="button"
-                title="Fechar"
-                onClick={close}
-                className="grid size-9 place-items-center rounded-md hover:bg-[#eef1ed]"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="mt-5 grid gap-4">
-              {section === "unidades" && <UnitFields record={record} />}
-              {section === "salas" && (
-                <RoomFields locations={locations} record={record} />
-              )}
-              {section === "fechaduras" && (
-                <LockFields rooms={rooms} record={record} />
-              )}
-              {section === "clientes" && <InvitationFields />}
-            </div>
-            {state.error && (
-              <p role="alert" className="mt-4 text-sm text-[#a84331]">
-                {state.error}
-              </p>
-            )}
-            {state.ok && state.message && section === "clientes" && (
-              <p className="mt-4 break-all rounded-md bg-[#e4f3eb] p-3 text-sm text-[#176b4d]">
-                {state.message}
-              </p>
-            )}
-            <button
-              disabled={pending}
-              className="mt-6 h-11 w-full rounded-md bg-[#176b4d] text-sm font-bold text-white disabled:opacity-50"
-            >
-              {pending ? "Salvando..." : "Salvar"}
-            </button>
-          </form>
+    <form action={action}>
+      <input type="hidden" name="resource" value={section} />
+      {record?.id && <input type="hidden" name="id" value={record.id} />}
+      <div className="grid gap-4">
+        {section === "unidades" && <UnitFields record={record} />}
+        {section === "salas" && (
+          <RoomFields locations={locations} record={record} />
         )}
-      </dialog>
-    </>
+        {section === "fechaduras" && (
+          <LockFields rooms={rooms} record={record} />
+        )}
+        {section === "clientes" && <InvitationFields />}
+      </div>
+      {state.error && (
+        <Alert tone="danger" className="mt-4">
+          {state.error}
+        </Alert>
+      )}
+      {state.ok && state.message && section === "clientes" && (
+        <Alert tone="success" className="mt-4">
+          <span className="break-all">{state.message}</span>
+        </Alert>
+      )}
+      <Button type="submit" loading={pending} className="mt-6 w-full">
+        {pending ? "Salvando..." : "Salvar"}
+      </Button>
+    </form>
   );
 }
 

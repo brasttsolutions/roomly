@@ -90,7 +90,7 @@ export function CustomerBookings({
         <article className="rounded-lg border border-[#d8ded9] bg-white p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <Badge tone={cancelled ? "coral" : "green"}>
+              <Badge tone={cancelled ? "danger" : "success"}>
                 {cancelled ? "Cancelada" : "Confirmada"}
               </Badge>
               <h3 className="mt-3 text-2xl font-bold">{booking.room}</h3>

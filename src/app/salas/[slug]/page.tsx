@@ -69,7 +69,7 @@ export default async function RoomPage({
                     {room.name}
                   </h1>
                 </div>
-                <Badge tone="green">
+                <Badge tone="neutral">
                   <UsersRound size={14} className="mr-1.5" />
                   até {room.capacity} pessoas
                 </Badge>

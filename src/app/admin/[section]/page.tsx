@@ -152,9 +152,18 @@ export default async function SectionPage({
   );
 }
 function Status({ value }: { value: string }) {
-  const green = /Ativ|Aprov|Online|Sucesso|Pronto|Confirm/.test(value);
-  const coral = /Revisar|Pendente|Atenção|Cancel|Reembols/.test(value);
+  // Erro e alerta são separados de propósito: "cancelada" é um desfecho, mas
+  // "revisar" e "atrasada" pedem ação de alguém agora.
+  const sucesso = /Ativ|Aprov|Online|Sucesso|Pronto|Confirm|Conclu/.test(value);
+  const alerta = /Revisar|Pendente|Atenção|Atrasad|Aguardand|Manuten/.test(
+    value,
+  );
+  const erro = /Cancel|Reembols|Expirad|Falh|Recusad/.test(value);
   return (
-    <Badge tone={green ? "green" : coral ? "coral" : "blue"}>{value}</Badge>
+    <Badge
+      tone={sucesso ? "success" : erro ? "danger" : alerta ? "warning" : "info"}
+    >
+      {value}
+    </Badge>
   );
 }
