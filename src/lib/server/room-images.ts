@@ -65,3 +65,46 @@ export async function uploadRoomImages(input: {
   }
   return urls;
 }
+
+/**
+ * Troca todas as fotos da sala. Remove os arquivos antigos do Storage antes de
+ * gravar os novos para não deixar objeto órfão pagando armazenamento.
+ */
+export async function replaceRoomImages(input: {
+  companyId: string;
+  roomId: string;
+  urls: string[];
+}) {
+  const admin = createSupabaseAdminClient();
+  const { data: current } = await admin
+    .from("room_images")
+    .select("url")
+    .eq("company_id", input.companyId)
+    .eq("room_id", input.roomId);
+
+  const marker = `/${ROOM_IMAGE_BUCKET}/`;
+  const stored = (current ?? [])
+    .map((row) => String(row.url))
+    .filter((url) => url.includes(marker))
+    .map((url) => url.split(marker)[1]);
+  if (stored.length > 0) {
+    await admin.storage.from(ROOM_IMAGE_BUCKET).remove(stored);
+  }
+
+  const { error: removeError } = await admin
+    .from("room_images")
+    .delete()
+    .eq("company_id", input.companyId)
+    .eq("room_id", input.roomId);
+  if (removeError) throw new Error("room_images_clear_failed");
+
+  const { error } = await admin.from("room_images").insert(
+    input.urls.map((url, position) => ({
+      company_id: input.companyId,
+      room_id: input.roomId,
+      url,
+      position,
+    })),
+  );
+  if (error) throw new Error("room_images_persist_failed");
+}

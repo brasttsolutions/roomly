@@ -1,5 +1,10 @@
 import "server-only";
-import { adminSections, type AdminSection } from "@/lib/admin-sections";
+import {
+  adminSections,
+  type AdminRecord,
+  type AdminRow,
+  type AdminSection,
+} from "@/lib/admin-sections";
 import { adminMetrics, todayBookings } from "@/lib/demo-data";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -18,9 +23,15 @@ type TodayBooking = Readonly<{
   status: string;
 }>;
 
-export async function adminRows(section: AdminSection): Promise<string[][]> {
+const plain = (cells: string[]): AdminRow => ({ cells });
+
+export async function adminRows(section: AdminSection): Promise<AdminRow[]> {
   if (integrationMode() === "simulator") {
-    return adminSections[section].rows.map((row) => [...row]);
+    return adminSections[section].rows.map((row, index) => ({
+      cells: [...row],
+      // O simulador não persiste: o registro existe só para exercitar a tela.
+      record: simulatorRecord(section, index),
+    }));
   }
   const supabase = await createSupabaseServerClient();
   if (section === "reservas" || section === "calendario") {
@@ -33,52 +44,79 @@ export async function adminRows(section: AdminSection): Promise<string[][]> {
     return (data ?? []).map((row) => {
       const profile = row.profiles as { name?: string } | null;
       const room = row.rooms as { name?: string } | null;
-      return section === "calendario"
-        ? [
-            formatDate(row.start_at),
-            room?.name ?? "Sala",
-            profile?.name ?? "Cliente",
-            formatDate(row.end_at),
-            statusLabel(row.status),
-          ]
-        : [
-            `#${String(row.id).slice(0, 8).toUpperCase()}`,
-            profile?.name ?? "Cliente",
-            room?.name ?? "Sala",
-            formatDate(row.start_at),
-            statusLabel(row.status),
-          ];
+      return plain(
+        section === "calendario"
+          ? [
+              formatDate(row.start_at),
+              room?.name ?? "Sala",
+              profile?.name ?? "Cliente",
+              formatDate(row.end_at),
+              statusLabel(row.status),
+            ]
+          : [
+              `#${String(row.id).slice(0, 8).toUpperCase()}`,
+              profile?.name ?? "Cliente",
+              room?.name ?? "Sala",
+              formatDate(row.start_at),
+              statusLabel(row.status),
+            ],
+      );
     });
   }
   if (section === "salas") {
     const { data, error } = await supabase
       .from("rooms")
-      .select("name,capacity,hourly_price_cents,status,locations(name)")
+      .select(
+        "id,location_id,name,description,capacity,hourly_price_cents,status,locations(name),room_feature_relations(room_features(name))",
+      )
       .order("name");
     if (error) throw new Error(`admin_rooms_failed:${error.code}`);
-    return (data ?? []).map((row) => [
-      row.name,
-      (row.locations as { name?: string } | null)?.name ?? "Unidade",
-      `${row.capacity} pessoas`,
-      money(row.hourly_price_cents),
-      row.status === "active" ? "Ativa" : "Inativa",
-    ]);
+    return (data ?? []).map((row) => ({
+      cells: [
+        row.name,
+        (row.locations as { name?: string } | null)?.name ?? "Unidade",
+        `${row.capacity} pessoas`,
+        money(row.hourly_price_cents),
+        row.status === "active" ? "Ativa" : "Inativa",
+      ],
+      record: {
+        id: row.id,
+        locationId: row.location_id,
+        name: row.name,
+        description: row.description,
+        capacity: String(row.capacity),
+        hourlyPriceCents: String(row.hourly_price_cents),
+        status: row.status,
+        hasCamera: hasCamera(row.room_feature_relations) ? "on" : "",
+      },
+    }));
   }
   if (section === "unidades") {
     const { data, error } = await supabase
       .from("locations")
-      .select("name,city,state,status,rooms(count)")
+      .select("id,name,address,city,state,zip_code,status,rooms(count)")
       .order("name");
     if (error) throw new Error(`admin_locations_failed:${error.code}`);
-    return (data ?? []).map((row) => [
-      row.name,
-      `${row.city}, ${row.state}`,
-      String(
-        (row.rooms as Array<{ count?: number }> | undefined)?.[0]?.count ?? 0,
-      ),
-      "-",
-      row.status === "active" ? "Ativa" : "Inativa",
-    ]);
+    return (data ?? []).map((row) => ({
+      cells: [
+        row.name,
+        `${row.city}, ${row.state}`,
+        String(
+          (row.rooms as Array<{ count?: number }> | undefined)?.[0]?.count ?? 0,
+        ),
+        "-",
+        row.status === "active" ? "Ativa" : "Inativa",
+      ],
+      record: {
+        id: row.id,
+        name: row.name,
+        address: row.address,
+        city: row.city,
+        state: row.state,
+        zipCode: row.zip_code,
+        status: row.status,
+      },
+    }));
   }
   if (section === "clientes") {
     const { data, error } = await supabase
@@ -87,7 +125,8 @@ export async function adminRows(section: AdminSection): Promise<string[][]> {
       .eq("role", "customer")
       .order("name");
     if (error) throw new Error(`admin_customers_failed:${error.code}`);
-    return (data ?? []).map((row) => [
+    return (data ?? []).map((row) =>
+      plain([
       row.name,
       row.email,
       String(
@@ -96,7 +135,8 @@ export async function adminRows(section: AdminSection): Promise<string[][]> {
       ),
       "-",
       row.status === "active" ? "Ativo" : "Inativo",
-    ]);
+      ]),
+    );
   }
   if (section === "pagamentos") {
     const { data, error } = await supabase
@@ -107,27 +147,40 @@ export async function adminRows(section: AdminSection): Promise<string[][]> {
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error(`admin_payments_failed:${error.code}`);
-    return (data ?? []).map((row) => [
+    return (data ?? []).map((row) =>
+      plain([
       row.provider_payment_id ?? "Pendente",
       `#${String((row.bookings as { id?: string } | null)?.id ?? "").slice(0, 8)}`,
       row.payment_method === "pix" ? "PIX" : "Cartão",
       money(row.amount_cents),
       statusLabel(row.status),
-    ]);
+      ]),
+    );
   }
   if (section === "fechaduras") {
     const { data, error } = await supabase
       .from("locks")
-      .select("name,gateway_id,battery_level,status,rooms(name)")
+      .select(
+        "id,room_id,name,external_lock_id,gateway_id,battery_level,status,rooms(name)",
+      )
       .order("name");
     if (error) throw new Error(`admin_locks_failed:${error.code}`);
-    return (data ?? []).map((row) => [
-      (row.rooms as { name?: string } | null)?.name ?? "Sala",
-      row.name,
-      row.gateway_id ? "Configurado" : "Sem gateway",
-      row.battery_level == null ? "-" : `${row.battery_level}%`,
-      row.status === "online" ? "Online" : "Revisar",
-    ]);
+    return (data ?? []).map((row) => ({
+      cells: [
+        (row.rooms as { name?: string } | null)?.name ?? "Sala",
+        row.name,
+        row.gateway_id ? "Configurado" : "Sem gateway",
+        row.battery_level == null ? "-" : `${row.battery_level}%`,
+        row.status === "online" ? "Online" : "Revisar",
+      ],
+      record: {
+        id: row.id,
+        roomId: row.room_id,
+        name: row.name,
+        externalLockId: row.external_lock_id,
+        gatewayId: row.gateway_id ?? "",
+      },
+    }));
   }
   if (section === "limpeza") {
     const { data, error } = await supabase
@@ -136,13 +189,15 @@ export async function adminRows(section: AdminSection): Promise<string[][]> {
       .order("scheduled_at")
       .limit(100);
     if (error) throw new Error(`admin_cleaning_failed:${error.code}`);
-    return (data ?? []).map((row) => [
+    return (data ?? []).map((row) =>
+      plain([
       (row.rooms as { name?: string } | null)?.name ?? "Sala",
       formatDate(row.scheduled_at),
       (row.profiles as { name?: string } | null)?.name ?? "Não atribuído",
       "-",
       statusLabel(row.status),
-    ]);
+      ]),
+    );
   }
   if (section === "logs") {
     const { data, error } = await supabase
@@ -151,15 +206,62 @@ export async function adminRows(section: AdminSection): Promise<string[][]> {
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error(`admin_logs_failed:${error.code}`);
-    return (data ?? []).map((row) => [
+    return (data ?? []).map((row) =>
+      plain([
       formatDate(row.created_at),
       row.action,
       `${row.entity_type}:${String(row.entity_id ?? "-").slice(0, 8)}`,
       row.request_id,
       "Sucesso",
-    ]);
+      ]),
+    );
   }
   return [];
+}
+
+function hasCamera(relations: unknown) {
+  return (
+    (relations as Array<{ room_features?: { name?: string } | null }>) ?? []
+  ).some((relation) => relation.room_features?.name === "Câmera");
+}
+
+function simulatorRecord(
+  section: AdminSection,
+  index: number,
+): AdminRecord | undefined {
+  if (section === "unidades") {
+    return {
+      id: `demo-unidade-${index}`,
+      name: adminSections.unidades.rows[index][0],
+      address: "Rua de demonstração, 100",
+      city: "Joinville",
+      state: "SC",
+      zipCode: "89200-000",
+      status: "active",
+    };
+  }
+  if (section === "salas") {
+    return {
+      id: `demo-sala-${index}`,
+      locationId: "20000000-0000-4000-8000-000000000001",
+      name: adminSections.salas.rows[index][0],
+      description: "Sala de demonstração do simulador.",
+      capacity: "8",
+      hourlyPriceCents: "12000",
+      status: "active",
+      hasCamera: "",
+    };
+  }
+  if (section === "fechaduras") {
+    return {
+      id: `demo-fechadura-${index}`,
+      roomId: "30000000-0000-4000-8000-000000000001",
+      name: adminSections.fechaduras.rows[index][1],
+      externalLockId: "demo-lock",
+      gatewayId: "demo-gateway",
+    };
+  }
+  return undefined;
 }
 
 export async function adminResourceOptions() {

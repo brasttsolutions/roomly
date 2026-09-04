@@ -1,3 +1,8 @@
+/** Valores crus de um registro, usados para preencher o formulário de edição. */
+export type AdminRecord = Readonly<Record<string, string>>;
+export type AdminRow = Readonly<{ cells: string[]; record?: AdminRecord }>;
+export type AdminResource = "unidades" | "salas" | "fechaduras";
+
 export const adminSections = {
   reservas: {
     title: "Reservas",

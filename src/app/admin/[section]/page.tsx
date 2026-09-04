@@ -4,7 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { adminSections, type AdminSection } from "@/lib/admin-sections";
 import { adminRows } from "@/lib/server/admin-data";
 import { adminResourceOptions } from "@/lib/server/admin-data";
-import { AdminCreateDialog } from "@/components/admin/admin-create-dialog";
+import {
+  AdminCreateDialog,
+  AdminEditDialog,
+} from "@/components/admin/admin-create-dialog";
+import type { AdminResource } from "@/lib/admin-sections";
 export const dynamic = "force-dynamic";
 export function generateStaticParams() {
   return Object.keys(adminSections).map((section) => ({ section }));
@@ -23,7 +27,7 @@ export default async function SectionPage({
   const allRows = await adminRows(section as AdminSection);
   const rows = query
     ? allRows.filter((row) =>
-        row.some((cell) =>
+        row.cells.some((cell) =>
           cell
             .toLocaleLowerCase("pt-BR")
             .includes(query.toLocaleLowerCase("pt-BR")),
@@ -32,6 +36,9 @@ export default async function SectionPage({
     : allRows;
   const options = await adminResourceOptions();
   const creatable = ["unidades", "salas", "fechaduras", "clientes"].includes(
+    section,
+  );
+  const editable = (["unidades", "salas", "fechaduras"] as string[]).includes(
     section,
   );
   return (
@@ -81,12 +88,15 @@ export default async function SectionPage({
                     {column}
                   </th>
                 ))}
+                {editable && (
+                  <th className="px-5 py-3 text-right font-bold">Ações</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e4e7e4]">
               {rows.map((row, index) => (
                 <tr key={index} className="hover:bg-[#f8f9f7]">
-                  {row.map((cell, cellIndex) => (
+                  {row.cells.map((cell, cellIndex) => (
                     <td
                       key={cellIndex}
                       className={
@@ -95,13 +105,26 @@ export default async function SectionPage({
                           : "px-5 py-4 text-[#53605a]"
                       }
                     >
-                      {cellIndex === row.length - 1 ? (
+                      {cellIndex === row.cells.length - 1 ? (
                         <Status value={cell} />
                       ) : (
                         cell
                       )}
                     </td>
                   ))}
+                  {editable && (
+                    <td className="px-5 py-4 text-right">
+                      {row.record && (
+                        <AdminEditDialog
+                          section={section as AdminResource}
+                          record={row.record}
+                          label={data.action}
+                          locations={options.locations}
+                          rooms={options.rooms}
+                        />
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

@@ -15,11 +15,15 @@ test("catalog filters rooms and keeps the booking surface reachable", async ({
   ).toBeVisible();
   const roomImage = page.getByRole("img", { name: "Atelier Criativo" });
   await expect(roomImage).toBeVisible();
+  // As fotos do acervo passam de 2 MB: decodificar leva mais que o padrão de 5s
+  // quando os projetos desktop e mobile rodam em paralelo.
   await expect
-    .poll(() =>
-      roomImage.evaluate(
-        (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
-      ),
+    .poll(
+      () =>
+        roomImage.evaluate(
+          (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
+        ),
+      { timeout: 20_000 },
     )
     .toBe(true);
   await page.screenshot({
@@ -114,6 +118,27 @@ test("room form swaps automatic images for an upload field", async ({
 
   await automatic.check();
   await expect(page.getByLabel("Fotos da sala")).toHaveCount(0);
+});
+
+test("admin edits a room from its own row", async ({ page }) => {
+  await page.goto("/admin/salas");
+  const linha = page.getByRole("row").filter({ hasText: "Sala Executiva" });
+  await linha.getByRole("button", { name: /Editar/ }).click();
+
+  // Só o diálogo aberto monta o formulário: nada de um por linha no DOM.
+  const dialogo = page.locator("dialog[open]");
+  await expect(dialogo).toHaveCount(1);
+  await expect(
+    page.getByRole("heading", { name: "Editar Sala Executiva" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Nome", { exact: true })).toHaveValue(
+    "Sala Executiva",
+  );
+  await expect(page.getByLabel("Situação")).toHaveValue("active");
+  await expect(page.getByLabel(/Trocar por imagem aleatória/)).not.toBeChecked();
+
+  await page.getByTitle("Fechar").click();
+  await expect(page.locator("dialog[open]")).toHaveCount(0);
 });
 
 test("internal worker rejects requests without the cron secret", async ({

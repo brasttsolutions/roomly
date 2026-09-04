@@ -88,6 +88,7 @@ Resend não estiver configurado, e não impede nada de ser testado.
 | Fila de jobs | devolve vazio | real |
 | Código de acesso temporário | simulado | gravado com janela e máscara |
 | Painel `/admin` | dados fictícios | real, exceto Relatórios e Configurações |
+| Editar unidade, sala e fechadura | formulário só | real |
 | Upload de fotos da sala | formulário só | real, no Storage do Supabase |
 | Cancelamento | visual | real |
 | Reembolso | — | precisa do Mercado Pago |
@@ -270,6 +271,30 @@ clicáveis.
 aparece em "O que você encontra" na página da sala. Optei pela tabela de
 características em vez de uma coluna nova para não exigir uma migration no banco
 hospedado. Se um dia for preciso **filtrar** salas por câmera, aí vale a coluna.
+
+### 5.1. Editar o que já existe
+
+Unidades, salas e fechaduras têm um botão **Editar** na própria linha da tabela,
+que abre o mesmo formulário do cadastro já preenchido.
+
+Unidades e salas ganham no modo de edição o campo **Situação**: marcar `Inativa`
+tira a sala do catálogo público sem apagar nada, preservando as reservas e o
+histórico. É o caminho correto para "remover" uma sala — não existe exclusão, e
+não deveria existir enquanto houver reserva apontando para ela.
+
+Nas fotos, editar não mexe em nada por padrão:
+
+| O que você faz | O que acontece |
+| --- | --- |
+| Não toca em nada | As fotos atuais continuam |
+| Anexa novos arquivos | Substituem todas as fotos, e os arquivos antigos saem do Storage |
+| Marca "Trocar por imagem aleatória" | Substitui tudo por uma foto do acervo |
+
+O "Sala possui câmera?" reflete o estado atual e liga ou desliga a característica
+ao salvar.
+
+Reservas, pagamentos, clientes e limpeza continuam só de leitura no painel:
+mexer neles à mão contornaria a máquina de estados e as travas de idempotência.
 
 **3. Fechadura** — `/admin/fechaduras` → **Nova fechadura**
 

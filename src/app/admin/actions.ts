@@ -10,6 +10,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   invalidImage,
   randomStockImage,
+  replaceRoomImages,
   uploadRoomImages,
 } from "@/lib/server/room-images";
 
@@ -61,6 +62,130 @@ const invitationSchema = z.object({
     .transform((value) => value.toLowerCase()),
   role: z.enum(["customer", "employee", "manager", "admin"]),
 });
+
+const statusSchema = z.enum(["active", "inactive"]);
+const editSchema = z.discriminatedUnion("resource", [
+  unitSchema.omit({ resource: true }).extend({
+    resource: z.literal("unidades"),
+    id: postgresUuid,
+    status: statusSchema,
+  }),
+  roomSchema.omit({ resource: true }).extend({
+    resource: z.literal("salas"),
+    id: postgresUuid,
+    status: statusSchema,
+  }),
+  lockSchema.omit({ resource: true }).extend({
+    resource: z.literal("fechaduras"),
+    id: postgresUuid,
+  }),
+]);
+
+export async function updateAdminResource(
+  _previous: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  if (integrationMode() === "simulator") {
+    return { ok: true, message: "Alteração validada no simulador." };
+  }
+  const identity = await requestIdentity();
+  if (
+    !identity ||
+    !["manager", "admin", "super_admin"].includes(identity.role)
+  ) {
+    return { ok: false, error: "Permissão insuficiente." };
+  }
+  const parsed = editSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { ok: false, error: "Revise os campos." };
+
+  // A empresa vem da sessão: a RLS recusa alcançar registro de outro inquilino.
+  const supabase = await createSupabaseServerClient();
+  let error: { message: string } | null = null;
+
+  if (parsed.data.resource === "unidades") {
+    ({ error } = await supabase
+      .from("locations")
+      .update({
+        name: parsed.data.name,
+        address: parsed.data.address,
+        city: parsed.data.city,
+        state: parsed.data.state,
+        zip_code: parsed.data.zipCode,
+        status: parsed.data.status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", parsed.data.id)
+      .eq("company_id", identity.companyId));
+  } else if (parsed.data.resource === "salas") {
+    const automatic = parsed.data.randomImages === "on";
+    const files = formData
+      .getAll("photos")
+      .filter((entry): entry is File => entry instanceof File && entry.size > 0);
+    if (!automatic && files.length > 0) {
+      const problem = invalidImage(files);
+      if (problem) return { ok: false, error: problem };
+    }
+    ({ error } = await supabase
+      .from("rooms")
+      .update({
+        location_id: parsed.data.locationId,
+        name: parsed.data.name,
+        slug: slugify(parsed.data.name),
+        description: parsed.data.description,
+        capacity: parsed.data.capacity,
+        hourly_price_cents: parsed.data.hourlyPriceCents,
+        status: parsed.data.status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", parsed.data.id)
+      .eq("company_id", identity.companyId));
+    if (!error) {
+      try {
+        if (automatic) {
+          await replaceRoomImages({
+            companyId: identity.companyId,
+            roomId: parsed.data.id,
+            urls: [randomStockImage()],
+          });
+        } else if (files.length > 0) {
+          const urls = await uploadRoomImages({
+            companyId: identity.companyId,
+            roomId: parsed.data.id,
+            files,
+          });
+          await replaceRoomImages({
+            companyId: identity.companyId,
+            roomId: parsed.data.id,
+            urls,
+          });
+        }
+        await setCameraFeature(
+          identity.companyId,
+          parsed.data.id,
+          parsed.data.hasCamera === "on",
+        );
+      } catch {
+        return { ok: false, error: "Sala salva, mas as fotos falharam." };
+      }
+    }
+  } else {
+    ({ error } = await supabase
+      .from("locks")
+      .update({
+        room_id: parsed.data.roomId,
+        name: parsed.data.name,
+        external_lock_id: parsed.data.externalLockId,
+        gateway_id: parsed.data.gatewayId || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", parsed.data.id)
+      .eq("company_id", identity.companyId));
+  }
+
+  if (error) return { ok: false, error: "Não foi possível salvar." };
+  revalidatePath(`/admin/${parsed.data.resource}`);
+  return { ok: true, message: "Alterações salvas." };
+}
 
 export async function createAdminResource(
   _previous: AdminActionState,
@@ -215,7 +340,32 @@ async function attachRoomImages(
   if (error) throw new Error("room_images_persist_failed");
 }
 
-async function attachCameraFeature(companyId: string, roomId: string) {
+async function setCameraFeature(
+  companyId: string,
+  roomId: string,
+  enabled: boolean,
+) {
+  if (enabled) return attachCameraFeature(companyId, roomId, true);
+  const admin = createSupabaseAdminClient();
+  const feature = await admin
+    .from("room_features")
+    .select("id")
+    .eq("name", "Câmera")
+    .maybeSingle();
+  if (!feature.data) return;
+  await admin
+    .from("room_feature_relations")
+    .delete()
+    .eq("company_id", companyId)
+    .eq("room_id", roomId)
+    .eq("feature_id", feature.data.id);
+}
+
+async function attachCameraFeature(
+  companyId: string,
+  roomId: string,
+  ignoreDuplicate = false,
+) {
   const admin = createSupabaseAdminClient();
   const feature = await admin
     .from("room_features")
@@ -223,11 +373,14 @@ async function attachCameraFeature(companyId: string, roomId: string) {
     .select("id")
     .single();
   if (feature.error || !feature.data) throw new Error("room_feature_failed");
-  const { error } = await admin.from("room_feature_relations").insert({
-    company_id: companyId,
-    room_id: roomId,
-    feature_id: feature.data.id,
-  });
+  const { error } = await admin.from("room_feature_relations").upsert(
+    {
+      company_id: companyId,
+      room_id: roomId,
+      feature_id: feature.data.id,
+    },
+    { onConflict: "room_id,feature_id", ignoreDuplicates: ignoreDuplicate },
+  );
   if (error) throw new Error("room_feature_relation_failed");
 }
 
