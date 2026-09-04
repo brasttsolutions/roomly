@@ -264,6 +264,9 @@ auditoria
 
 ```text
 /api/bookings
+/api/disponibilidade
+/api/salas/[slug]/disponibilidade
+/api/salas/[slug]/calendario
 /api/webhooks/mercado-pago
 /api/internal/jobs/run
 /api/health
@@ -271,6 +274,9 @@ auditoria
 ```
 
 O endpoint de bookings deve calcular preço e disponibilidade no servidor/banco, nunca confiar no frontend.
+
+Os três endpoints de disponibilidade estão contratados em
+[api-disponibilidade.md](api-disponibilidade.md).
 
 ---
 

@@ -32,8 +32,9 @@ Executado com o stack local do Supabase CLI sobre Docker, migration e seed aplic
 
 | Camada                     | Resultado                    | Comando ou evidência                    |
 | -------------------------- | ---------------------------- | --------------------------------------- |
-| pgTAP                      | 20 testes em 2 arquivos      | `npm run test:db`                       |
+| pgTAP                      | 28 testes em 3 arquivos      | `npm run test:db`                       |
 | Isolamento entre inquilinos | 8 asserções                  | `supabase/tests/rls_tenant_isolation.sql` |
+| Disponibilidade pública    | 8 asserções                  | `supabase/tests/availability.sql`         |
 | Cadeia reserva → pagamento | exercitada via RPC e via HTTP | `create_booking_hold`, `process_payment_event` |
 | Aplicação em modo supabase | login, catálogo e reserva reais | `next dev` apontado ao Supabase local |
 

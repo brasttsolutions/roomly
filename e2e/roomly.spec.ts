@@ -15,15 +15,17 @@ test("catalog filters rooms and keeps the booking surface reachable", async ({
   ).toBeVisible();
   const roomImage = page.getByRole("img", { name: "Atelier Criativo" });
   await expect(roomImage).toBeVisible();
-  // As fotos do acervo passam de 2 MB: decodificar leva mais que o padrão de 5s
-  // quando os projetos desktop e mobile rodam em paralelo.
+  // As fotos do acervo passam de 2 MB. Na primeira execução o otimizador do
+  // `next/image` ainda não tem cache, e redimensionar três PNGs desse tamanho
+  // com os projetos desktop e mobile disputando CPU passa dos 20s. O ativo
+  // pesado é o problema de fundo — anotado para o lote de limpeza.
   await expect
     .poll(
       () =>
         roomImage.evaluate(
           (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
         ),
-      { timeout: 20_000 },
+      { timeout: 60_000 },
     )
     .toBe(true);
   await page.screenshot({

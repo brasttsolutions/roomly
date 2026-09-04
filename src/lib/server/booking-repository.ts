@@ -144,3 +144,11 @@ export function bookingRepository(): BookingRepository {
     ? new SupabaseBookingRepository()
     : new SimulatorBookingRepository();
 }
+
+/**
+ * Reservas do simulador, para a disponibilidade enxergar os holds criados em
+ * memória. Sem isto o modo simulador mostraria todo dia inteiramente livre.
+ */
+export function simulatorBookings(): readonly BookingRecord[] {
+  return [...demoBookings.values()];
+}
