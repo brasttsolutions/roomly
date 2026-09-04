@@ -22,7 +22,7 @@
     "@supabase/supabase-js": "^2.114.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
-    "lucide-react": "^1.38.0",
+    "lucide-react": "^1.39.0",
     "mercadopago": "^3.6.0",
     "next": "16.3.4",
     "react": "19.2.8",
@@ -35,15 +35,15 @@
   "devDependencies": {
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^26",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.1.11",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "16.3.4",
     "supabase": "^2.116.0",
     "tailwindcss": "^4",
-    "typescript": "^5",
+    "typescript": "^7",
     "vitest": "^4.1.11"
   },
   "allowScripts": {
