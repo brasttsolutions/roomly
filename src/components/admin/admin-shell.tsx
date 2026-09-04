@@ -7,7 +7,7 @@ import { AdminSidebar } from "./admin-sidebar";
 export function AdminShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <div className="min-h-screen bg-[#f4f5f1] lg:flex">
+    <div className="min-h-screen bg-surface-page lg:flex">
       <AdminSidebar />
       {menuOpen && (
         <>
@@ -29,7 +29,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </>
       )}
       <div className="min-w-0 flex-1">
-        <header className="flex h-16 items-center justify-between border-b border-[#dce1dc] bg-white px-4 sm:px-6">
+        <header className="flex h-16 items-center justify-between border-b border-border-subtle bg-white px-4 sm:px-6">
           <button
             className="grid size-10 place-items-center rounded-md border border-[var(--border-control)] lg:hidden"
             title="Abrir menu"
@@ -39,7 +39,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           >
             <Menu size={19} />
           </button>
-          <div className="hidden max-w-sm flex-1 items-center gap-2 rounded-md bg-[#f0f2ef] px-3 md:flex">
+          <div className="hidden max-w-sm flex-1 items-center gap-2 rounded-md bg-surface-page px-3 md:flex">
             <Search size={17} className="text-[var(--text-secondary)]" />
             <input
               aria-label="Buscar no painel"
@@ -49,13 +49,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              className="relative grid size-10 place-items-center rounded-md hover:bg-[#f0f2ef]"
+              className="relative grid size-10 place-items-center rounded-md hover:bg-surface-page"
               title="Notificações"
             >
               <Bell size={19} />
-              <span className="absolute right-2 top-2 size-2 rounded-full bg-[#d65e43]" />
+              <span className="absolute right-2 top-2 size-2 rounded-full bg-danger-action" />
             </button>
-            <button className="hidden h-10 items-center gap-2 rounded-md px-2 text-sm font-semibold hover:bg-[#f0f2ef] sm:flex">
+            <button className="hidden h-10 items-center gap-2 rounded-md px-2 text-sm font-semibold hover:bg-surface-page sm:flex">
               Ágora Coworking
               <ChevronDown size={16} />
             </button>

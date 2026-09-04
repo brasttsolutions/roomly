@@ -14,7 +14,7 @@ export function RoomGallery({
   const current = images[active] ?? images[0];
   return (
     <div>
-      <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-[#e7eae6]">
+      <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-surface-page">
         <Image
           src={current}
           alt={name}
@@ -34,9 +34,9 @@ export function RoomGallery({
                 aria-current={index === active}
                 aria-label={`Foto ${index + 1} de ${images.length}`}
                 className={cn(
-                  "relative size-20 overflow-hidden rounded-md border-2 bg-[#e7eae6] transition",
+                  "relative size-20 overflow-hidden rounded-md border-2 bg-surface-page transition",
                   index === active
-                    ? "border-[#176b4d]"
+                    ? "border-action-primary"
                     : "border-transparent hover:border-[var(--border-control)]",
                 )}
               >

@@ -108,21 +108,21 @@ export function BookingFlow({
   if (stage === "confirmed")
     return (
       <div
-        className="rounded-lg border border-[#cfe4d8] bg-white p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-8"
+        className="rounded-lg border border-border-subtle bg-white p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-8"
         data-testid="booking-confirmation"
       >
-        <div className="mb-6 grid size-12 place-items-center rounded-md bg-[#176b4d] text-white">
+        <div className="mb-6 grid size-12 place-items-center rounded-md bg-action-primary text-text-on-accent">
           <Check size={25} />
         </div>
         <Badge tone="success">Reserva confirmada</Badge>
         <h2 className="mt-3 text-2xl font-bold">
           Tudo certo para {formatIsoWeekday(selectedDate)}.
         </h2>
-        <p className="mt-2 text-sm leading-6 text-[#66736d]">
+        <p className="mt-2 text-sm leading-6 text-text-secondary">
           Enviamos os detalhes para você. O código será liberado 5 minutos
           antes.
         </p>
-        <div className="my-6 border-y border-[#e0e5e1] py-5">
+        <div className="my-6 border-y border-border-subtle py-5">
           <Info label="Sala" value={room.name} />
           <Info label="Horário" value={`${selectedTime} – ${endHour}`} />
           <Info
@@ -130,7 +130,7 @@ export function BookingFlow({
             value={method === "pix" ? "PIX aprovado" : "Cartão aprovado"}
           />
         </div>
-        <div className="rounded-md bg-[#17211d] p-5 text-white">
+        <div className="rounded-md bg-surface-inverse p-5 text-white">
           <p className="flex items-center gap-2 text-sm text-white/70">
             <KeyRound size={17} />
             Código de acesso
@@ -146,7 +146,7 @@ export function BookingFlow({
         </div>
         <a
           href="/minhas-reservas"
-          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-md bg-[#176b4d] text-sm font-bold text-white"
+          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-md bg-action-primary text-sm font-bold text-text-on-accent"
         >
           Ver minhas reservas
         </a>
@@ -154,15 +154,15 @@ export function BookingFlow({
     );
   if (stage === "payment")
     return (
-      <div className="rounded-lg border border-[#d9ded9] bg-white p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
+      <div className="rounded-lg border border-border-subtle bg-white p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
         <button
           onClick={() => setStage("schedule")}
-          className="mb-5 inline-flex items-center gap-1 text-sm font-bold text-[#53605a]"
+          className="mb-5 inline-flex items-center gap-1 text-sm font-bold text-text-secondary"
         >
           <ChevronLeft size={17} />
           Alterar horário
         </button>
-        <p className="text-xs font-bold uppercase text-[#176b4d]">
+        <p className="text-xs font-bold uppercase text-text-link">
           Pagamento seguro
         </p>
         <h2 className="mt-1 text-2xl font-bold">Como prefere pagar?</h2>
@@ -188,13 +188,13 @@ export function BookingFlow({
           />
         )}
         {method === "card" && !mercadoPagoPublicKey && (
-          <div className="mt-4 rounded-md border border-[var(--border-control)] bg-[#f6f7f4] p-4 text-sm text-[#66736d]">
+          <div className="mt-4 rounded-md border border-[var(--border-control)] bg-surface-page p-4 text-sm text-text-secondary">
             Pagamento por cartão em modo simulador. Nenhum dado de cartão é
             coletado.
           </div>
         )}
-        <div className="my-5 flex items-center justify-between border-y border-[#e2e6e2] py-4">
-          <span className="text-sm text-[#66736d]">Total</span>
+        <div className="my-5 flex items-center justify-between border-y border-border-subtle py-4">
+          <span className="text-sm text-text-secondary">Total</span>
           <strong className="text-xl">{formatMoney(total)}</strong>
         </div>
         {(method === "pix" || !mercadoPagoPublicKey) && (
@@ -209,7 +209,7 @@ export function BookingFlow({
           </Button>
         )}
         {error && (
-          <p role="alert" className="mt-3 text-sm font-semibold text-[#a84331]">
+          <p role="alert" className="mt-3 text-sm font-semibold text-danger-text">
             {error}
           </p>
         )}
@@ -220,13 +220,13 @@ export function BookingFlow({
       </div>
     );
   return (
-    <div className="rounded-lg border border-[#d9ded9] bg-white p-5 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
-      <p className="text-xs font-bold uppercase text-[#176b4d]">
+    <div className="rounded-lg border border-border-subtle bg-white p-5 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
+      <p className="text-xs font-bold uppercase text-text-link">
         Reserve agora
       </p>
       <h2 className="mt-1 text-2xl font-bold">Escolha seu horário</h2>
       <label className="mt-5 block">
-        <span className="mb-2 block text-xs font-bold text-[#53605a]">
+        <span className="mb-2 block text-xs font-bold text-text-secondary">
           DATA
         </span>
         <input
@@ -238,7 +238,7 @@ export function BookingFlow({
         />
       </label>
       <div className="mt-5">
-        <span className="mb-2 block text-xs font-bold text-[#53605a]">
+        <span className="mb-2 block text-xs font-bold text-text-secondary">
           INÍCIO
         </span>
         <div className="grid grid-cols-3 gap-2">
@@ -246,7 +246,7 @@ export function BookingFlow({
             <button
               key={time}
               onClick={() => setSelectedTime(time)}
-              className={`h-10 rounded-md border text-sm font-semibold ${selectedTime === time ? "border-[#176b4d] bg-[#176b4d] text-white" : "border-[var(--border-control)] hover:border-[#176b4d]"}`}
+              className={`h-10 rounded-md border text-sm font-semibold ${selectedTime === time ? "border-action-primary bg-action-primary text-text-on-accent" : "border-[var(--border-control)] hover:border-action-primary"}`}
             >
               {time}
             </button>
@@ -255,10 +255,10 @@ export function BookingFlow({
       </div>
       <div className="mt-5 flex items-center justify-between">
         <div>
-          <span className="block text-xs font-bold text-[#53605a]">
+          <span className="block text-xs font-bold text-text-secondary">
             DURAÇÃO
           </span>
-          <span className="text-sm text-[#66736d]">Mínimo de 1 hora</span>
+          <span className="text-sm text-text-secondary">Mínimo de 1 hora</span>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -280,9 +280,9 @@ export function BookingFlow({
           </Button>
         </div>
       </div>
-      <div className="my-5 border-y border-[#e2e6e2] py-4">
+      <div className="my-5 border-y border-border-subtle py-4">
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-sm text-[#66736d]">
+          <span className="flex items-center gap-2 text-sm text-text-secondary">
             <Clock3 size={16} />
             {selectedTime} – {endHour}
           </span>
@@ -305,7 +305,7 @@ export function BookingFlow({
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="mt-3 flex items-center justify-between first:mt-0">
-      <span className="text-sm text-[#66736d]">{label}</span>
+      <span className="text-sm text-text-secondary">{label}</span>
       <strong>{value}</strong>
     </div>
   );
@@ -324,7 +324,7 @@ function Method({
   return (
     <button
       onClick={onClick}
-      className={`flex min-h-20 flex-col items-start justify-center rounded-md border p-4 text-left ${active ? "border-[#176b4d] bg-[#eff8f3]" : "border-[#d8ded9]"}`}
+      className={`flex min-h-20 flex-col items-start justify-center rounded-md border p-4 text-left ${active ? "border-action-primary bg-surface-accent-subtle" : "border-border-subtle"}`}
     >
       {icon}
       <strong className="mt-2 text-sm">{label}</strong>

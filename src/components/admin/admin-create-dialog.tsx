@@ -258,12 +258,12 @@ function RoomFields({
             name="photos"
             accept="image/jpeg,image/png,image/webp"
             onChange={(event) => setChosen(event.target.files?.length ?? 0)}
-            className="mt-2 w-full rounded-md border border-[var(--border-control)] p-2 text-sm font-normal file:mr-3 file:rounded file:border-0 file:bg-[#e9ece8] file:px-3 file:py-1.5 file:text-sm file:font-semibold"
+            className="mt-2 w-full rounded-md border border-[var(--border-control)] p-2 text-sm font-normal file:mr-3 file:rounded file:border-0 file:bg-surface-page file:px-3 file:py-1.5 file:text-sm file:font-semibold"
           />
           <span
             className={
               chosen > 6
-                ? "mt-1 block text-xs font-semibold text-[#a84331]"
+                ? "mt-1 block text-xs font-semibold text-danger-text"
                 : "mt-1 block text-xs font-normal text-[var(--text-secondary)]"
             }
           >
@@ -309,7 +309,7 @@ function Checkbox({
         onChange={
           onChange ? (event) => onChange(event.target.checked) : undefined
         }
-        className="mt-0.5 size-4 accent-[#176b4d]"
+        className="mt-0.5 size-4 accent-action-primary"
       />
       <span>
         {label}

@@ -11,11 +11,11 @@ export default async function Page({
 }) {
   const { convite = "", erro } = await searchParams;
   return (
-    <main id="conteudo" className="grid min-h-screen place-items-center bg-[#f6f7f4] p-5">
-      <section className="w-full max-w-md rounded-lg border border-[#d9ded9] bg-white p-6 sm:p-8">
+    <main id="conteudo" className="grid min-h-screen place-items-center bg-surface-page p-5">
+      <section className="w-full max-w-md rounded-lg border border-border-subtle bg-white p-6 sm:p-8">
         <Brand />
         <h1 className="mt-8 text-2xl font-bold">Criar conta</h1>
-        <p className="mt-2 text-sm text-[#66736d]">
+        <p className="mt-2 text-sm text-text-secondary">
           Use o mesmo e-mail que recebeu o convite.
         </p>
         <form action={signUp} className="mt-6 grid gap-4">
@@ -35,11 +35,11 @@ export default async function Page({
             minLength={10}
           />
           {erro && (
-            <p role="alert" className="text-sm text-[#a84331]">
+            <p role="alert" className="text-sm text-danger-text">
               Não foi possível validar o convite ou criar a conta.
             </p>
           )}
-          <button className="h-11 rounded-md bg-[#176b4d] text-sm font-bold text-white">
+          <button className="h-11 rounded-md bg-action-primary text-sm font-bold text-text-on-accent">
             Criar conta
           </button>
         </form>

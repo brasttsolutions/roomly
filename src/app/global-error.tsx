@@ -12,12 +12,12 @@ export default function GlobalError({
   }, [error]);
   return (
     <html lang="pt-BR">
-      <body className="grid min-h-screen place-items-center bg-[#f6f7f4] p-6">
+      <body className="grid min-h-screen place-items-center bg-surface-page p-6">
         <main className="max-w-md text-center">
           <h1 className="text-2xl font-bold">
             Não foi possível carregar o Roomly
           </h1>
-          <p className="mt-3 text-sm text-[#66736d]">
+          <p className="mt-3 text-sm text-text-secondary">
             A ocorrência foi registrada. Atualize a página para tentar
             novamente.
           </p>

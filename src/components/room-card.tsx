@@ -15,8 +15,8 @@ export function RoomCard({
     <article
       className={
         featured
-          ? "group grid overflow-hidden rounded-lg border border-[#d9ded9] bg-white lg:grid-cols-[1.35fr_1fr]"
-          : "group overflow-hidden rounded-lg border border-[#d9ded9] bg-white"
+          ? "group grid overflow-hidden rounded-lg border border-border-subtle bg-white lg:grid-cols-[1.35fr_1fr]"
+          : "group overflow-hidden rounded-lg border border-border-subtle bg-white"
       }
     >
       <Link
@@ -53,7 +53,7 @@ export function RoomCard({
         <div>
           <div className="mb-3 flex items-start justify-between gap-3">
             <div>
-              <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-[#66736d]">
+              <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
                 <MapPin size={14} />
                 {room.location}
               </p>
@@ -71,12 +71,12 @@ export function RoomCard({
               href={`/salas/${room.slug}`}
               aria-label={`Ver ${room.name}`}
               title={`Ver ${room.name}`}
-              className="grid size-10 shrink-0 place-items-center rounded-md border border-[var(--border-control)] text-[#176b4d] hover:bg-[#176b4d] hover:text-white"
+              className="grid size-10 shrink-0 place-items-center rounded-md border border-[var(--border-control)] text-text-link hover:bg-action-primary hover:text-text-on-accent"
             >
               <ArrowUpRight size={19} />
             </Link>
           </div>
-          <p className="mb-5 text-sm leading-6 text-[#65716c]">
+          <p className="mb-5 text-sm leading-6 text-text-secondary">
             {room.description}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -91,14 +91,14 @@ export function RoomCard({
         <div
           className={
             featured
-              ? "mt-10 border-t border-[#e2e6e2] pt-5"
-              : "mt-5 border-t border-[#e2e6e2] pt-4"
+              ? "mt-10 border-t border-border-subtle pt-5"
+              : "mt-5 border-t border-border-subtle pt-4"
           }
         >
-          <span className="text-xs text-[#66736d]">a partir de</span>
+          <span className="text-xs text-text-secondary">a partir de</span>
           <p className="text-xl font-bold">
             {formatMoney(room.hourlyPriceCents)}
-            <span className="text-sm font-normal text-[#66736d]"> / hora</span>
+            <span className="text-sm font-normal text-text-secondary"> / hora</span>
           </p>
         </div>
       </div>

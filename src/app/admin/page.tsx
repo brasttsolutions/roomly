@@ -26,11 +26,11 @@ export default async function AdminDashboard() {
     <>
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-bold text-[#176b4d]">
+          <p className="text-sm font-bold text-text-link">
             TERÇA, 01 DE SETEMBRO
           </p>
           <h1 className="mt-1 text-3xl font-bold">Visão geral</h1>
-          <p className="mt-2 text-sm text-[#66736d]">
+          <p className="mt-2 text-sm text-text-secondary">
             A operação de hoje em um só lugar.
           </p>
         </div>
@@ -43,7 +43,7 @@ export default async function AdminDashboard() {
           <option>Centro Joinville</option>
         </select>
       </div>
-      <section className="grid gap-px overflow-hidden border border-[#d9ded9] bg-[#d9ded9] sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-px overflow-hidden border border-border-subtle bg-border-subtle sm:grid-cols-2 xl:grid-cols-4">
         {adminMetrics.map((metric) => (
           <div key={metric.label} className="bg-white p-5">
             <p className="text-xs font-bold uppercase text-[var(--text-secondary)]">
@@ -51,7 +51,7 @@ export default async function AdminDashboard() {
             </p>
             <div className="mt-3 flex items-end justify-between">
               <strong className="text-2xl">{metric.value}</strong>
-              <span className="flex items-center text-xs font-bold text-[#176b4d]">
+              <span className="flex items-center text-xs font-bold text-text-link">
                 {metric.change.startsWith("+") ? (
                   <ArrowUpRight size={14} />
                 ) : (
@@ -64,8 +64,8 @@ export default async function AdminDashboard() {
         ))}
       </section>
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.45fr_1fr]">
-        <section className="rounded-lg border border-[#d9ded9] bg-white">
-          <div className="flex items-center justify-between border-b border-[#e2e6e2] p-5">
+        <section className="rounded-lg border border-border-subtle bg-white">
+          <div className="flex items-center justify-between border-b border-border-subtle p-5">
             <div>
               <h2 className="font-bold">Ocupação da semana</h2>
               <p className="mt-1 text-xs text-[var(--text-secondary)]">
@@ -82,7 +82,7 @@ export default async function AdminDashboard() {
               >
                 <div className="relative flex-1">
                   <div
-                    className="absolute bottom-0 w-full rounded-t bg-[#176b4d] transition"
+                    className="absolute bottom-0 w-full rounded-t bg-action-primary transition"
                     style={{ height: `${height}%` }}
                   />
                 </div>
@@ -93,12 +93,12 @@ export default async function AdminDashboard() {
             ))}
           </div>
         </section>
-        <section className="rounded-lg border border-[#d9ded9] bg-white">
-          <div className="flex items-center justify-between border-b border-[#e2e6e2] p-5">
+        <section className="rounded-lg border border-border-subtle bg-white">
+          <div className="flex items-center justify-between border-b border-border-subtle p-5">
             <h2 className="font-bold">Saúde da operação</h2>
-            <span className="size-2 rounded-full bg-[#2aa66f]" />
+            <span className="size-2 rounded-full bg-success-border" />
           </div>
-          <div className="divide-y divide-[#e4e7e4]">
+          <div className="divide-y divide-border-subtle">
             <Health
               icon={<DoorClosed size={18} />}
               title="Fechaduras online"
@@ -120,8 +120,8 @@ export default async function AdminDashboard() {
           </div>
         </section>
       </div>
-      <section className="mt-6 overflow-hidden rounded-lg border border-[#d9ded9] bg-white">
-        <div className="flex items-center justify-between border-b border-[#e2e6e2] p-5">
+      <section className="mt-6 overflow-hidden rounded-lg border border-border-subtle bg-white">
+        <div className="flex items-center justify-between border-b border-border-subtle p-5">
           <div>
             <h2 className="font-bold">Reservas de hoje</h2>
             <p className="mt-1 text-xs text-[var(--text-secondary)]">
@@ -130,7 +130,7 @@ export default async function AdminDashboard() {
           </div>
           <Link
             href="/admin/calendario"
-            className="inline-flex items-center gap-1 text-sm font-bold text-[#176b4d]"
+            className="inline-flex items-center gap-1 text-sm font-bold text-text-link"
           >
             Ver calendário
             <ChevronRight size={16} />
@@ -138,7 +138,7 @@ export default async function AdminDashboard() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-left text-sm">
-            <thead className="bg-[#f5f6f3] text-xs uppercase text-[var(--text-secondary)]">
+            <thead className="bg-surface-page text-xs uppercase text-[var(--text-secondary)]">
               <tr>
                 <th className="px-5 py-3">Horário</th>
                 <th className="px-5 py-3">Sala</th>
@@ -147,13 +147,13 @@ export default async function AdminDashboard() {
                 <th className="px-5 py-3">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e4e7e4]">
+            <tbody className="divide-y divide-border-subtle">
               {todayBookings.map((row) => (
-                <tr key={row.time} className="hover:bg-[#f8f9f7]">
+                <tr key={row.time} className="hover:bg-surface-page">
                   <td className="px-5 py-4 font-bold">{row.time}</td>
                   <td className="px-5 py-4">{row.room}</td>
                   <td className="px-5 py-4">{row.customer}</td>
-                  <td className="px-5 py-4 text-[#66736d]">{row.duration}</td>
+                  <td className="px-5 py-4 text-text-secondary">{row.duration}</td>
                   <td className="px-5 py-4">
                     <Badge
                       tone={
@@ -189,7 +189,7 @@ function Health({
 }) {
   return (
     <div className="flex items-center gap-3 p-5">
-      <span className="grid size-10 place-items-center rounded-md bg-[#f0f2ef]">
+      <span className="grid size-10 place-items-center rounded-md bg-surface-page">
         {icon}
       </span>
       <div className="flex-1">

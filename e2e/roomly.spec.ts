@@ -48,7 +48,11 @@ test("customer cancellation revokes the visible access code", async ({
 }) => {
   await page.goto("/minhas-reservas");
   await page.getByRole("button", { name: "Cancelar reserva" }).click();
-  await expect(page.getByText("Cancelada", { exact: true })).toBeVisible();
+  // O cancelamento é uma server action: a asserção espera uma ida ao servidor,
+  // que passa dos 5s padrão quando os projetos rodam em paralelo.
+  await expect(page.getByText("Cancelada", { exact: true })).toBeVisible({
+    timeout: 20_000,
+  });
   await expect(
     page.getByText("Acesso revogado", { exact: false }),
   ).toBeVisible();

@@ -76,7 +76,7 @@ export function PasswordForm() {
 function Feedback({ state }: { state: AccountState }) {
   if (state.error)
     return (
-      <p role="alert" className="text-sm font-semibold text-[#a84331]">
+      <p role="alert" className="text-sm font-semibold text-danger-text">
         {state.error}
       </p>
     );
@@ -84,7 +84,7 @@ function Feedback({ state }: { state: AccountState }) {
     return (
       <p
         role="status"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#176b4d]"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-text-link"
       >
         <Check size={16} />
         {state.message}

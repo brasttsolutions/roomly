@@ -10,8 +10,8 @@ export function Brand({ inverse = false }: { inverse?: boolean }) {
       <span
         className={
           inverse
-            ? "grid size-9 place-items-center rounded-md bg-white text-[#176b4d]"
-            : "grid size-9 place-items-center rounded-md bg-[#176b4d] text-white"
+            ? "grid size-9 place-items-center rounded-md bg-white text-text-link"
+            : "grid size-9 place-items-center rounded-md bg-action-primary text-text-on-accent"
         }
       >
         <DoorOpen size={20} />

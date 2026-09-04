@@ -43,7 +43,7 @@ export function AdminSidebar({
     <aside
       id={mobile ? "admin-mobile-navigation" : undefined}
       className={cn(
-        "w-60 shrink-0 flex-col bg-[#17211d] text-white",
+        "w-60 shrink-0 flex-col bg-surface-inverse text-white",
         mobile
           ? "fixed inset-y-0 left-0 z-50 flex w-[280px] shadow-2xl"
           : "hidden lg:flex lg:min-h-screen",
@@ -74,7 +74,7 @@ export function AdminSidebar({
       </nav>
       <div className="border-t border-white/10 p-4">
         <div className="flex items-center gap-3">
-          <div className="grid size-9 place-items-center rounded-md bg-[#dff3e9] text-sm font-bold text-[#176b4d]">
+          <div className="grid size-9 place-items-center rounded-md bg-surface-accent-subtle text-sm font-bold text-text-link">
             TS
           </div>
           <div className="min-w-0">

@@ -42,7 +42,7 @@ export default async function RoomPage({
       <main id="conteudo" className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
         <Link
           href="/"
-          className="mb-5 inline-flex items-center gap-1 text-sm font-bold text-[#53605a]"
+          className="mb-5 inline-flex items-center gap-1 text-sm font-bold text-text-secondary"
         >
           <ChevronLeft size={17} />
           Todas as salas
@@ -56,7 +56,7 @@ export default async function RoomPage({
             <div className="py-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="flex items-center gap-1.5 text-sm font-semibold text-[#66736d]">
+                  <p className="flex items-center gap-1.5 text-sm font-semibold text-text-secondary">
                     <MapPin size={16} />
                     {[room.location, room.floor].filter(Boolean).join(" · ")}
                   </p>
@@ -74,11 +74,11 @@ export default async function RoomPage({
                   até {room.capacity} pessoas
                 </Badge>
               </div>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-[#65716c]">
+              <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary">
                 {room.description} A sala é preparada entre cada reserva e o
                 acesso é liberado automaticamente no horário contratado.
               </p>
-              <div className="mt-6 border-y border-[#dfe4df] py-5">
+              <div className="mt-6 border-y border-border-subtle py-5">
                 <h2 className="mb-3 text-sm font-bold">O que você encontra</h2>
                 <div className="flex flex-wrap gap-2">
                   {room.features.map((f) => (

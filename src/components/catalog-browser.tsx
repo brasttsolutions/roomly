@@ -22,9 +22,9 @@ export function CatalogBrowser({
   );
   return (
     <>
-      <div className="mb-8 grid border border-[#d7ddd8] bg-white md:grid-cols-[1.2fr_1fr_1fr_auto]">
-        <div className="flex min-h-16 items-center gap-3 border-b border-[#e2e6e2] px-4 md:border-b-0 md:border-r">
-          <Building2 size={19} className="text-[#176b4d]" />
+      <div className="mb-8 grid border border-border-subtle bg-white md:grid-cols-[1.2fr_1fr_1fr_auto]">
+        <div className="flex min-h-16 items-center gap-3 border-b border-border-subtle px-4 md:border-b-0 md:border-r">
+          <Building2 size={19} className="text-text-link" />
           <span>
             <span className="block text-[11px] font-bold uppercase text-[var(--text-secondary)]">
               Unidade
@@ -32,8 +32,8 @@ export function CatalogBrowser({
             <span className="text-sm font-semibold">Todas as unidades</span>
           </span>
         </div>
-        <label className="flex min-h-16 items-center gap-3 border-b border-[#e2e6e2] px-4 md:border-b-0 md:border-r">
-          <CalendarDays size={19} className="text-[#176b4d]" />
+        <label className="flex min-h-16 items-center gap-3 border-b border-border-subtle px-4 md:border-b-0 md:border-r">
+          <CalendarDays size={19} className="text-text-link" />
           <span>
             <span className="block text-[11px] font-bold uppercase text-[var(--text-secondary)]">
               Data
@@ -48,7 +48,7 @@ export function CatalogBrowser({
           </span>
         </label>
         <label className="flex min-h-16 items-center gap-3 px-4 md:border-r">
-          <UsersRound size={19} className="text-[#176b4d]" />
+          <UsersRound size={19} className="text-text-link" />
           <span className="min-w-0 flex-1">
             <span className="block text-[11px] font-bold uppercase text-[var(--text-secondary)]">
               Pessoas
@@ -65,7 +65,7 @@ export function CatalogBrowser({
             </select>
           </span>
         </label>
-        <button className="m-2 inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[#176b4d] px-5 text-sm font-bold text-white hover:bg-[#11543d]">
+        <button className="m-2 inline-flex h-12 items-center justify-center gap-2 rounded-md bg-action-primary px-5 text-sm font-bold text-text-on-accent hover:bg-action-primary-hover">
           <Search size={18} />
           Buscar
         </button>
@@ -76,7 +76,7 @@ export function CatalogBrowser({
           <p
             role="status"
             aria-live="polite"
-            className="mt-1 text-sm text-[#66736d]"
+            className="mt-1 text-sm text-text-secondary"
           >
             {filtered.length}{" "}
             {filtered.length === 1 ? "sala encontrada" : "salas encontradas"}

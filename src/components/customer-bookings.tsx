@@ -52,16 +52,16 @@ export function CustomerBookings({
   if (!booking) {
     return (
       <div>
-        <section className="border-y border-[#dce1dd] bg-white p-6">
+        <section className="border-y border-border-subtle bg-white p-6">
           <h2 className="text-lg font-bold">Nenhuma reserva futura</h2>
-          <p className="mt-2 text-sm text-[#66736d]">
+          <p className="mt-2 text-sm text-text-secondary">
             Suas próximas reservas aparecerão aqui.
           </p>
         </section>
-        <h2 className="mb-4 mt-8 text-sm font-bold uppercase text-[#66736d]">
+        <h2 className="mb-4 mt-8 text-sm font-bold uppercase text-text-secondary">
           Histórico
         </h2>
-        <div className="divide-y divide-[#e1e5e2] border-y border-[#dce1dd] bg-white">
+        <div className="divide-y divide-border-subtle border-y border-border-subtle bg-white">
           {history.map((item) => (
             <History
               key={item.id}
@@ -84,17 +84,17 @@ export function CustomerBookings({
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <section>
-        <h2 className="mb-4 text-sm font-bold uppercase text-[#66736d]">
+        <h2 className="mb-4 text-sm font-bold uppercase text-text-secondary">
           Próxima reserva
         </h2>
-        <article className="rounded-lg border border-[#d8ded9] bg-white p-5 sm:p-6">
+        <article className="rounded-lg border border-border-subtle bg-white p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <Badge tone={cancelled ? "danger" : "success"}>
                 {cancelled ? "Cancelada" : "Confirmada"}
               </Badge>
               <h3 className="mt-3 text-2xl font-bold">{booking.room}</h3>
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-[#66736d]">
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-text-secondary">
                 <MapPin size={15} />
                 {booking.location}
               </p>
@@ -110,7 +110,7 @@ export function CustomerBookings({
               </p>
             </div>
           </div>
-          <div className="mt-6 flex flex-wrap gap-2 border-t border-[#e1e5e2] pt-5">
+          <div className="mt-6 flex flex-wrap gap-2 border-t border-border-subtle pt-5">
             <Button variant="secondary">Ver detalhes</Button>
             {!cancelled && (
               <Button
@@ -122,16 +122,16 @@ export function CustomerBookings({
               </Button>
             )}
             {cancelError && (
-              <p role="alert" className="w-full text-sm text-[#a84331]">
+              <p role="alert" className="w-full text-sm text-danger-text">
                 {cancelError}
               </p>
             )}
           </div>
         </article>
-        <h2 className="mb-4 mt-8 text-sm font-bold uppercase text-[#66736d]">
+        <h2 className="mb-4 mt-8 text-sm font-bold uppercase text-text-secondary">
           Histórico
         </h2>
-        <div className="divide-y divide-[#e1e5e2] border-y border-[#dce1dd] bg-white">
+        <div className="divide-y divide-border-subtle border-y border-border-subtle bg-white">
           {history.map((item) => (
             <History
               key={item.id}
@@ -141,13 +141,13 @@ export function CustomerBookings({
           ))}
         </div>
       </section>
-      <aside className="rounded-lg bg-[#17211d] p-6 text-white lg:sticky lg:top-24 lg:self-start">
+      <aside className="rounded-lg bg-surface-inverse p-6 text-white lg:sticky lg:top-24 lg:self-start">
         <p className="flex items-center gap-2 text-sm text-white/70">
           <KeyRound size={17} />
           Código de acesso
         </p>
         {cancelled ? (
-          <p className="mt-5 text-sm leading-6 text-[#f3a28e]">
+          <p className="mt-5 text-sm leading-6 text-[var(--color-coral-300)]">
             Acesso revogado. O estorno sera processado conforme a politica da
             reserva.
           </p>
@@ -158,7 +158,7 @@ export function CustomerBookings({
               Válido em 03/09, das 13:55 às 15:05.
             </p>
             <div className="mt-6 h-1.5 overflow-hidden rounded bg-white/15">
-              <div className="h-full w-[72%] bg-[#68d7a8]" />
+              <div className="h-full w-[72%] bg-[var(--color-success-400)]" />
             </div>
             <p className="mt-2 text-xs text-white/50">
               Disponível 5 minutos antes do início

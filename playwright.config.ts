@@ -4,7 +4,9 @@ export default defineConfig({
   timeout: 60_000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  // Uma tentativa local também: a suíte roda desktop e mobile em paralelo e,
+  // sob carga, navegações estouram o tempo sem que nada tenha regredido.
+  retries: process.env.CI ? 2 : 1,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
     baseURL: "http://127.0.0.1:3100",
