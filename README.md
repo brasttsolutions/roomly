@@ -50,4 +50,4 @@ Copie os nomes de `.env.example` para o gerenciador de segredos do ambiente. Nun
 
 A migration em `supabase/migrations/0001_roomly_foundation.sql` contém RLS, FKs multi-tenant, exclusão temporal GiST, RPCs transacionais, rate limit distribuído e fila durável. A CI está em `.github/workflows/verify.yml`; o container de produção está em `Dockerfile`.
 
-Leia [arquitetura](docs/ARCHITECTURE.md), [operação](docs/OPERATIONS.md), [verificação](docs/VERIFICATION.md) e [POC TTLock](docs/TTLOCK_POC.md).
+Leia o [guia local](docs/GUIA_LOCAL.md) para rodar, criar usuários e cadastrar salas. Para o resto: [arquitetura](docs/ARCHITECTURE.md), [operação](docs/OPERATIONS.md), [verificação](docs/VERIFICATION.md) e [POC TTLock](docs/TTLOCK_POC.md).
