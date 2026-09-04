@@ -2,8 +2,16 @@
 import { useMemo, useState } from "react";
 import { Building2, CalendarDays, Search, UsersRound } from "lucide-react";
 import type { Room } from "@/lib/demo-data";
+import { addIsoDays, nextBookableDay } from "@/lib/utils";
 import { RoomCard } from "./room-card";
-export function CatalogBrowser({ rooms }: { rooms: readonly Room[] }) {
+export function CatalogBrowser({
+  rooms,
+  today,
+}: {
+  rooms: readonly Room[];
+  /** Dia corrente no fuso da operação, calculado no servidor. */
+  today: string;
+}) {
   const [capacity, setCapacity] = useState("all");
   const filtered = useMemo(
     () =>
@@ -33,7 +41,8 @@ export function CatalogBrowser({ rooms }: { rooms: readonly Room[] }) {
             <input
               aria-label="Data da reserva"
               type="date"
-              defaultValue="2026-09-03"
+              defaultValue={nextBookableDay(today)}
+              min={addIsoDays(today, 1)}
               className="bg-transparent text-sm font-semibold"
             />
           </span>

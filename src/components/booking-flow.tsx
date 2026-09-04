@@ -15,7 +15,13 @@ import {
 } from "lucide-react";
 import type { Room } from "@/lib/demo-data";
 import { timeSlots } from "@/lib/demo-data";
-import { formatMoney } from "@/lib/utils";
+import {
+  addIsoDays,
+  formatIsoDay,
+  formatIsoWeekday,
+  formatMoney,
+  nextBookableDay,
+} from "@/lib/utils";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import type { CardPaymentData } from "./mercado-pago-card";
@@ -28,14 +34,17 @@ const MercadoPagoCard = dynamic(
 type Stage = "schedule" | "payment" | "confirmed";
 export function BookingFlow({
   room,
+  today,
   mercadoPagoPublicKey,
 }: {
   room: Room;
+  /** Dia corrente no fuso da operação, calculado no servidor para evitar divergência de hidratação. */
+  today: string;
   mercadoPagoPublicKey?: string;
 }) {
   const [stage, setStage] = useState<Stage>("schedule");
   const [selectedTime, setSelectedTime] = useState("14:00");
-  const [selectedDate, setSelectedDate] = useState("2026-09-03");
+  const [selectedDate, setSelectedDate] = useState(() => nextBookableDay(today));
   const [duration, setDuration] = useState(60);
   const [method, setMethod] = useState<"pix" | "card">("pix");
   const [submitting, setSubmitting] = useState(false);
@@ -51,6 +60,11 @@ export function BookingFlow({
     setError(null);
     const start = new Date(`${selectedDate}T${selectedTime}:00-03:00`);
     const end = new Date(start.getTime() + duration * 60_000);
+    if (start <= new Date()) {
+      setError("Escolha uma data e um horário no futuro.");
+      setSubmitting(false);
+      return false;
+    }
     idempotencyKey.current ??= crypto.randomUUID();
     try {
       const response = await fetch("/api/bookings", {
@@ -73,7 +87,7 @@ export function BookingFlow({
         "roomly:last-booking",
         JSON.stringify({
           room: room.name,
-          date: "03/09/2026",
+          date: formatIsoDay(selectedDate),
           time: selectedTime,
           endTime: endHour,
           total,
@@ -102,7 +116,7 @@ export function BookingFlow({
         </div>
         <Badge tone="green">Reserva confirmada</Badge>
         <h2 className="mt-3 text-2xl font-bold">
-          Tudo certo para quinta-feira.
+          Tudo certo para {formatIsoWeekday(selectedDate)}.
         </h2>
         <p className="mt-2 text-sm leading-6 text-[#66736d]">
           Enviamos os detalhes para você. O código será liberado 5 minutos
@@ -218,6 +232,7 @@ export function BookingFlow({
         <input
           type="date"
           value={selectedDate}
+          min={addIsoDays(today, 1)}
           onChange={(event) => setSelectedDate(event.target.value)}
           className="h-11 w-full rounded-md border border-[#d2d9d3] bg-white px-3 text-sm font-semibold"
         />

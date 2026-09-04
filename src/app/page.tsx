@@ -1,6 +1,7 @@
 import { CatalogBrowser } from "@/components/catalog-browser";
 import { SiteHeader } from "@/components/site-header";
 import { catalogRooms } from "@/lib/server/catalog";
+import { isoDay } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
@@ -18,7 +19,7 @@ export default async function HomePage() {
             Escolha o espaço, reserve seu horário e receba o acesso sem espera.
           </p>
         </div>
-        <CatalogBrowser rooms={rooms} />
+        <CatalogBrowser rooms={rooms} today={isoDay()} />
       </main>
     </>
   );

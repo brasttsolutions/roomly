@@ -6,6 +6,7 @@ import { BookingFlow } from "@/components/booking-flow";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { rooms } from "@/lib/demo-data";
+import { isoDay } from "@/lib/utils";
 import { catalogRoomBySlug } from "@/lib/server/catalog";
 export const dynamic = "force-dynamic";
 
@@ -82,6 +83,7 @@ export default async function RoomPage({
           <div className="lg:sticky lg:top-24">
             <BookingFlow
               room={room}
+              today={isoDay()}
               mercadoPagoPublicKey={
                 process.env.ROOMLY_PAYMENT_MODE === "mercado_pago"
                   ? process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY
