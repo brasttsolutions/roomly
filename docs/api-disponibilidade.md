@@ -90,6 +90,26 @@ Resumo de todas as salas ativas num dia, para o filtro do catálogo. `unidade`
 casa com o nome da unidade, sem diferenciar maiúsculas. Unidade inexistente
 devolve `200` com lista vazia, não erro.
 
+## Consumidores
+
+`AvailabilityCalendar` (`src/components/ui/availability-calendar.tsx`) consome o
+calendário; `TimeSlotPicker` (`src/components/ui/time-slot-picker.tsx`) consome
+o dia. As duas requisições vivem em `src/components/use-availability.ts`, uma
+por chave e canceladas quando a chave muda — sem isso a resposta de um dia
+antigo poderia chegar depois e sobrescrever a do dia em tela.
+
+Um bloco indisponível recebe `aria-disabled` em vez de `disabled`: continua
+alcançável pelo teclado, e o motivo vai no `aria-label` — "08:00, indisponível,
+reservado". Retirar o bloco da ordem de foco o faria sumir sem explicação.
+
+**Desvio consciente da especificação**: o Time Slot Picker de
+[02 — Componentes](design-system/02-componentes.md) prevê seleção por intervalo
+(primeiro clique marca o início, segundo o fim). O fluxo de reserva já tinha um
+seletor de duração, e dois controles disputando a mesma decisão confundem mais
+do que ajudam. O picker escolhe o início e o seletor de duração define o fim,
+limitado por `maxDurationMinutes`; os blocos cobertos aparecem no estado
+"intervalo" da especificação.
+
 ## Testes
 
 - `src/modules/availability/domain.test.ts` — 23 testes do cálculo puro,
@@ -98,3 +118,6 @@ devolve `200` com lista vazia, não erro.
   pelas três rotas em modo simulador.
 - `supabase/tests/availability.sql` — 8 asserções pgTAP: janela de limpeza,
   hold vencido, reserva cancelada e leitura pelo papel `anon`.
+- `e2e/roomly.spec.ts` — o navegador reserva um bloco, recarrega a página e
+  encontra o mesmo bloco reservado, riscado, com o motivo no `aria-label` e
+  recusando o clique.

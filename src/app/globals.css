@@ -116,6 +116,18 @@ textarea:focus-visible,
   top: 8px;
 }
 
+/*
+ * Hachura do dia lotado no calendário. O estado nunca pode depender só da cor:
+ * quem não distingue o cinza do âmbar precisa ver a textura.
+ */
+.pattern-busy {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 5px,
+    var(--border-default) 5px 6px
+  );
+}
+
 ::selection {
   background: var(--surface-accent-subtle);
   color: var(--text-primary);

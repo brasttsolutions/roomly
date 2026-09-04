@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 test("catalog filters rooms and keeps the booking surface reachable", async ({
   page,
 }, testInfo) => {
@@ -33,10 +33,21 @@ test("catalog filters rooms and keeps the booking surface reachable", async ({
     fullPage: true,
   });
 });
+/**
+ * O mês seguinte está inteiramente livre no simulador, então a escolha não
+ * depende da hora em que a suíte roda — depois das 19h o dia de hoje não
+ * comporta mais a reserva mínima de uma hora.
+ */
+async function pickFreeDay(page: Page) {
+  await page.getByRole("button", { name: "Próximo mês" }).click();
+  await page.locator('[data-testid^="day-"][data-state="free"]').first().click();
+}
+
 test("customer completes a simulated booking and receives access", async ({
   page,
 }) => {
   await page.goto("/salas/sala-executiva");
+  await pickFreeDay(page);
   await page.getByTestId("continue-booking").click();
   await expect(
     page.getByRole("heading", { name: "Como prefere pagar?" }),
@@ -155,4 +166,49 @@ test("internal worker rejects requests without the cron secret", async ({
   await expect(response.json()).resolves.toMatchObject({
     error: "unauthorized",
   });
+});
+
+test("a booked block cannot be selected and says why", async ({
+  page,
+}, testInfo) => {
+  // Uma sala por projeto: desktop e mobile rodam em paralelo contra o mesmo
+  // servidor, e reservar a mesma sala faria um teste ver a reserva do outro.
+  const slug =
+    testInfo.project.name === "mobile" ? "atelier-criativo" : "sala-foco";
+  await page.goto(`/salas/${slug}`);
+  await pickFreeDay(page);
+
+  const chosen = page.locator('[data-testid^="slot-"][aria-pressed="true"]');
+  const day = await page
+    .locator('[aria-selected="true"][data-testid^="day-"]')
+    .getAttribute("data-testid");
+  const slot = await chosen.getAttribute("data-testid");
+  await expect(chosen).toHaveAttribute("data-state", "available");
+
+  await page.getByTestId("continue-booking").click();
+  await page.getByTestId("confirm-payment").click();
+  await expect(page.getByTestId("booking-confirmation")).toBeVisible();
+
+  await page.goto(`/salas/${slug}`);
+  await page.getByRole("button", { name: "Próximo mês" }).click();
+  await page.getByTestId(String(day)).click();
+
+  const taken = page.getByTestId(String(slot));
+  await expect(taken).toHaveAttribute("data-state", "booked");
+  await expect(taken).toHaveAttribute("aria-label", /indisponível, reservado$/);
+  await expect(taken).toHaveAttribute("aria-disabled", "true");
+
+  // O Playwright se recusa a clicar num elemento não habilitado, e `aria-disabled`
+  // conta como tal — a mesma leitura que um leitor de tela faz. Forçado, o
+  // clique tampouco seleciona.
+  await expect(taken).toBeDisabled();
+  await taken.click({ force: true });
+  await expect(taken).toHaveAttribute("aria-pressed", "false");
+
+  // A limpeza logo depois da reserva também não é vendável, e diz por quê.
+  const cleaning = page.locator('[data-testid^="slot-"][data-state="cleaning"]');
+  await expect(cleaning.first()).toHaveAttribute(
+    "aria-label",
+    /indisponível, limpeza entre reservas$/,
+  );
 });

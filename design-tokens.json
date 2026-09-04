@@ -467,6 +467,13 @@
         "background": "#FFF1EB",
         "minimum": 4.5,
         "ratio": 14.14
+      },
+      {
+        "name": "bloco reservado sobre seu fundo",
+        "foreground": "#5A6480",
+        "background": "#E6EDFD",
+        "minimum": 4.5,
+        "ratio": 5.01
       }
     ]
   }

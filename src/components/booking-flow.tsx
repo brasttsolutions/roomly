@@ -14,16 +14,13 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { Room } from "@/lib/demo-data";
-import { timeSlots } from "@/lib/demo-data";
-import {
-  addIsoDays,
-  formatIsoDay,
-  formatIsoWeekday,
-  formatMoney,
-  nextBookableDay,
-} from "@/lib/utils";
+import { formatIsoDay, formatIsoWeekday, formatMoney } from "@/lib/utils";
+import { useDayAvailability, useMonthAvailability } from "./use-availability";
+import { Alert } from "./ui/alert";
+import { AvailabilityCalendar } from "./ui/availability-calendar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { TimeSlotPicker } from "./ui/time-slot-picker";
 import type { CardPaymentData } from "./mercado-pago-card";
 
 const MercadoPagoCard = dynamic(
@@ -43,23 +40,79 @@ export function BookingFlow({
   mercadoPagoPublicKey?: string;
 }) {
   const [stage, setStage] = useState<Stage>("schedule");
-  const [selectedTime, setSelectedTime] = useState("14:00");
-  const [selectedDate, setSelectedDate] = useState(() => nextBookableDay(today));
+  // Hoje é reservável: os blocos que já passaram vêm desabilitados da API, com
+  // o motivo. Empurrar todo mundo para amanhã escondia metade do estoque.
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [month, setMonth] = useState(() => today.slice(0, 7));
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [duration, setDuration] = useState(60);
   const [method, setMethod] = useState<"pix" | "card">("pix");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmed, setConfirmed] = useState<ConfirmedSlot | null>(null);
   const idempotencyKey = useRef<string | null>(null);
-  const total = useMemo(
-    () => Math.round((room.hourlyPriceCents * duration) / 60),
-    [duration, room.hourlyPriceCents],
+
+  const day = useDayAvailability(room.slug, selectedDate);
+  const calendar = useMonthAvailability(room.slug, month);
+  const available = day.data;
+  const minimumMinutes = available?.minimumMinutes ?? 60;
+  const maximumMinutes = available?.maximumMinutes ?? 240;
+  const blocks = useMemo(() => available?.blocks ?? [], [available]);
+  const bookable = useMemo(
+    () =>
+      blocks.filter(
+        (block) =>
+          block.state === "available" &&
+          block.maxDurationMinutes >= minimumMinutes,
+      ),
+    [blocks, minimumMinutes],
   );
-  const endHour = `${String(Number(selectedTime.slice(0, 2)) + duration / 60).padStart(2, "0")}:00`;
+  // Horário e duração são derivados, não sincronizados por efeito: a escolha da
+  // pessoa vale enquanto o dia a comporta, e o primeiro bloco livre assume
+  // quando não comporta. Guardar isso em efeito renderizaria duas vezes e
+  // deixaria um quadro com o horário do dia anterior na tela.
+  const activeTime =
+    selectedTime && bookable.some((block) => block.time === selectedTime)
+      ? selectedTime
+      : (bookable[0]?.time ?? null);
+  const selectedBlock =
+    bookable.find((block) => block.time === activeTime) ?? null;
+  // O próximo bloco ocupado é o teto real: não adianta oferecer duas horas onde
+  // cabe uma.
+  const durationCeiling = Math.min(
+    selectedBlock?.maxDurationMinutes ?? maximumMinutes,
+    maximumMinutes,
+  );
+  const activeDuration = clampDuration(
+    duration,
+    minimumMinutes,
+    durationCeiling,
+  );
+
+  const total = useMemo(
+    () => Math.round((room.hourlyPriceCents * activeDuration) / 60),
+    [activeDuration, room.hourlyPriceCents],
+  );
+  const timeZone = available?.timeZone ?? "America/Sao_Paulo";
+  const endHour = selectedBlock
+    ? clockLabel(
+        new Date(Date.parse(selectedBlock.startAt) + activeDuration * 60_000),
+        timeZone,
+      )
+    : "--:--";
+
   async function confirm(card?: CardPaymentData) {
     setSubmitting(true);
     setError(null);
-    const start = new Date(`${selectedDate}T${selectedTime}:00-03:00`);
-    const end = new Date(start.getTime() + duration * 60_000);
+    if (!selectedBlock) {
+      setError("Escolha um horário disponível antes de continuar.");
+      setSubmitting(false);
+      return false;
+    }
+    // O início vem do próprio bloco: reconstruir a data com fuso fixo no cliente
+    // era a chance de divergir do horário que a API declarou livre.
+    const start = new Date(selectedBlock.startAt);
+    const end = new Date(start.getTime() + activeDuration * 60_000);
     if (start <= new Date()) {
       setError("Escolha uma data e um horário no futuro.");
       setSubmitting(false);
@@ -88,12 +141,20 @@ export function BookingFlow({
         JSON.stringify({
           room: room.name,
           date: formatIsoDay(selectedDate),
-          time: selectedTime,
+          time: selectedBlock.time,
           endTime: endHour,
           total,
           code: "583921",
         }),
       );
+      // Congela o horário que foi vendido: a grade continua viva atrás da tela
+      // de confirmação e não deve reescrever o que a pessoa acabou de comprar.
+      setConfirmed({
+        time: selectedBlock.time,
+        endTime: endHour,
+        accessFrom: clockLabel(new Date(start.getTime() - 300_000), timeZone),
+        accessTo: clockLabel(new Date(end.getTime() + 300_000), timeZone),
+      });
       setStage("confirmed");
       return true;
     } catch (cause) {
@@ -124,7 +185,10 @@ export function BookingFlow({
         </p>
         <div className="my-6 border-y border-border-subtle py-5">
           <Info label="Sala" value={room.name} />
-          <Info label="Horário" value={`${selectedTime} – ${endHour}`} />
+          <Info
+            label="Horário"
+            value={`${confirmed?.time ?? "--:--"} – ${confirmed?.endTime ?? "--:--"}`}
+          />
           <Info
             label="Pagamento"
             value={method === "pix" ? "PIX aprovado" : "Cartão aprovado"}
@@ -138,9 +202,9 @@ export function BookingFlow({
           <div className="mt-3 flex items-end justify-between gap-4">
             <strong className="font-mono text-3xl">583 921</strong>
             <span className="text-right text-xs leading-5 text-white/60">
-              Válido das 13:55
+              Válido das {confirmed?.accessFrom ?? "--:--"}
               <br />
-              às {endHour.replace(":00", ":05")}
+              às {confirmed?.accessTo ?? "--:--"}
             </span>
           </div>
         </div>
@@ -225,56 +289,84 @@ export function BookingFlow({
         Reserve agora
       </p>
       <h2 className="mt-1 text-2xl font-bold">Escolha seu horário</h2>
-      <label className="mt-5 block">
+      <div className="mt-5">
         <span className="mb-2 block text-xs font-bold text-text-secondary">
           DATA
         </span>
-        <input
-          type="date"
-          value={selectedDate}
-          min={addIsoDays(today, 1)}
-          onChange={(event) => setSelectedDate(event.target.value)}
-          className="h-11 w-full rounded-md border border-[var(--border-control)] bg-white px-3 text-sm font-semibold"
+        <AvailabilityCalendar
+          month={month}
+          days={calendar.data?.days ?? []}
+          selected={selectedDate}
+          onSelect={setSelectedDate}
+          onMonthChange={setMonth}
+          loading={calendar.loading}
         />
-      </label>
+      </div>
       <div className="mt-5">
         <span className="mb-2 block text-xs font-bold text-text-secondary">
-          INÍCIO
+          INÍCIO EM {formatIsoDay(selectedDate).toUpperCase()}
         </span>
-        <div className="grid grid-cols-3 gap-2">
-          {timeSlots.slice(3, 9).map((time) => (
-            <button
-              key={time}
-              onClick={() => setSelectedTime(time)}
-              className={`h-10 rounded-md border text-sm font-semibold ${selectedTime === time ? "border-action-primary bg-action-primary text-text-on-accent" : "border-[var(--border-control)] hover:border-action-primary"}`}
-            >
-              {time}
-            </button>
-          ))}
-        </div>
+        {day.error ? (
+          <Alert tone="danger" title="Disponibilidade indisponível">
+            {day.error}
+          </Alert>
+        ) : (
+          <>
+            <TimeSlotPicker
+              blocks={blocks}
+              minimumMinutes={minimumMinutes}
+              selected={activeTime}
+              durationMinutes={activeDuration}
+              onSelect={(block) => setSelectedTime(block.time)}
+              loading={day.loading}
+            />
+            {!day.loading && bookable.length === 0 && (
+              <Alert tone="warning" className="mt-3">
+                Nenhum horário livre em {formatIsoDay(selectedDate)}. Escolha
+                outra data no calendário.
+              </Alert>
+            )}
+          </>
+        )}
       </div>
-      <div className="mt-5 flex items-center justify-between">
+      <div className="mt-5 flex items-center justify-between gap-3">
         <div>
           <span className="block text-xs font-bold text-text-secondary">
             DURAÇÃO
           </span>
-          <span className="text-sm text-text-secondary">Mínimo de 1 hora</span>
+          <span className="text-sm text-text-secondary">
+            {selectedBlock
+              ? `Até ${formatDuration(durationCeiling)} a partir das ${selectedBlock.time}`
+              : `Mínimo de ${formatDuration(minimumMinutes)}`}
+          </span>
         </div>
         <div className="flex items-center gap-3">
           <Button
             variant="secondary"
             size="icon"
             title="Reduzir duração"
-            onClick={() => setDuration(Math.max(60, duration - 60))}
+            disabled={activeDuration <= minimumMinutes}
+            onClick={() =>
+              setDuration(
+                clampDuration(activeDuration - 30, minimumMinutes, durationCeiling),
+              )
+            }
           >
             <Minus size={17} />
           </Button>
-          <strong className="w-8 text-center">{duration / 60}h</strong>
+          <strong className="w-14 text-center text-sm">
+            {formatDuration(activeDuration)}
+          </strong>
           <Button
             variant="secondary"
             size="icon"
             title="Aumentar duração"
-            onClick={() => setDuration(Math.min(240, duration + 60))}
+            disabled={activeDuration >= durationCeiling}
+            onClick={() =>
+              setDuration(
+                clampDuration(activeDuration + 30, minimumMinutes, durationCeiling),
+              )
+            }
           >
             <Plus size={17} />
           </Button>
@@ -284,7 +376,7 @@ export function BookingFlow({
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2 text-sm text-text-secondary">
             <Clock3 size={16} />
-            {selectedTime} – {endHour}
+            {selectedBlock ? `${selectedBlock.time} – ${endHour}` : "Sem horário"}
           </span>
           <strong>{formatMoney(total)}</strong>
         </div>
@@ -294,6 +386,7 @@ export function BookingFlow({
       </div>
       <Button
         className="w-full"
+        disabled={!selectedBlock}
         onClick={() => setStage("payment")}
         data-testid="continue-booking"
       >
@@ -330,4 +423,34 @@ function Method({
       <strong className="mt-2 text-sm">{label}</strong>
     </button>
   );
+}
+
+type ConfirmedSlot = {
+  time: string;
+  endTime: string;
+  accessFrom: string;
+  accessTo: string;
+};
+
+/** Hora local da unidade. O horário mostrado tem que ser o do prédio. */
+function clockLabel(instant: Date, timeZone: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(instant);
+}
+
+/** Múltiplo de 30 minutos entre o mínimo da sala e o teto do bloco escolhido. */
+function clampDuration(minutes: number, minimum: number, ceiling: number) {
+  const top = Math.max(minimum, ceiling);
+  return Math.min(Math.max(minutes, minimum), top);
+}
+
+function formatDuration(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest}min`;
+  return rest === 0 ? `${hours}h` : `${hours}h${String(rest).padStart(2, "0")}`;
 }

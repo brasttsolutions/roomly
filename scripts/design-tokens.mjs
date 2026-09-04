@@ -186,6 +186,7 @@ export const mandatoryPairs = [
   { name: "texto de erro sobre seu fundo", fg: semantic["danger-text"], bg: semantic["danger-surface"], min: 4.5 },
   { name: "texto informativo sobre seu fundo", fg: semantic["info-text"], bg: semantic["info-surface"], min: 4.5 },
   { name: "texto sobre acento suave", fg: semantic["text-primary"], bg: semantic["surface-accent-subtle"], min: 4.5 },
+  { name: "bloco reservado sobre seu fundo", fg: semantic["text-secondary"], bg: semantic["surface-sunken"], min: 4.5 },
 ];
 
 /** Escala de 8px. O 2 e o 4 existem só para ajuste óptico de ícone e borda. */
