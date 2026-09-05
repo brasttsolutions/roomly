@@ -8,6 +8,10 @@ export default defineConfig({
   // sob carga, navegações estouram o tempo sem que nada tenha regredido.
   retries: process.env.CI ? 2 : 1,
   reporter: [["list"], ["html", { open: "never" }]],
+  // As telas que buscam disponibilidade no cliente dependem de uma ida ao
+  // servidor. Com quatro workers contra um servidor frio, o padrão de 5s da
+  // asserção estoura sem que nada tenha regredido.
+  expect: { timeout: 15_000 },
   use: {
     baseURL: "http://127.0.0.1:3100",
     trace: "retain-on-failure",

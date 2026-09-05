@@ -61,9 +61,13 @@ export function AdminSidebar({
               key={href}
               href={href}
               onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "mb-1 flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold text-white/65 hover:bg-white/8 hover:text-white",
-                active && "bg-white/12 text-white",
+                // A barra coral de 3px marca a seção atual sem depender só do
+                // preenchimento — que, em navy sobre navy, quase não aparece.
+                "mb-1 flex h-10 items-center gap-3 rounded-md border-l-[3px] border-transparent px-3 text-sm font-semibold text-white/65 hover:bg-white/8 hover:text-white",
+                active &&
+                  "border-l-[var(--color-coral-400)] bg-white/12 text-[var(--color-coral-300)]",
               )}
             >
               <Icon size={18} />

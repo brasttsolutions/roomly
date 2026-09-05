@@ -268,3 +268,38 @@ test("ordering by price rearranges the catalog", async ({ page }) => {
   // Sala Foco custa R$ 75/h, a menor tarifa do acervo.
   expect(names[0]).toBe("Sala Foco");
 });
+
+test("panel puts pendencies before metrics and fills the operational screens", async ({
+  page,
+}) => {
+  await page.goto("/admin");
+  // Pendência antes de métrica: uma sala suja importa mais que a receita do mês.
+  const pendencies = page.getByRole("heading", { name: "Precisa de atenção" });
+  const metrics = page.getByText("Ocupação hoje");
+  await expect(pendencies).toBeVisible();
+  await expect(metrics).toBeVisible();
+  const order = await pendencies.evaluate((heading, other) => {
+    const position = heading.compareDocumentPosition(other as Node);
+    return position & Node.DOCUMENT_POSITION_FOLLOWING ? "before" : "after";
+  }, await metrics.elementHandle());
+  expect(order).toBe("before");
+  await expect(page.getByText("Limpeza atrasada")).toBeVisible();
+
+  await page.goto("/admin/calendario");
+  await expect(page.getByLabel("Dia")).toBeVisible();
+  await expect(page.getByText("09:00 – 10:30")).toBeVisible();
+
+  await page.goto("/admin/relatorios");
+  await expect(page.getByText("Horas vendidas")).toBeVisible();
+  await expect(page.getByText("Ocupação média")).toBeVisible();
+
+  await page.goto("/admin/configuracoes");
+  await expect(page.getByText("Expediente")).toBeVisible();
+  await expect(page.getByText("08:00 – 20:00")).toBeVisible();
+
+  await page.goto("/admin/limpeza");
+  await expect(page.getByText("Atrasada 45 min")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Atribuir a mim" }),
+  ).toBeVisible();
+});
