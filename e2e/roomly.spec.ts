@@ -311,9 +311,32 @@ test("panel puts pendencies before metrics and fills the operational screens", a
 
   await page.goto("/admin/limpeza");
   await expect(page.getByText("Atrasada 45 min")).toBeVisible();
+  const assign = page.getByRole("button", { name: "Atribuir a mim" });
+  await expect(assign).toBeVisible();
+
+  // A linha muda de status no lugar; o aviso é o que confirma que a ação saiu.
+  await assign.click();
   await expect(
-    page.getByRole("button", { name: "Atribuir a mim" }),
+    page.getByRole("status").filter({ hasText: "Limpeza atribuída a você." }),
   ).toBeVisible();
+});
+
+test("theme choice survives a reload", async ({ page }) => {
+  await page.goto("/");
+  const dark = page.getByRole("radio", { name: "Tema escuro" });
+  await dark.click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  // O script inline reaplica antes da primeira pintura: sem ele a página
+  // piscaria clara a cada navegação completa.
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(
+    page.getByRole("radio", { name: "Tema escuro" }),
+  ).toHaveAttribute("aria-checked", "true");
+
+  await page.getByRole("radio", { name: "Tema do sistema" }).click();
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme", "dark");
 });
 
 test.describe("tema escuro", () => {

@@ -4,8 +4,7 @@ import { z } from "zod";
 import { requestIdentity } from "@/lib/server/identity";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-export type CleaningActionState = { ok: boolean; error?: string };
+import { CLEANING_DONE, type CleaningActionState } from "./cleaning-state";
 
 const schema = z.object({
   id: z.string().min(1).max(64),
@@ -24,7 +23,7 @@ export async function advanceCleaning(
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { ok: false, error: "Ação inválida." };
   if (integrationMode() === "simulator") {
-    return { ok: true };
+    return { ok: true, message: CLEANING_DONE[parsed.data.step] };
   }
   const identity = await requestIdentity();
   if (!identity) return { ok: false, error: "Permissão insuficiente." };
@@ -47,5 +46,5 @@ export async function advanceCleaning(
 
   revalidatePath("/admin/limpeza");
   revalidatePath("/admin");
-  return { ok: true };
+  return { ok: true, message: CLEANING_DONE[parsed.data.step] };
 }

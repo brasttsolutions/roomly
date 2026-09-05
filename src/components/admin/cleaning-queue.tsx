@@ -1,12 +1,17 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { SprayCan } from "lucide-react";
-import { advanceCleaning, type CleaningActionState } from "@/app/admin/cleaning-actions";
+import { advanceCleaning } from "@/app/admin/cleaning-actions";
+import {
+  CLEANING_IDLE,
+  type CleaningActionState,
+} from "@/app/admin/cleaning-state";
 import type { CleaningTask } from "@/lib/server/admin-views";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useToast } from "@/components/ui/toast";
 
 const STEP: Record<
   CleaningTask["status"],
@@ -41,9 +46,21 @@ export function CleaningQueue({ tasks }: { tasks: readonly CleaningTask[] }) {
 function Task({ task }: { task: CleaningTask }) {
   const [state, action, pending] = useActionState<CleaningActionState, FormData>(
     advanceCleaning,
-    { ok: true },
+    CLEANING_IDLE,
   );
   const next = STEP[task.status];
+  const toast = useToast();
+  const announced = useRef<CleaningActionState>(CLEANING_IDLE);
+
+  // O aviso sai quando o resultado chega. A linha muda de status no lugar, e
+  // sem o toast quem clicou não tem confirmação de que a ação saiu.
+  useEffect(() => {
+    if (announced.current === state) return;
+    announced.current = state;
+    if (state.error) toast("danger", state.error);
+    else if (state.message) toast("success", state.message);
+  }, [state, toast]);
+
   return (
     <li className="flex flex-wrap items-center gap-4 p-4">
       <div className="min-w-0 flex-1">

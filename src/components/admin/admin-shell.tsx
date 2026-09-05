@@ -4,6 +4,7 @@ import { Bell, ChevronDown, Menu, Search, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { AdminSidebar } from "./admin-sidebar";
+import { ThemeToggle } from "../theme-toggle";
 export type AdminUser = { name: string; role: string };
 
 export function AdminShell({
@@ -60,6 +61,7 @@ export function AdminShell({
             />
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <button
               className="relative grid size-10 place-items-center rounded-md hover:bg-surface-page"
               title="Notificações"

@@ -3,6 +3,7 @@ import { CalendarDays, CircleUserRound, LayoutDashboard } from "lucide-react";
 import { requestIdentity } from "@/lib/server/identity";
 import { roleLabel } from "@/lib/roles";
 import { Brand } from "./brand";
+import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 
 export async function SiteHeader() {
@@ -16,6 +17,7 @@ export async function SiteHeader() {
           className="flex items-center gap-1 sm:gap-3"
           aria-label="Navegação principal"
         >
+          <ThemeToggle />
           <Link
             href="/minhas-reservas"
             className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-subheadline font-semibold text-text-secondary hover:bg-surface-page"
