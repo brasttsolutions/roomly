@@ -77,14 +77,14 @@ export function CatalogBrowser({
         <label className="flex min-h-16 items-center gap-3 border-b border-border-subtle px-4 md:border-b-0 md:border-r">
           <Building2 size={19} className="text-text-link" aria-hidden="true" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-bold uppercase text-text-secondary">
+            <span className="block text-caption font-bold uppercase text-text-secondary">
               Unidade
             </span>
             <select
               aria-label="Unidade"
               value={unit}
               onChange={(event) => setUnit(event.target.value)}
-              className="w-full bg-transparent text-sm font-semibold"
+              className="w-full bg-transparent text-subheadline font-semibold"
             >
               <option value="all">Todas as unidades</option>
               {units.map((name) => (
@@ -98,7 +98,7 @@ export function CatalogBrowser({
         <label className="flex min-h-16 items-center gap-3 border-b border-border-subtle px-4 md:border-b-0 md:border-r">
           <CalendarDays size={19} className="text-text-link" aria-hidden="true" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-bold uppercase text-text-secondary">
+            <span className="block text-caption font-bold uppercase text-text-secondary">
               Data
             </span>
             <input
@@ -109,21 +109,21 @@ export function CatalogBrowser({
               // resposta, então não há motivo para empurrar a busca para amanhã.
               min={today}
               onChange={(event) => setDay(event.target.value || today)}
-              className="w-full bg-transparent text-sm font-semibold"
+              className="w-full bg-transparent text-subheadline font-semibold"
             />
           </span>
         </label>
         <label className="flex min-h-16 items-center gap-3 px-4">
           <UsersRound size={19} className="text-text-link" aria-hidden="true" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-bold uppercase text-text-secondary">
+            <span className="block text-caption font-bold uppercase text-text-secondary">
               Pessoas
             </span>
             <select
               aria-label="Pessoas"
               value={capacity}
               onChange={(event) => setCapacity(event.target.value)}
-              className="w-full bg-transparent text-sm font-semibold"
+              className="w-full bg-transparent text-subheadline font-semibold"
             >
               <option value="all">Qualquer capacidade</option>
               <option value="4">4 ou mais</option>
@@ -142,7 +142,7 @@ export function CatalogBrowser({
               type="button"
               onClick={chip.clear}
               aria-label={`Remover filtro ${chip.label}`}
-              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border-control px-3 text-xs font-semibold hover:bg-surface-page"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border-control px-3 text-caption font-semibold hover:bg-surface-page"
             >
               {chip.label}
               <X size={13} aria-hidden="true" />
@@ -150,7 +150,7 @@ export function CatalogBrowser({
           ))}
           <Button
             variant="link"
-            className="text-xs"
+            className="text-caption"
             onClick={() => {
               setUnit("all");
               setDay(today);
@@ -165,25 +165,25 @@ export function CatalogBrowser({
 
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold">
+          <h2 className="text-title3 font-bold">
             {day === today ? "Disponíveis hoje" : `Disponíveis em ${formatIsoDay(day)}`}
           </h2>
           <p
             role="status"
             aria-live="polite"
-            className="mt-1 text-sm text-text-secondary"
+            className="mt-1 text-subheadline text-text-secondary"
           >
             {filtered.length}{" "}
             {filtered.length === 1 ? "sala encontrada" : "salas encontradas"}
           </p>
         </div>
-        <label className="text-sm">
+        <label className="text-subheadline">
           <span className="sr-only">Ordenar salas</span>
           <select
             aria-label="Ordenar salas"
             value={sort}
             onChange={(event) => setSort(event.target.value as Sort)}
-            className="h-11 rounded-md border border-border-control bg-surface-raised px-3 text-sm font-semibold"
+            className="h-11 rounded-md border border-border-control bg-surface-raised px-3 text-subheadline font-semibold"
           >
             {Object.entries(SORT_LABELS).map(([value, label]) => (
               <option key={value} value={value}>

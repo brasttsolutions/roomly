@@ -14,8 +14,8 @@ export default async function Page({
     <main id="conteudo" className="grid min-h-screen place-items-center bg-surface-page p-5">
       <section className="w-full max-w-md rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-8">
         <Brand />
-        <h1 className="mt-8 text-2xl font-bold">Criar conta</h1>
-        <p className="mt-2 text-sm text-text-secondary">
+        <h1 className="mt-8 text-title2 font-bold">Criar conta</h1>
+        <p className="mt-2 text-subheadline text-text-secondary">
           Use o mesmo e-mail que recebeu o convite.
         </p>
         <form action={signUp} className="mt-6 grid gap-4">
@@ -35,11 +35,11 @@ export default async function Page({
             minLength={10}
           />
           {erro && (
-            <p role="alert" className="text-sm text-danger-text">
+            <p role="alert" className="text-subheadline text-danger-text">
               Não foi possível validar o convite ou criar a conta.
             </p>
           )}
-          <button className="h-11 rounded-md bg-action-primary text-sm font-bold text-text-on-accent">
+          <button className="h-11 rounded-md bg-action-primary text-subheadline font-bold text-text-on-accent">
             Criar conta
           </button>
         </form>
@@ -62,7 +62,7 @@ function Field({
   minLength?: number;
 }) {
   return (
-    <label className="text-sm font-bold">
+    <label className="text-subheadline font-bold">
       {label}
       <input
         required

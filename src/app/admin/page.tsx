@@ -28,12 +28,12 @@ export default async function AdminDashboard({
     <>
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-bold text-text-link">
+          <p className="text-subheadline font-bold text-text-link">
             {capitalizeFirst(weekdayLabel(data.day)).toUpperCase()},{" "}
             {formatIsoDay(data.day)}
           </p>
-          <h1 className="mt-1 text-3xl font-bold">Visão geral</h1>
-          <p className="mt-2 text-sm text-text-secondary">
+          <h1 className="mt-1 text-title1 font-bold">Visão geral</h1>
+          <p className="mt-2 text-subheadline text-text-secondary">
             {data.unit
               ? `Operação de ${data.unit}.`
               : "A operação de hoje em um só lugar."}
@@ -42,13 +42,13 @@ export default async function AdminDashboard({
         {/* Formulário GET: o filtro entra na URL, então a página compartilhada
             mostra a mesma unidade para quem receber o link. */}
         <form className="flex items-center gap-2">
-          <label className="text-sm">
+          <label className="text-subheadline">
             <span className="sr-only">Unidade</span>
             <select
               name="unidade"
               aria-label="Unidade"
               defaultValue={data.unit ?? ""}
-              className="h-11 rounded-md border border-border-control bg-surface-raised px-3 text-sm font-semibold"
+              className="h-11 rounded-md border border-border-control bg-surface-raised px-3 text-subheadline font-semibold"
             >
               <option value="">Todas as unidades</option>
               {data.units.map((location) => (
@@ -60,7 +60,7 @@ export default async function AdminDashboard({
           </label>
           <button
             type="submit"
-            className="h-11 rounded-md border border-border-control px-4 text-sm font-semibold hover:bg-surface-page"
+            className="h-11 rounded-md border border-border-control px-4 text-subheadline font-semibold hover:bg-surface-page"
           >
             Aplicar
           </button>
@@ -84,7 +84,7 @@ export default async function AdminDashboard({
           </Badge>
         </div>
         {data.pendencies.length === 0 ? (
-          <p className="flex items-center gap-2 p-5 text-sm text-text-secondary">
+          <p className="flex items-center gap-2 p-5 text-subheadline text-text-secondary">
             <CircleCheck size={17} className="text-success-text" aria-hidden="true" />
             Nenhuma limpeza atrasada, fechadura fora do ar ou acesso pendente.
           </p>
@@ -111,8 +111,8 @@ export default async function AdminDashboard({
                     )}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <strong className="block text-sm">{item.title}</strong>
-                    <span className="block text-xs text-text-secondary">
+                    <strong className="block text-subheadline">{item.title}</strong>
+                    <span className="block text-caption text-text-secondary">
                       {item.detail}
                     </span>
                   </span>
@@ -127,13 +127,13 @@ export default async function AdminDashboard({
       <section className="mt-6 grid gap-px overflow-hidden rounded-lg border border-border-subtle bg-border-subtle sm:grid-cols-2 xl:grid-cols-4">
         {data.metrics.map((metric) => (
           <div key={metric.label} className="bg-surface-raised p-5">
-            <p className="text-xs font-bold uppercase text-text-secondary">
+            <p className="text-caption font-bold uppercase text-text-secondary">
               {metric.label}
             </p>
-            <strong className="mt-3 block text-2xl tabular-nums">
+            <strong className="mt-3 block text-title2 tabular-nums">
               {metric.value}
             </strong>
-            <p className="mt-1 text-xs text-text-secondary">{metric.hint}</p>
+            <p className="mt-1 text-caption text-text-secondary">{metric.hint}</p>
           </div>
         ))}
       </section>
@@ -143,7 +143,7 @@ export default async function AdminDashboard({
           <div className="flex items-center justify-between border-b border-border-subtle p-5">
             <div>
               <h2 className="font-bold">Ocupação da semana</h2>
-              <p className="mt-1 text-xs text-text-secondary">
+              <p className="mt-1 text-caption text-text-secondary">
                 Horas reservadas por dia, últimos sete dias
               </p>
             </div>
@@ -160,10 +160,10 @@ export default async function AdminDashboard({
                     style={{ height: `${(entry.hours / weekPeak) * 100}%` }}
                   />
                 </div>
-                <span className="text-center text-[11px] font-bold tabular-nums text-text-secondary">
+                <span className="text-center text-caption font-bold tabular-nums text-text-secondary">
                   {entry.hours.toFixed(1).replace(".", ",")}
                 </span>
-                <span className="text-center text-[11px] font-bold text-text-secondary">
+                <span className="text-center text-caption font-bold text-text-secondary">
                   {entry.label}
                 </span>
               </div>
@@ -193,7 +193,7 @@ export default async function AdminDashboard({
         <div className="flex items-center justify-between border-b border-border-subtle p-5">
           <div>
             <h2 className="font-bold">Reservas de hoje</h2>
-            <p className="mt-1 text-xs text-text-secondary">
+            <p className="mt-1 text-caption text-text-secondary">
               {data.bookings.length}{" "}
               {data.bookings.length === 1 ? "reserva" : "reservas"} ·{" "}
               {data.bookedHoursToday.toFixed(1).replace(".", ",")} horas
@@ -201,20 +201,20 @@ export default async function AdminDashboard({
           </div>
           <Link
             href="/admin/calendario"
-            className="inline-flex items-center gap-1 text-sm font-bold text-text-link"
+            className="inline-flex items-center gap-1 text-subheadline font-bold text-text-link"
           >
             Ver calendário
             <ChevronRight size={16} aria-hidden="true" />
           </Link>
         </div>
         {data.bookings.length === 0 ? (
-          <p className="p-5 text-sm text-text-secondary">
+          <p className="p-5 text-subheadline text-text-secondary">
             Nenhuma reserva para hoje{data.unit ? ` em ${data.unit}` : ""}.
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] text-left text-sm">
-              <thead className="bg-surface-page text-xs uppercase text-text-secondary">
+            <table className="w-full min-w-[680px] text-left text-subheadline">
+              <thead className="bg-surface-page text-caption uppercase text-text-secondary">
                 <tr>
                   <th className="px-5 py-3">Horário</th>
                   <th className="px-5 py-3">Sala</th>
@@ -265,7 +265,7 @@ function Health({
       >
         {icon}
       </span>
-      <p className="flex-1 text-sm font-semibold">{title}</p>
+      <p className="flex-1 text-subheadline font-semibold">{title}</p>
       <Badge>{value}</Badge>
     </div>
   );

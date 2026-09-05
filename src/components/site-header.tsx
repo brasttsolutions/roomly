@@ -18,7 +18,7 @@ export async function SiteHeader() {
         >
           <Link
             href="/minhas-reservas"
-            className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-sm font-semibold text-text-secondary hover:bg-surface-page"
+            className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-subheadline font-semibold text-text-secondary hover:bg-surface-page"
           >
             <CalendarDays size={18} />
             <span className="hidden sm:inline">Minhas reservas</span>
@@ -27,7 +27,7 @@ export async function SiteHeader() {
             <Link
               href="/admin"
               data-testid="admin-entry"
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-action-primary px-3 text-sm font-semibold text-text-on-accent hover:bg-action-primary-hover"
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-action-primary px-3 text-subheadline font-semibold text-text-on-accent hover:bg-action-primary-hover"
             >
               <LayoutDashboard size={18} />
               <span className="hidden sm:inline">Área administrativa</span>
@@ -43,7 +43,7 @@ export async function SiteHeader() {
           ) : (
             <Link
               href="/entrar"
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-[var(--border-control)] bg-surface-raised px-3 text-sm font-semibold hover:bg-surface-page"
+              className="inline-flex h-10 items-center gap-2 rounded-md border border-[var(--border-control)] bg-surface-raised px-3 text-subheadline font-semibold hover:bg-surface-page"
             >
               <CircleUserRound size={18} />
               <span className="hidden sm:inline">Entrar</span>

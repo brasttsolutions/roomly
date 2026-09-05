@@ -98,11 +98,11 @@ export function ExtendBooking({
       aria-label="Estender reserva"
       className="rounded-lg border border-border-subtle bg-surface-raised p-5"
     >
-      <h2 className="flex items-center gap-2 text-sm font-bold">
+      <h2 className="flex items-center gap-2 text-subheadline font-bold">
         <CalendarPlus size={17} aria-hidden="true" />
         Precisa de mais tempo?
       </h2>
-      <p className="mt-2 text-sm text-text-secondary">{offer.reason}</p>
+      <p className="mt-2 text-subheadline text-text-secondary">{offer.reason}</p>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         {options.map((option) => (
           <button
@@ -112,8 +112,8 @@ export function ExtendBooking({
             onClick={() => setMinutes(option)}
             className={
               option === chosen
-                ? "h-11 rounded-md border-2 border-action-primary-active bg-action-primary px-4 text-sm font-bold text-text-on-accent"
-                : "h-11 rounded-md border border-border-control px-4 text-sm font-semibold hover:border-action-primary"
+                ? "h-11 rounded-md border-2 border-action-primary-active bg-action-primary px-4 text-subheadline font-bold text-text-on-accent"
+                : "h-11 rounded-md border border-border-control px-4 text-subheadline font-semibold hover:border-action-primary"
             }
           >
             +{formatDuration(option)}

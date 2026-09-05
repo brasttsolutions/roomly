@@ -44,7 +44,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <input
               aria-label="Buscar no painel"
               placeholder="Buscar reserva, cliente ou sala"
-              className="h-10 w-full bg-transparent text-sm"
+              className="h-10 w-full bg-transparent text-subheadline"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -55,7 +55,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <Bell size={19} />
               <span className="absolute right-2 top-2 size-2 rounded-full bg-danger-action" />
             </button>
-            <button className="hidden h-10 items-center gap-2 rounded-md px-2 text-sm font-semibold hover:bg-surface-page sm:flex">
+            <button className="hidden h-10 items-center gap-2 rounded-md px-2 text-subheadline font-semibold hover:bg-surface-page sm:flex">
               Ágora Coworking
               <ChevronDown size={16} />
             </button>

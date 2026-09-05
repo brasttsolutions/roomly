@@ -21,24 +21,24 @@ export default async function Page() {
       <SiteHeader />
       <main id="conteudo" className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-10">
         <div className="mb-7">
-          <p className="text-sm font-bold text-text-link">SUA CONTA</p>
-          <h1 className="mt-1 text-3xl font-bold">Editar conta</h1>
-          <p className="mt-2 text-sm text-text-secondary">
+          <p className="text-subheadline font-bold text-text-link">SUA CONTA</p>
+          <h1 className="mt-1 text-title1 font-bold">Editar conta</h1>
+          <p className="mt-2 text-subheadline text-text-secondary">
             Dados pessoais, segurança e sessões ativas.
           </p>
         </div>
 
         <section className="rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-7">
-          <h2 className="mb-5 text-lg font-bold">Dados pessoais</h2>
+          <h2 className="mb-5 text-title3 font-bold">Dados pessoais</h2>
           <AccountForm name={identity.name} phone={account.phone} />
         </section>
 
         <section className="mt-6 rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-7">
-          <h2 className="flex items-center gap-2 text-lg font-bold">
+          <h2 className="flex items-center gap-2 text-title3 font-bold">
             <ShieldCheck size={19} className="text-text-link" />
             Segurança
           </h2>
-          <p className="mb-5 mt-1 text-sm text-text-secondary">
+          <p className="mb-5 mt-1 text-subheadline text-text-secondary">
             Use ao menos 10 caracteres. Ao trocar a senha, as sessões abertas em
             outros dispositivos continuam válidas — encerre-as abaixo se
             precisar.
@@ -47,8 +47,8 @@ export default async function Page() {
         </section>
 
         <section className="mt-6 rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-7">
-          <h2 className="text-lg font-bold">Sessões</h2>
-          <p className="mb-5 mt-1 text-sm text-text-secondary">
+          <h2 className="text-title3 font-bold">Sessões</h2>
+          <p className="mb-5 mt-1 text-subheadline text-text-secondary">
             Encerra o acesso em todos os aparelhos, inclusive neste. Use se
             perdeu um dispositivo ou suspeita que alguém tem sua senha.
           </p>
@@ -61,8 +61,8 @@ export default async function Page() {
         </section>
 
         <section className="mt-6 rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-7">
-          <h2 className="mb-1 text-lg font-bold">Dados da conta</h2>
-          <p className="mb-5 text-sm text-text-secondary">
+          <h2 className="mb-1 text-title3 font-bold">Dados da conta</h2>
+          <p className="mb-5 text-subheadline text-text-secondary">
             Só um gestor da empresa altera estes campos.
           </p>
           <dl className="grid gap-4 sm:grid-cols-2">
@@ -80,8 +80,8 @@ export default async function Page() {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-bold uppercase text-[var(--text-secondary)]">{label}</dt>
-      <dd className="mt-1 break-words text-sm font-semibold">{value}</dd>
+      <dt className="text-caption font-bold uppercase text-[var(--text-secondary)]">{label}</dt>
+      <dd className="mt-1 break-words text-subheadline font-semibold">{value}</dd>
     </div>
   );
 }

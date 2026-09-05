@@ -20,7 +20,7 @@ export function Brand({ inverse = false }: { inverse?: boolean }) {
       </span>
       <span
         className={
-          inverse ? "text-xl font-bold text-white" : "text-xl font-bold"
+          inverse ? "text-title3 font-bold text-white" : "text-title3 font-bold"
         }
       >
         roomly

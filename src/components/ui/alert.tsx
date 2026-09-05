@@ -37,7 +37,7 @@ export function Alert({
     <div
       role={tone === "danger" ? "alert" : "status"}
       className={cn(
-        "flex gap-3 rounded-md border-l-[3px] p-4 text-sm",
+        "flex gap-3 rounded-md border-l-[3px] p-4 text-subheadline",
         tone === "success" &&
           "border-success-border bg-success-surface text-success-text",
         tone === "warning" &&

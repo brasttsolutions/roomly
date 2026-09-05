@@ -47,6 +47,43 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /*
+   * A escala tipográfica vira utilitário: `text-title1`, `text-body`,
+   * `text-caption`. Tamanho, entrelinha e tracking vêm juntos, porque separá-los
+   * é como um mesmo papel acaba com entrelinha diferente em cada tela.
+   *
+   * O peso fica de fora de propósito. Ele já é declarado no markup com
+   * `font-bold` e `font-semibold`, e duas regras disputando `font-weight`
+   * dependeriam da ordem em que o Tailwind emite o CSS.
+   */
+  --text-display: var(--type-display);
+  --text-display--line-height: var(--type-display-line);
+  --text-display--letter-spacing: var(--type-display-tracking);
+  --text-headline: var(--type-headline);
+  --text-headline--line-height: var(--type-headline-line);
+  --text-headline--letter-spacing: var(--type-headline-tracking);
+  --text-title1: var(--type-title1);
+  --text-title1--line-height: var(--type-title1-line);
+  --text-title1--letter-spacing: var(--type-title1-tracking);
+  --text-title2: var(--type-title2);
+  --text-title2--line-height: var(--type-title2-line);
+  --text-title2--letter-spacing: var(--type-title2-tracking);
+  --text-title3: var(--type-title3);
+  --text-title3--line-height: var(--type-title3-line);
+  --text-title3--letter-spacing: var(--type-title3-tracking);
+  --text-body: var(--type-body);
+  --text-body--line-height: var(--type-body-line);
+  --text-callout: var(--type-callout);
+  --text-callout--line-height: var(--type-callout-line);
+  --text-subheadline: var(--type-subheadline);
+  --text-subheadline--line-height: var(--type-subheadline-line);
+  --text-footnote: var(--type-footnote);
+  --text-footnote--line-height: var(--type-footnote-line);
+  --text-footnote--letter-spacing: var(--type-footnote-tracking);
+  --text-caption: var(--type-caption);
+  --text-caption--line-height: var(--type-caption-line);
+  --text-caption--letter-spacing: var(--type-caption-tracking);
 }
 
 * {

@@ -50,7 +50,7 @@ export function UserMenu({
         aria-expanded={open}
         aria-controls={menuId}
         data-testid="user-menu-trigger"
-        className="inline-flex h-10 max-w-[220px] items-center gap-2 rounded-md border border-[var(--border-control)] bg-surface-raised px-3 text-sm font-semibold hover:bg-surface-page"
+        className="inline-flex h-10 max-w-[220px] items-center gap-2 rounded-md border border-[var(--border-control)] bg-surface-raised px-3 text-subheadline font-semibold hover:bg-surface-page"
       >
         <CircleUserRound size={18} className="shrink-0" />
         <span className="hidden truncate sm:inline">{name}</span>
@@ -64,9 +64,9 @@ export function UserMenu({
           className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-lg border border-border-subtle bg-surface-raised shadow-[0_18px_50px_rgba(34,56,46,.14)]"
         >
           <div className="border-b border-border-subtle px-4 py-3">
-            <p className="truncate text-sm font-bold">{name}</p>
-            <p className="truncate text-xs text-text-secondary">{email}</p>
-            <p className="mt-1 text-[11px] font-bold uppercase text-text-link">
+            <p className="truncate text-subheadline font-bold">{name}</p>
+            <p className="truncate text-caption text-text-secondary">{email}</p>
+            <p className="mt-1 text-caption font-bold uppercase text-text-link">
               {roleLabel}
             </p>
           </div>
@@ -91,7 +91,7 @@ export function UserMenu({
               type="submit"
               role="menuitem"
               data-testid="sign-out"
-              className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm font-semibold text-danger-text hover:bg-danger-surface"
+              className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-subheadline font-semibold text-danger-text hover:bg-danger-surface"
             >
               <LogOut size={17} />
               Sair da conta
@@ -119,7 +119,7 @@ function Item({
       href={href}
       role="menuitem"
       onClick={onNavigate}
-      className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-semibold text-text-secondary hover:bg-surface-page"
+      className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-subheadline font-semibold text-text-secondary hover:bg-surface-page"
     >
       <span className="text-text-secondary">{icon}</span>
       {label}

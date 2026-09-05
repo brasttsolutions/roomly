@@ -71,7 +71,7 @@ export function RoomCard({
         )}
       >
         <div>
-          <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+          <p className="mb-1 flex items-center gap-1.5 text-caption font-semibold text-text-secondary">
             <MapPin size={14} aria-hidden="true" />
             {room.location}
           </p>
@@ -79,7 +79,7 @@ export function RoomCard({
               aqui quebraria o sumário do documento. */}
           <h3
             className={
-              featured ? "text-2xl font-bold sm:text-3xl" : "text-xl font-bold"
+              featured ? "text-title2 font-bold sm:text-title1" : "text-title3 font-bold"
             }
           >
             <Link
@@ -90,7 +90,7 @@ export function RoomCard({
             </Link>
           </h3>
           {room.address && (
-            <p className="mt-1 text-xs text-text-secondary">{room.address}</p>
+            <p className="mt-1 text-caption text-text-secondary">{room.address}</p>
           )}
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -116,15 +116,15 @@ export function RoomCard({
 
         <div className="mt-5 flex flex-wrap items-end justify-between gap-3 border-t border-border-subtle pt-4">
           <p>
-            <span className="block text-xs text-text-secondary">
+            <span className="block text-caption text-text-secondary">
               a partir de
             </span>
             <span
-              className="text-xl font-bold"
+              className="text-title3 font-bold"
               aria-label={`${Math.round(room.hourlyPriceCents / 100)} reais por hora`}
             >
               {formatMoney(room.hourlyPriceCents)}
-              <span className="text-sm font-normal text-text-secondary">
+              <span className="text-subheadline font-normal text-text-secondary">
                 {" "}
                 / hora
               </span>
@@ -134,7 +134,7 @@ export function RoomCard({
             href={`/salas/${room.slug}`}
             data-testid={`book-${room.slug}`}
             className={cn(
-              "inline-flex h-11 shrink-0 items-center justify-center rounded-md px-5 text-sm font-bold",
+              "inline-flex h-11 shrink-0 items-center justify-center rounded-md px-5 text-subheadline font-bold",
               closed
                 ? "border border-border-control text-text-primary hover:bg-surface-page"
                 : "bg-action-primary text-text-on-accent hover:bg-action-primary-hover",
@@ -157,7 +157,7 @@ function AvailabilityLine({
 
   if (availability.nextFreeTimes.length > 0) {
     return (
-      <p className="flex flex-wrap items-center gap-2 text-sm">
+      <p className="flex flex-wrap items-center gap-2 text-subheadline">
         <Badge tone="success">Livre</Badge>
         <span className="font-semibold tabular-nums">
           {availability.nextFreeTimes.join(" · ")}
@@ -173,7 +173,7 @@ function AvailabilityLine({
 
   if (availability.nextDay) {
     return (
-      <p className="flex flex-wrap items-center gap-2 text-sm">
+      <p className="flex flex-wrap items-center gap-2 text-subheadline">
         <Badge>
           <CalendarClock size={13} aria-hidden="true" />
           Próximo
@@ -187,7 +187,7 @@ function AvailabilityLine({
   }
 
   return (
-    <p className="text-sm">
+    <p className="text-subheadline">
       <Badge tone="warning">Sem horário nas próximas duas semanas</Badge>
     </p>
   );

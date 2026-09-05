@@ -65,7 +65,7 @@ export function AdminSidebar({
               className={cn(
                 // A barra coral de 3px marca a seção atual sem depender só do
                 // preenchimento — que, em navy sobre navy, quase não aparece.
-                "mb-1 flex h-10 items-center gap-3 rounded-md border-l-[3px] border-transparent px-3 text-sm font-semibold text-white/65 hover:bg-white/8 hover:text-white",
+                "mb-1 flex h-10 items-center gap-3 rounded-md border-l-[3px] border-transparent px-3 text-subheadline font-semibold text-white/65 hover:bg-white/8 hover:text-white",
                 active &&
                   "border-l-[var(--color-coral-400)] bg-white/12 text-[var(--color-coral-300)]",
               )}
@@ -78,12 +78,12 @@ export function AdminSidebar({
       </nav>
       <div className="border-t border-white/10 p-4">
         <div className="flex items-center gap-3">
-          <div className="grid size-9 place-items-center rounded-md bg-surface-accent-subtle text-sm font-bold text-text-link">
+          <div className="grid size-9 place-items-center rounded-md bg-surface-accent-subtle text-subheadline font-bold text-text-link">
             TS
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold">Thiago Silva</p>
-            <p className="truncate text-xs text-white/45">Administrador</p>
+            <p className="truncate text-subheadline font-bold">Thiago Silva</p>
+            <p className="truncate text-caption text-white/45">Administrador</p>
           </div>
         </div>
       </div>

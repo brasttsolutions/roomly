@@ -51,9 +51,9 @@ export default async function SectionPage({
     <>
       <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-bold text-text-link">OPERAÇÃO</p>
-          <h1 className="mt-1 text-3xl font-bold">{data.title}</h1>
-          <p className="mt-2 text-sm text-text-secondary">{data.subtitle}</p>
+          <p className="text-subheadline font-bold text-text-link">OPERAÇÃO</p>
+          <h1 className="mt-1 text-title1 font-bold">{data.title}</h1>
+          <p className="mt-2 text-subheadline text-text-secondary">{data.subtitle}</p>
         </div>
         <CreateAction section={section} label={data.action} />
       </div>
@@ -97,24 +97,24 @@ async function CalendarBody({ day }: { day: string }) {
   return (
     <>
       <form className="mb-5 flex flex-wrap items-end gap-3">
-        <label className="text-sm">
-          <span className="mb-1 block text-[11px] font-bold uppercase text-text-secondary">
+        <label className="text-subheadline">
+          <span className="mb-1 block text-caption font-bold uppercase text-text-secondary">
             Dia
           </span>
           <input
             type="date"
             name="dia"
             defaultValue={day}
-            className="h-11 rounded-md border border-border-control bg-surface-raised px-3 text-sm font-semibold"
+            className="h-11 rounded-md border border-border-control bg-surface-raised px-3 text-subheadline font-semibold"
           />
         </label>
         <button
           type="submit"
-          className="h-11 rounded-md border border-border-control px-4 text-sm font-semibold hover:bg-surface-page"
+          className="h-11 rounded-md border border-border-control px-4 text-subheadline font-semibold hover:bg-surface-page"
         >
           Ver dia
         </button>
-        <p className="ml-auto text-sm text-text-secondary">
+        <p className="ml-auto text-subheadline text-text-secondary">
           {capitalizeFirst(weekday(day))}, {formatIsoDay(day)} ·{" "}
           {calendar.bookings.length}{" "}
           {calendar.bookings.length === 1 ? "reserva" : "reservas"}
@@ -130,20 +130,20 @@ async function ReportBody({ month }: { month: string }) {
   return (
     <>
       <form className="mb-5 flex flex-wrap items-end gap-3">
-        <label className="text-sm">
-          <span className="mb-1 block text-[11px] font-bold uppercase text-text-secondary">
+        <label className="text-subheadline">
+          <span className="mb-1 block text-caption font-bold uppercase text-text-secondary">
             Mês
           </span>
           <input
             type="month"
             name="mes"
             defaultValue={month}
-            className="h-11 rounded-md border border-border-control bg-surface-raised px-3 text-sm font-semibold"
+            className="h-11 rounded-md border border-border-control bg-surface-raised px-3 text-subheadline font-semibold"
           />
         </label>
         <button
           type="submit"
-          className="h-11 rounded-md border border-border-control px-4 text-sm font-semibold hover:bg-surface-page"
+          className="h-11 rounded-md border border-border-control px-4 text-subheadline font-semibold hover:bg-surface-page"
         >
           Ver mês
         </button>
@@ -157,8 +157,8 @@ async function ReportBody({ month }: { month: string }) {
       </section>
 
       <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-raised">
-        <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="bg-surface-page text-[11px] uppercase text-text-secondary">
+        <table className="w-full min-w-[760px] text-left text-subheadline">
+          <thead className="bg-surface-page text-caption uppercase text-text-secondary">
             <tr>
               <th className="px-5 py-3 font-bold">Sala</th>
               <th className="px-5 py-3 font-bold">Unidade</th>
@@ -198,7 +198,7 @@ async function ReportBody({ month }: { month: string }) {
         </table>
       </div>
       {report.rooms.length === 0 && (
-        <p className="mt-4 text-sm text-text-secondary">
+        <p className="mt-4 text-subheadline text-text-secondary">
           Nenhuma sala ativa no período.
         </p>
       )}
@@ -210,14 +210,14 @@ async function PolicyBody() {
   const policies = await effectivePolicies();
   return (
     <>
-      <p className="mb-5 max-w-prose text-sm text-text-secondary">
+      <p className="mb-5 max-w-prose text-subheadline text-text-secondary">
         Estas são as regras em vigor, lidas de onde o sistema realmente as
         aplica. Cada uma é editada no seu próprio lugar — guardar uma cópia aqui
         criaria duas verdades sobre a mesma regra.
       </p>
       <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-raised">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="bg-surface-page text-[11px] uppercase text-text-secondary">
+        <table className="w-full min-w-[720px] text-left text-subheadline">
+          <thead className="bg-surface-page text-caption uppercase text-text-secondary">
             <tr>
               <th className="px-5 py-3 font-bold">Política</th>
               <th className="px-5 py-3 font-bold">Valor em vigor</th>
@@ -239,7 +239,7 @@ async function PolicyBody() {
                 <td className="px-5 py-4 text-right">
                   <Link
                     href={policy.href}
-                    className="inline-flex items-center gap-1 text-sm font-bold text-text-link"
+                    className="inline-flex items-center gap-1 text-subheadline font-bold text-text-link"
                   >
                     Abrir
                     <ChevronRight size={15} aria-hidden="true" />
@@ -288,7 +288,7 @@ async function RecordTable({
             name="q"
             defaultValue={query}
             placeholder="Buscar"
-            className="h-10 min-w-0 flex-1 px-3 text-sm"
+            className="h-10 min-w-0 flex-1 px-3 text-subheadline"
           />
           <button
             type="submit"
@@ -300,8 +300,8 @@ async function RecordTable({
         </form>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="bg-surface-page text-[11px] uppercase text-text-secondary">
+        <table className="w-full min-w-[760px] text-left text-subheadline">
+          <thead className="bg-surface-page text-caption uppercase text-text-secondary">
             <tr>
               {data.columns.map((column) => (
                 <th key={column} scope="col" className="px-5 py-3 font-bold">
@@ -352,7 +352,7 @@ async function RecordTable({
           </tbody>
         </table>
       </div>
-      <div className="border-t border-border-subtle px-5 py-4 text-xs text-text-secondary">
+      <div className="border-t border-border-subtle px-5 py-4 text-caption text-text-secondary">
         {rows.length} {rows.length === 1 ? "registro" : "registros"}
       </div>
     </section>
@@ -362,8 +362,8 @@ async function RecordTable({
 function Total({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-surface-raised p-5">
-      <p className="text-xs font-bold uppercase text-text-secondary">{label}</p>
-      <strong className="mt-2 block text-2xl tabular-nums">{value}</strong>
+      <p className="text-caption font-bold uppercase text-text-secondary">{label}</p>
+      <strong className="mt-2 block text-title2 tabular-nums">{value}</strong>
     </div>
   );
 }

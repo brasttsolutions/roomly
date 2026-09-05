@@ -57,32 +57,32 @@ export function BookingSummary({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-bold">{roomName}</p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-text-secondary">
+          <p className="mt-0.5 flex items-center gap-1.5 text-caption text-text-secondary">
             <MapPin size={13} aria-hidden="true" />
             {[unit, address].filter(Boolean).join(" · ")}
           </p>
         </div>
         {onChange && (
-          <Button variant="link" className="text-sm" onClick={onChange}>
+          <Button variant="link" className="text-subheadline" onClick={onChange}>
             Alterar
           </Button>
         )}
       </div>
 
-      <p className="mt-3 text-sm font-semibold">
+      <p className="mt-3 text-subheadline font-semibold">
         {capitalizeFirst(formatIsoWeekday(day))},{" "}
         {formatIsoDay(day)} · {startTime} – {endTime}
       </p>
 
-      <div className="mt-3 flex items-center justify-between border-t border-border-subtle pt-3 text-sm">
+      <div className="mt-3 flex items-center justify-between border-t border-border-subtle pt-3 text-subheadline">
         <span className="text-text-secondary">
           {formatDuration(durationMinutes)} × {formatMoney(hourlyPriceCents)}/h
         </span>
         <span className="tabular-nums">{formatMoney(totalCents)}</span>
       </div>
       <div className="mt-2 flex items-center justify-between border-t border-border-subtle pt-2">
-        <span className="text-sm font-semibold">Total</span>
-        <strong className="text-lg tabular-nums">
+        <span className="text-subheadline font-semibold">Total</span>
+        <strong className="text-title3 tabular-nums">
           {formatMoney(totalCents)}
         </strong>
       </div>
@@ -90,7 +90,7 @@ export function BookingSummary({
       {holdExpiresAt ? (
         <HoldCountdown expiresAt={holdExpiresAt} onExpired={onExpired} />
       ) : (
-        <p className="mt-3 text-xs text-text-secondary">
+        <p className="mt-3 text-caption text-text-secondary">
           O horário fica reservado por 10 minutos assim que o pagamento começa.
         </p>
       )}
@@ -125,7 +125,7 @@ function HoldCountdown({
     return (
       <p
         role="alert"
-        className="mt-3 flex items-center gap-2 text-sm font-semibold text-danger-text"
+        className="mt-3 flex items-center gap-2 text-subheadline font-semibold text-danger-text"
       >
         <TimerReset size={16} aria-hidden="true" />O horário reservado expirou.
         Escolha outro horário.
@@ -142,7 +142,7 @@ function HoldCountdown({
         : "text-text-secondary";
 
   return (
-    <p className={cn("mt-3 flex items-center gap-2 text-sm", tone)}>
+    <p className={cn("mt-3 flex items-center gap-2 text-subheadline", tone)}>
       <TimerReset size={16} aria-hidden="true" />
       <span aria-hidden="true">
         Horário reservado por {String(minutes).padStart(2, "0")}:

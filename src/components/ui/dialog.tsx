@@ -71,7 +71,7 @@ export function Dialog({
         {open && (
           <div className="p-6">
             <div className="mb-5 flex items-center justify-between gap-4">
-              <h2 className="text-xl font-bold">{title}</h2>
+              <h2 className="text-title3 font-bold">{title}</h2>
               <button
                 type="button"
                 title="Fechar"

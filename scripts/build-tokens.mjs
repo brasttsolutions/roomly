@@ -91,11 +91,13 @@ for (const [nome, valor] of Object.entries(zIndex)) {
 }
 linhas.push(`  --font-sans: ${typography.family.sans};`);
 linhas.push(`  --font-mono: ${typography.family.mono};`);
+// `--type-*` e não `--text-*`: o segundo é o espaço de nomes de tamanho de
+// fonte do Tailwind 4, e já é ocupado pelas cores `text-primary` e afins.
 for (const [nome, v] of Object.entries(typography.scale)) {
-  linhas.push(`  --text-${nome}: ${v.size};`);
-  linhas.push(`  --text-${nome}-line: ${v.line};`);
-  linhas.push(`  --text-${nome}-tracking: ${v.tracking};`);
-  linhas.push(`  --text-${nome}-weight: ${v.weight};`);
+  linhas.push(`  --type-${nome}: ${v.size};`);
+  linhas.push(`  --type-${nome}-line: ${v.line};`);
+  linhas.push(`  --type-${nome}-tracking: ${v.tracking};`);
+  linhas.push(`  --type-${nome}-weight: ${v.weight};`);
 }
 linhas.push("}");
 linhas.push("");
@@ -123,8 +125,8 @@ linhas.push("@media (max-width: 767px) {");
 linhas.push("  :root {");
 for (const [nome, v] of Object.entries(typography.scale)) {
   if (v.mobile !== v.size) {
-    linhas.push(`    --text-${nome}: ${v.mobile};`);
-    linhas.push(`    --text-${nome}-line: ${v.mobileLine};`);
+    linhas.push(`    --type-${nome}: ${v.mobile};`);
+    linhas.push(`    --type-${nome}-line: ${v.mobileLine};`);
   }
 }
 linhas.push("  }");

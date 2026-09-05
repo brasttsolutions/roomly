@@ -154,7 +154,7 @@ function Field({
   required?: boolean;
 }) {
   return (
-    <label className="text-sm font-bold">
+    <label className="text-subheadline font-bold">
       {label}
       <input
         required={required}
@@ -182,7 +182,7 @@ function UnitFields({ record }: { record?: AdminRecord }) {
 }
 function StatusField({ defaultValue }: { defaultValue?: string }) {
   return (
-    <label className="text-sm font-bold">
+    <label className="text-subheadline font-bold">
       Situação
       <select
         name="status"
@@ -249,7 +249,7 @@ function RoomFields({
         onChange={setRandomImages}
       />
       {!randomImages && (
-        <label className="text-sm font-bold">
+        <label className="text-subheadline font-bold">
           Fotos da sala
           <input
             required={!record}
@@ -258,13 +258,13 @@ function RoomFields({
             name="photos"
             accept="image/jpeg,image/png,image/webp"
             onChange={(event) => setChosen(event.target.files?.length ?? 0)}
-            className="mt-2 w-full rounded-md border border-[var(--border-control)] p-2 text-sm font-normal file:mr-3 file:rounded file:border-0 file:bg-surface-page file:px-3 file:py-1.5 file:text-sm file:font-semibold"
+            className="mt-2 w-full rounded-md border border-[var(--border-control)] p-2 text-subheadline font-normal file:mr-3 file:rounded file:border-0 file:bg-surface-page file:px-3 file:py-1.5 file:text-subheadline file:font-semibold"
           />
           <span
             className={
               chosen > 6
-                ? "mt-1 block text-xs font-semibold text-danger-text"
-                : "mt-1 block text-xs font-normal text-[var(--text-secondary)]"
+                ? "mt-1 block text-caption font-semibold text-danger-text"
+                : "mt-1 block text-caption font-normal text-[var(--text-secondary)]"
             }
           >
             {chosen > 6
@@ -300,7 +300,7 @@ function Checkbox({
   onChange?: (value: boolean) => void;
 }) {
   return (
-    <label className="flex items-start gap-2.5 text-sm font-bold">
+    <label className="flex items-start gap-2.5 text-subheadline font-bold">
       <input
         type="checkbox"
         name={name}
@@ -314,7 +314,7 @@ function Checkbox({
       <span>
         {label}
         {hint && (
-          <span className="mt-0.5 block text-xs font-normal text-[var(--text-secondary)]">
+          <span className="mt-0.5 block text-caption font-normal text-[var(--text-secondary)]">
             {hint}
           </span>
         )}
@@ -381,7 +381,7 @@ function Select({
   defaultValue?: string;
 }) {
   return (
-    <label className="text-sm font-bold">
+    <label className="text-subheadline font-bold">
       {label}
       <select
         required

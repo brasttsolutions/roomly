@@ -106,7 +106,7 @@ export function AvailabilityCalendar({
         >
           <ChevronLeft size={18} />
         </Button>
-        <strong aria-live="polite" className="text-sm font-bold">
+        <strong aria-live="polite" className="text-subheadline font-bold">
           {monthTitle(month)}
         </strong>
         <Button
@@ -134,7 +134,7 @@ export function AvailabilityCalendar({
               <span
                 key={weekday}
                 role="columnheader"
-                className="pb-1 text-center text-[11px] font-bold uppercase text-text-secondary"
+                className="pb-1 text-center text-caption font-bold uppercase text-text-secondary"
               >
                 {weekday}
               </span>
@@ -163,7 +163,7 @@ export function AvailabilityCalendar({
           ))}
         </div>
       )}
-      <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-text-secondary">
+      <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-text-secondary">
         <Swatch className="bg-success-surface" label="livre" />
         <Swatch className="bg-warning-surface" label="parcial" />
         <Swatch className="pattern-busy bg-surface-sunken" label="cheio" />
@@ -228,7 +228,7 @@ function DayCell({
         if (open) onSelect(day);
       }}
       className={cn(
-        "flex h-12 flex-col items-center justify-center rounded-md border text-xs",
+        "flex h-12 flex-col items-center justify-center rounded-md border text-caption",
         selected
           ? "border-2 border-action-primary-active bg-action-primary text-text-on-accent"
           : "border-transparent",
@@ -245,8 +245,8 @@ function DayCell({
         !open && "cursor-not-allowed",
       )}
     >
-      <span className="text-sm font-bold">{Number(day.slice(8))}</span>
-      <span className="text-[10px] leading-none">{shortLabel(summary)}</span>
+      <span className="text-subheadline font-bold">{Number(day.slice(8))}</span>
+      <span className="text-caption leading-none">{shortLabel(summary)}</span>
     </button>
   );
 }

@@ -42,7 +42,7 @@ export default async function RoomPage({
       <main id="conteudo" className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
         <Link
           href="/"
-          className="mb-5 inline-flex items-center gap-1 text-sm font-bold text-text-secondary"
+          className="mb-5 inline-flex items-center gap-1 text-subheadline font-bold text-text-secondary"
         >
           <ChevronLeft size={17} />
           Todas as salas
@@ -56,16 +56,16 @@ export default async function RoomPage({
             <div className="py-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="flex items-center gap-1.5 text-sm font-semibold text-text-secondary">
+                  <p className="flex items-center gap-1.5 text-subheadline font-semibold text-text-secondary">
                     <MapPin size={16} />
                     {[room.location, room.floor].filter(Boolean).join(" · ")}
                   </p>
                   {room.address && (
-                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                    <p className="mt-1 text-subheadline text-[var(--text-secondary)]">
                       {room.address}
                     </p>
                   )}
-                  <h1 className="mt-2 text-3xl font-bold sm:text-4xl">
+                  <h1 className="mt-2 text-title1 font-bold sm:text-headline">
                     {room.name}
                   </h1>
                 </div>
@@ -74,12 +74,12 @@ export default async function RoomPage({
                   até {room.capacity} pessoas
                 </Badge>
               </div>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-text-secondary">
+              <p className="mt-4 max-w-2xl text-body leading-7 text-text-secondary">
                 {room.description} A sala é preparada entre cada reserva e o
                 acesso é liberado automaticamente no horário contratado.
               </p>
               <div className="mt-6 border-y border-border-subtle py-5">
-                <h2 className="mb-3 text-sm font-bold">O que você encontra</h2>
+                <h2 className="mb-3 text-subheadline font-bold">O que você encontra</h2>
                 <div className="flex flex-wrap gap-2">
                   {room.features.map((f) => (
                     <Badge key={f}>{f}</Badge>
@@ -112,8 +112,8 @@ export default async function RoomPage({
 function Spec({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase text-[var(--text-secondary)]">{label}</p>
-      <p className="mt-1 text-sm font-semibold">{value}</p>
+      <p className="text-caption font-bold uppercase text-[var(--text-secondary)]">{label}</p>
+      <p className="mt-1 text-subheadline font-semibold">{value}</p>
     </div>
   );
 }

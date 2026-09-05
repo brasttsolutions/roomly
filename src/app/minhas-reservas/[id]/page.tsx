@@ -55,7 +55,7 @@ export default async function Page({
       >
         <Link
           href="/minhas-reservas"
-          className="inline-flex items-center gap-1 text-sm font-bold text-text-secondary"
+          className="inline-flex items-center gap-1 text-subheadline font-bold text-text-secondary"
         >
           <ChevronLeft size={17} aria-hidden="true" />
           Minhas reservas
@@ -64,8 +64,8 @@ export default async function Page({
         <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_340px]">
           <div>
             <Badge tone={status.tone}>{status.label}</Badge>
-            <h1 className="mt-3 text-3xl font-bold">{booking.roomName}</h1>
-            <p className="mt-2 flex items-center gap-1.5 text-sm text-text-secondary">
+            <h1 className="mt-3 text-title1 font-bold">{booking.roomName}</h1>
+            <p className="mt-2 flex items-center gap-1.5 text-subheadline text-text-secondary">
               <MapPin size={15} aria-hidden="true" />
               {[booking.unit, booking.address].filter(Boolean).join(" · ")}
             </p>
@@ -109,7 +109,7 @@ export default async function Page({
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-bold uppercase text-text-secondary">
+      <dt className="text-caption font-bold uppercase text-text-secondary">
         {label}
       </dt>
       <dd className="mt-1 font-semibold">{value}</dd>

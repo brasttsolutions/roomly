@@ -48,10 +48,10 @@ function Task({ task }: { task: CleaningTask }) {
     <li className="flex flex-wrap items-center gap-4 p-4">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <strong className="text-sm">{task.room}</strong>
+          <strong className="text-subheadline">{task.room}</strong>
           <StatusBadge task={task} />
         </div>
-        <p className="mt-1 text-xs text-text-secondary">
+        <p className="mt-1 text-caption text-text-secondary">
           Janela {task.window} ·{" "}
           {task.assignee ? `com ${task.assignee}` : "sem responsável"}
         </p>

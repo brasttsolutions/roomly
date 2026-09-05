@@ -30,13 +30,13 @@ export function DayCalendarGrid({ calendar }: { calendar: DayCalendar }) {
             gridTemplateColumns: `72px repeat(${calendar.rooms.length}, minmax(0,1fr))`,
           }}
         >
-          <span className="p-3 text-[11px] font-bold uppercase text-text-secondary">
+          <span className="p-3 text-caption font-bold uppercase text-text-secondary">
             Hora
           </span>
           {calendar.rooms.map((room) => (
             <span key={room.id} className="p-3">
-              <strong className="block text-sm">{room.name}</strong>
-              <span className="text-xs text-text-secondary">{room.unit}</span>
+              <strong className="block text-subheadline">{room.name}</strong>
+              <span className="text-caption text-text-secondary">{room.unit}</span>
             </span>
           ))}
         </div>
@@ -52,7 +52,7 @@ export function DayCalendarGrid({ calendar }: { calendar: DayCalendar }) {
             {hours.map((minute) => (
               <span
                 key={minute}
-                className="absolute left-0 w-full pl-3 text-[11px] tabular-nums text-text-secondary"
+                className="absolute left-0 w-full pl-3 text-caption tabular-nums text-text-secondary"
                 style={{ top: `${(minute - open) * 1.1}px` }}
               >
                 {label(minute)}
@@ -87,10 +87,10 @@ export function DayCalendarGrid({ calendar }: { calendar: DayCalendar }) {
                       height: `${Math.max(24, (booking.endMinutes - booking.startMinutes) * 1.1 - 2)}px`,
                     }}
                   >
-                    <p className="truncate text-[11px] font-bold tabular-nums">
+                    <p className="truncate text-caption font-bold tabular-nums">
                       {booking.label}
                     </p>
-                    <p className="truncate text-[11px]">{booking.customer}</p>
+                    <p className="truncate text-caption">{booking.customer}</p>
                   </article>
                 ))}
             </div>

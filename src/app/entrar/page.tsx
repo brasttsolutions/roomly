@@ -16,13 +16,13 @@ export default async function Page({
       <section className="flex min-h-[640px] flex-col justify-between p-6 sm:p-10 lg:p-14">
         <Brand />
         <div className="mx-auto w-full max-w-md">
-          <p className="text-sm font-bold text-text-link">BEM-VINDO DE VOLTA</p>
-          <h1 className="mt-2 text-3xl font-bold">Entre na sua conta</h1>
-          <p className="mt-2 text-sm leading-6 text-text-secondary">
+          <p className="text-subheadline font-bold text-text-link">BEM-VINDO DE VOLTA</p>
+          <h1 className="mt-2 text-title1 font-bold">Entre na sua conta</h1>
+          <p className="mt-2 text-subheadline leading-6 text-text-secondary">
             Acompanhe suas reservas e acesse suas salas.
           </p>
           <form action={signIn} className="mt-7 space-y-4">
-            <label className="block text-sm font-bold">
+            <label className="block text-subheadline font-bold">
               E-mail
               <input
                 type="email"
@@ -33,7 +33,7 @@ export default async function Page({
                 className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] px-3 font-normal"
               />
             </label>
-            <label className="block text-sm font-bold">
+            <label className="block text-subheadline font-bold">
               Senha
               <input
                 type="password"
@@ -46,26 +46,26 @@ export default async function Page({
               />
             </label>
             {error && (
-              <p role="alert" className="text-sm font-semibold text-danger-text">
+              <p role="alert" className="text-subheadline font-semibold text-danger-text">
                 E-mail ou senha inválidos.
               </p>
             )}
             <button
               type="submit"
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-action-primary text-sm font-bold text-text-on-accent"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-action-primary text-subheadline font-bold text-text-on-accent"
             >
               Entrar
               <ArrowRight size={17} />
             </button>
           </form>
-          <p className="mt-5 text-center text-sm text-text-secondary">
+          <p className="mt-5 text-center text-subheadline text-text-secondary">
             Ainda não tem conta?{" "}
             <a href="/cadastro" className="font-bold text-text-link">
               Cadastre-se
             </a>
           </p>
         </div>
-        <p className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+        <p className="flex items-center gap-2 text-caption text-[var(--text-secondary)]">
           <ShieldCheck size={15} />
           Seus dados são protegidos.
         </p>
@@ -74,10 +74,10 @@ export default async function Page({
         <div className="absolute inset-0 bg-[url('/rooms/executiva.png')] bg-cover bg-center opacity-70" />
         <div className="absolute inset-0 bg-surface-inverse/35" />
         <blockquote className="absolute bottom-14 left-12 right-12 text-white">
-          <p className="max-w-xl text-2xl font-semibold leading-9">
+          <p className="max-w-xl text-title2 font-semibold leading-9">
             “Reservar uma sala agora leva menos tempo do que preparar o café.”
           </p>
-          <footer className="mt-4 text-sm text-white/70">
+          <footer className="mt-4 text-subheadline text-white/70">
             Marina Costa · Norte Labs
           </footer>
         </blockquote>

@@ -48,9 +48,9 @@ export function Button({
         variant === "icon" &&
           "text-text-primary hover:bg-surface-page active:bg-surface-sunken",
 
-        size === "sm" && "h-9 px-3 text-[13px]",
-        size === "md" && "h-11 px-4 text-[15px]",
-        size === "lg" && "h-13 px-6 text-base",
+        size === "sm" && "h-9 px-3 text-footnote",
+        size === "md" && "h-11 px-4 text-callout",
+        size === "lg" && "h-13 px-6 text-body",
         size === "icon" && "size-11 rounded-full p-0",
         variant === "link" && "h-auto p-0",
         className,

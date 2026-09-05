@@ -14,10 +14,10 @@ export default function GlobalError({
     <html lang="pt-BR">
       <body className="grid min-h-screen place-items-center bg-surface-page p-6">
         <main className="max-w-md text-center">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-title2 font-bold">
             Não foi possível carregar o Roomly
           </h1>
-          <p className="mt-3 text-sm text-text-secondary">
+          <p className="mt-3 text-subheadline text-text-secondary">
             A ocorrência foi registrada. Atualize a página para tentar
             novamente.
           </p>

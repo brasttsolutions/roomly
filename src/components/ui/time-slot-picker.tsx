@@ -80,7 +80,7 @@ export function TimeSlotPicker({
               if (bookable) onSelect(block);
             }}
             className={cn(
-              "flex h-12 items-center justify-center gap-1 rounded-md border text-sm font-semibold",
+              "flex h-12 items-center justify-center gap-1 rounded-md border text-subheadline font-semibold",
               "transition-colors",
               isSelected &&
                 "border-2 border-action-primary-active bg-action-primary text-text-on-accent",

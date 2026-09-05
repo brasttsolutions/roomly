@@ -35,7 +35,7 @@ export function Stepper({
             <span
               aria-hidden="true"
               className={cn(
-                "grid size-7 shrink-0 place-items-center rounded-full border-2 text-xs font-bold",
+                "grid size-7 shrink-0 place-items-center rounded-full border-2 text-caption font-bold",
                 done && "border-action-primary bg-action-primary text-text-on-accent",
                 active && "border-action-primary text-text-primary",
                 !done && !active && "border-border-control text-text-secondary",
@@ -48,7 +48,7 @@ export function Stepper({
               className={cn(
                 // Sem truncar: "Pagamen…" não é um passo. O traço entre os
                 // passos absorve a sobra de largura no lugar do rótulo.
-                "shrink-0 whitespace-nowrap text-xs",
+                "shrink-0 whitespace-nowrap text-caption",
                 active
                   ? "font-semibold text-text-primary"
                   : "text-text-secondary",

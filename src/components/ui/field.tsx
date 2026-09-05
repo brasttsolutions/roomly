@@ -33,17 +33,17 @@ function Wrapper({
   return (
     <div className="grid gap-2">
       {/* O rótulo é sempre visível: placeholder não é rótulo. */}
-      <label htmlFor={controlId} className="text-sm font-semibold">
+      <label htmlFor={controlId} className="text-subheadline font-semibold">
         {label}
       </label>
       {hint && (
-        <p id={hintId} className="-mt-1 text-[13px] text-text-secondary">
+        <p id={hintId} className="-mt-1 text-footnote text-text-secondary">
           {hint}
         </p>
       )}
       {children}
       {error && (
-        <p id={errorId} className="text-[13px] font-semibold text-danger-text">
+        <p id={errorId} className="text-footnote font-semibold text-danger-text">
           {error}
         </p>
       )}
@@ -53,7 +53,7 @@ function Wrapper({
 
 const control = (error?: string) =>
   cn(
-    "h-11 w-full rounded-md border bg-surface-raised px-3 text-[15px]",
+    "h-11 w-full rounded-md border bg-surface-raised px-3 text-callout",
     "placeholder:text-text-secondary",
     error ? "border-danger-border" : "border-border-control",
   );
@@ -173,12 +173,12 @@ export function Checkbox({
         className={cn("mt-0.5 size-4 accent-action-primary", className)}
         {...props}
       />
-      <label htmlFor={id} className="text-sm font-semibold">
+      <label htmlFor={id} className="text-subheadline font-semibold">
         {label}
         {hint && (
           <span
             id={`${id}-hint`}
-            className="mt-0.5 block text-xs font-normal text-text-secondary"
+            className="mt-0.5 block text-caption font-normal text-text-secondary"
           >
             {hint}
           </span>

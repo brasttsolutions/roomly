@@ -196,10 +196,10 @@ export function BookingFlow({
           <Check size={25} />
         </div>
         <Badge tone="success">Reserva confirmada</Badge>
-        <h2 className="mt-3 text-2xl font-bold">
+        <h2 className="mt-3 text-title2 font-bold">
           Tudo certo para {formatIsoWeekday(selectedDate)}.
         </h2>
-        <p className="mt-2 text-sm leading-6 text-text-secondary">
+        <p className="mt-2 text-subheadline leading-6 text-text-secondary">
           Enviamos os detalhes para você. O código será liberado 5 minutos
           antes.
         </p>
@@ -217,11 +217,11 @@ export function BookingFlow({
         {/* Nenhum código aqui: a provisão na fechadura acontece depois da
             aprovação do pagamento, e mostrar um número agora seria inventar. */}
         <div className="rounded-md bg-surface-inverse p-5 text-text-inverse">
-          <p className="flex items-center gap-2 text-sm opacity-70">
+          <p className="flex items-center gap-2 text-subheadline opacity-70">
             <KeyRound size={17} aria-hidden="true" />
             Código de acesso
           </p>
-          <p className="mt-3 text-sm leading-6">
+          <p className="mt-3 text-subheadline leading-6">
             Liberado das{" "}
             <strong>{confirmed?.accessFrom ?? "--:--"}</strong> às{" "}
             <strong>{confirmed?.accessTo ?? "--:--"}</strong>. Ele aparece na
@@ -230,7 +230,7 @@ export function BookingFlow({
         </div>
         <Link
           href="/minhas-reservas"
-          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-md bg-action-primary text-sm font-bold text-text-on-accent"
+          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-md bg-action-primary text-subheadline font-bold text-text-on-accent"
         >
           Ver minhas reservas
         </Link>
@@ -242,7 +242,7 @@ export function BookingFlow({
         <Stepper steps={STEPS} current={1} className="mb-5" />
         <button
           onClick={() => setStage("schedule")}
-          className="mb-5 inline-flex items-center gap-1 text-sm font-bold text-text-secondary"
+          className="mb-5 inline-flex items-center gap-1 text-subheadline font-bold text-text-secondary"
         >
           <ChevronLeft size={17} />
           Alterar horário
@@ -264,10 +264,10 @@ export function BookingFlow({
             onExpired={expireHold}
           />
         )}
-        <p className="text-xs font-bold uppercase text-text-link">
+        <p className="text-caption font-bold uppercase text-text-link">
           Pagamento seguro
         </p>
-        <h2 className="mt-1 text-2xl font-bold">Como prefere pagar?</h2>
+        <h2 className="mt-1 text-title2 font-bold">Como prefere pagar?</h2>
         <div className="mt-5 grid grid-cols-2 gap-2">
           <Method
             active={method === "pix"}
@@ -290,7 +290,7 @@ export function BookingFlow({
           />
         )}
         {method === "card" && !mercadoPagoPublicKey && (
-          <div className="mt-4 rounded-md border border-[var(--border-control)] bg-surface-page p-4 text-sm text-text-secondary">
+          <div className="mt-4 rounded-md border border-[var(--border-control)] bg-surface-page p-4 text-subheadline text-text-secondary">
             Pagamento por cartão em modo simulador. Nenhum dado de cartão é
             coletado.
           </div>
@@ -311,7 +311,7 @@ export function BookingFlow({
             {error}
           </Alert>
         )}
-        <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-[var(--text-secondary)]">
+        <p className="mt-3 flex items-center justify-center gap-1.5 text-caption text-[var(--text-secondary)]">
           <ShieldCheck size={14} />
           Dados processados pelo Mercado Pago
         </p>
@@ -320,17 +320,17 @@ export function BookingFlow({
   return (
     <div className="rounded-lg border border-border-subtle bg-surface-raised p-5 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
       <Stepper steps={STEPS} current={0} className="mb-5" />
-      <p className="text-xs font-bold uppercase text-text-link">
+      <p className="text-caption font-bold uppercase text-text-link">
         Reserve agora
       </p>
-      <h2 className="mt-1 text-2xl font-bold">Escolha seu horário</h2>
+      <h2 className="mt-1 text-title2 font-bold">Escolha seu horário</h2>
       {error && (
         <Alert tone="danger" className="mt-4">
           {error}
         </Alert>
       )}
       <div className="mt-5">
-        <span className="mb-2 block text-xs font-bold text-text-secondary">
+        <span className="mb-2 block text-caption font-bold text-text-secondary">
           DATA
         </span>
         <AvailabilityCalendar
@@ -343,7 +343,7 @@ export function BookingFlow({
         />
       </div>
       <div className="mt-5">
-        <span className="mb-2 block text-xs font-bold text-text-secondary">
+        <span className="mb-2 block text-caption font-bold text-text-secondary">
           INÍCIO EM {formatIsoDay(selectedDate).toUpperCase()}
         </span>
         {day.error ? (
@@ -387,10 +387,10 @@ export function BookingFlow({
       </div>
       <div className="mt-5 flex items-center justify-between gap-3">
         <div>
-          <span className="block text-xs font-bold text-text-secondary">
+          <span className="block text-caption font-bold text-text-secondary">
             DURAÇÃO
           </span>
-          <span className="text-sm text-text-secondary">
+          <span className="text-subheadline text-text-secondary">
             {selectedBlock
               ? `Até ${formatDuration(durationCeiling)} a partir das ${selectedBlock.time}`
               : `Mínimo de ${formatDuration(minimumMinutes)}`}
@@ -410,7 +410,7 @@ export function BookingFlow({
           >
             <Minus size={17} />
           </Button>
-          <strong className="w-14 text-center text-sm">
+          <strong className="w-14 text-center text-subheadline">
             {formatDuration(activeDuration)}
           </strong>
           <Button
@@ -442,7 +442,7 @@ export function BookingFlow({
           totalCents={total}
         />
       ) : (
-        <p className="my-5 flex items-center gap-2 text-sm text-text-secondary">
+        <p className="my-5 flex items-center gap-2 text-subheadline text-text-secondary">
           <Clock3 size={16} aria-hidden="true" />
           Escolha um horário para ver o total.
         </p>
@@ -461,7 +461,7 @@ export function BookingFlow({
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="mt-3 flex items-center justify-between first:mt-0">
-      <span className="text-sm text-text-secondary">{label}</span>
+      <span className="text-subheadline text-text-secondary">{label}</span>
       <strong>{value}</strong>
     </div>
   );
@@ -483,7 +483,7 @@ function Method({
       className={`flex min-h-20 flex-col items-start justify-center rounded-md border p-4 text-left ${active ? "border-action-primary bg-surface-accent-subtle" : "border-border-subtle"}`}
     >
       {icon}
-      <strong className="mt-2 text-sm">{label}</strong>
+      <strong className="mt-2 text-subheadline">{label}</strong>
     </button>
   );
 }

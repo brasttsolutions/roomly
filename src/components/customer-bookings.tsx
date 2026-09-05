@@ -39,7 +39,7 @@ export function CustomerBookings({
   return (
     <div className="grid gap-8">
       <section>
-        <h2 className="mb-4 text-sm font-bold uppercase text-text-secondary">
+        <h2 className="mb-4 text-subheadline font-bold uppercase text-text-secondary">
           Próxima reserva
         </h2>
         {booking ? (
@@ -54,18 +54,18 @@ export function CustomerBookings({
                     status={cancelled ? "revoked" : booking.accessStatus}
                   />
                 </div>
-                <h3 className="mt-3 text-2xl font-bold">{booking.room}</h3>
-                <p className="mt-1 flex items-center gap-1.5 text-sm text-text-secondary">
+                <h3 className="mt-3 text-title2 font-bold">{booking.room}</h3>
+                <p className="mt-1 flex items-center gap-1.5 text-subheadline text-text-secondary">
                   <MapPin size={15} aria-hidden="true" />
                   {booking.location}
                 </p>
               </div>
               <div>
-                <p className="flex items-center gap-2 text-sm font-semibold">
+                <p className="flex items-center gap-2 text-subheadline font-semibold">
                   <CalendarDays size={16} aria-hidden="true" />
                   {booking.date}
                 </p>
-                <p className="mt-2 flex items-center gap-2 text-sm font-semibold">
+                <p className="mt-2 flex items-center gap-2 text-subheadline font-semibold">
                   <Clock3 size={16} aria-hidden="true" />
                   {booking.time} – {booking.endTime}
                 </p>
@@ -77,7 +77,7 @@ export function CustomerBookings({
               <Link
                 href={`/minhas-reservas/${booking.id}`}
                 data-testid="booking-detail-link"
-                className="inline-flex h-11 items-center justify-center rounded-md border border-border-control px-4 text-sm font-semibold hover:bg-surface-page"
+                className="inline-flex h-11 items-center justify-center rounded-md border border-border-control px-4 text-subheadline font-semibold hover:bg-surface-page"
               >
                 Ver acesso e detalhes
               </Link>
@@ -104,7 +104,7 @@ export function CustomerBookings({
             action={
               <Link
                 href="/"
-                className="inline-flex h-11 items-center justify-center rounded-md bg-action-primary px-5 text-sm font-bold text-text-on-accent"
+                className="inline-flex h-11 items-center justify-center rounded-md bg-action-primary px-5 text-subheadline font-bold text-text-on-accent"
               >
                 Ver salas
               </Link>
@@ -114,11 +114,11 @@ export function CustomerBookings({
       </section>
 
       <section>
-        <h2 className="mb-4 text-sm font-bold uppercase text-text-secondary">
+        <h2 className="mb-4 text-subheadline font-bold uppercase text-text-secondary">
           Histórico
         </h2>
         {history.length === 0 ? (
-          <p className="rounded-lg border border-border-subtle bg-surface-raised p-5 text-sm text-text-secondary">
+          <p className="rounded-lg border border-border-subtle bg-surface-raised p-5 text-subheadline text-text-secondary">
             Suas reservas anteriores aparecem aqui.
           </p>
         ) : (
@@ -130,8 +130,8 @@ export function CustomerBookings({
                 className="flex items-center justify-between gap-4 p-4 hover:bg-surface-page"
               >
                 <div>
-                  <strong className="text-sm">{item.room}</strong>
-                  <p className="mt-1 text-xs text-text-secondary">
+                  <strong className="text-subheadline">{item.room}</strong>
+                  <p className="mt-1 text-caption text-text-secondary">
                     {item.date} · {item.time} – {item.endTime}
                   </p>
                 </div>
