@@ -208,7 +208,17 @@ async function RecordTable({
   query: string;
 }) {
   const data = adminSections[section];
-  const allRows = await adminRows(section);
+  const editable = (["unidades", "salas", "fechaduras"] as string[]).includes(
+    section,
+  );
+  // As duas consultas são independentes: em série, a segunda só saía depois da
+  // primeira voltar do Supabase, dobrando a espera da aba à toa.
+  const [allRows, options] = await Promise.all([
+    adminRows(section),
+    editable
+      ? adminResourceOptions()
+      : Promise.resolve({ locations: [], rooms: [] }),
+  ]);
   const matched = query
     ? allRows.filter((row) =>
         row.cells.some((cell) =>
@@ -219,12 +229,6 @@ async function RecordTable({
       )
     : allRows;
   const rows = matched.map((row, index) => ({ ...row, key: String(index) }));
-  const editable = (["unidades", "salas", "fechaduras"] as string[]).includes(
-    section,
-  );
-  const options = editable
-    ? await adminResourceOptions()
-    : { locations: [], rooms: [] };
 
   const columns: Array<Column<(typeof rows)[number]>> = data.columns.map(
     (header, index) => ({

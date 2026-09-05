@@ -18,7 +18,7 @@ import {
 import { Brand } from "@/components/brand";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
-import type { AdminUser } from "./admin-shell";
+import { DrawerCloseButton, type AdminUser } from "./admin-shell";
 const nav = [
   ["/admin", "Dashboard", LayoutDashboard],
   ["/admin/reservas", "Reservas", CalendarDays],
@@ -46,15 +46,20 @@ export function AdminSidebar({
   return (
     <aside
       id={mobile ? "admin-mobile-navigation" : undefined}
+      // `popover` deixa o navegador cuidar de abrir, fechar no Escape, fechar
+      // no clique fora e empilhar acima de tudo. Fechado, ele é `display:none`
+      // — some do DOM acessível como sumia quando não era renderizado.
+      popover={mobile ? "auto" : undefined}
       className={cn(
         "w-60 shrink-0 flex-col bg-surface-inverse text-white",
         mobile
-          ? "fixed inset-y-0 left-0 z-50 flex w-[280px] shadow-2xl"
+          ? "fixed inset-y-0 left-0 m-0 h-full w-[280px] max-w-[85vw] border-0 p-0 shadow-2xl backdrop:bg-black/45 lg:hidden [&:popover-open]:flex"
           : "hidden lg:flex lg:min-h-screen",
       )}
     >
-      <div className="px-5 py-5">
+      <div className="relative px-5 py-5">
         <Brand inverse />
+        {mobile && <DrawerCloseButton />}
       </div>
       <nav className="flex-1 px-3 py-3" aria-label="Administração">
         {nav.map(([href, label, Icon]) => {

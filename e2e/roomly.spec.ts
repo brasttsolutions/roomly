@@ -132,6 +132,9 @@ test("admin exposes operational status", async ({ page }, testInfo) => {
   await page.getByLabel("Buscar em Fechaduras").fill("B-101");
   await page.getByRole("button", { name: "Buscar", exact: true }).click();
   await expect(page).toHaveURL(/q=B-101/);
+  // A ausência sozinha passaria enquanto o esqueleto está na tela, quando ainda
+  // não há linha nenhuma. Esperar a linha filtrada prova que o conteúdo chegou.
+  await expect(visible(page, "TTLock B-101")).toHaveCount(1);
   await expect(visible(page, "TTLock A-201")).toHaveCount(0);
   if (testInfo.project.name === "mobile") {
     await page.getByTitle("Abrir menu").click();
@@ -367,5 +370,26 @@ test.describe("tema escuro", () => {
         .toUpperCase(),
     );
     expect(accent).toBe("#FB5131");
+  });
+});
+
+test.describe("gaveta do painel sem JavaScript", () => {
+  // A gaveta abria por estado do React, então o primeiro toque — o que a pessoa
+  // dá assim que a tela aparece, antes de o JavaScript carregar — se perdia sem
+  // sinal nenhum. Desligar o JavaScript é a única forma de provar que ela
+  // deixou de depender dele.
+  test.use({ javaScriptEnabled: false });
+
+  test("mobile menu opens before the page is interactive", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "gaveta só existe no telefone");
+    await page.goto("/admin/fechaduras");
+    const nav = page.getByRole("navigation", { name: "Administração" });
+    await expect(nav).toBeHidden();
+    await page.getByTitle("Abrir menu").click();
+    await expect(nav).toBeVisible();
+    await page.getByLabel("Fechar menu").click();
+    await expect(nav).toBeHidden();
   });
 });

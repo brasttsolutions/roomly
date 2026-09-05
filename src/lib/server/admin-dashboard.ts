@@ -50,18 +50,20 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
   const weekStart = new Date(dayStart.getTime() - 6 * 86_400_000);
   const monthStart = new Date(`${day.slice(0, 7)}-01T00:00:00-03:00`);
 
-  const { data: locationRows } = await supabase
-    .from("locations")
-    .select("id,name,opening_time,closing_time")
-    .eq("status", "active")
-    .order("name");
+  // Unidades e salas não dependem uma da outra — o recorte por unidade é feito
+  // aqui, em memória. Em série custavam duas idas ao banco antes de a primeira
+  // consulta de reservas começar.
+  const [{ data: locationRows }, { data: roomRows }] = await Promise.all([
+    supabase
+      .from("locations")
+      .select("id,name,opening_time,closing_time")
+      .eq("status", "active")
+      .order("name"),
+    supabase.from("rooms").select("id,name,location_id").eq("status", "active"),
+  ]);
   const locations = locationRows ?? [];
   const selected = locations.find((location) => location.name === unit) ?? null;
 
-  const { data: roomRows } = await supabase
-    .from("rooms")
-    .select("id,name,location_id")
-    .eq("status", "active");
   const rooms = (roomRows ?? []).filter(
     (room) => !selected || room.location_id === selected.id,
   );
