@@ -20,6 +20,7 @@ export type TodayBooking = Readonly<{
   room: string;
   customer: string;
   duration: string;
+  /** Status cru do banco: quem traduz é o `BookingStatus`, num lugar só. */
   status: string;
 }>;
 
@@ -35,16 +36,6 @@ export type DashboardData = Readonly<{
   locksOnline: string;
   nextCleaning: string | null;
 }>;
-
-const STATUS_LABEL: Record<string, string> = {
-  awaiting_payment: "Aguardando",
-  confirmed: "Confirmada",
-  in_progress: "Em andamento",
-  completed: "Concluída",
-  cancelled: "Cancelada",
-  expired: "Expirada",
-  refunded: "Reembolsada",
-};
 
 /** Estados que ocupam a sala de fato. Cancelada não conta como ocupação. */
 const OCCUPYING = ["awaiting_payment", "confirmed", "in_progress", "completed"];
@@ -237,7 +228,7 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
       duration: `${((Date.parse(row.end_at) - Date.parse(row.start_at)) / 3_600_000)
         .toFixed(1)
         .replace(".", ",")} h`,
-      status: STATUS_LABEL[row.status] ?? row.status,
+      status: String(row.status),
     })),
     bookedHoursToday,
     locksOnline: `${locks.filter((lock) => lock.status === "online").length} de ${locks.length}`,
@@ -316,7 +307,7 @@ function simulatorDashboard(unit?: string): DashboardData {
       room: "Sala Executiva",
       customer: "Marina Alves",
       duration: "1,5 h",
-      status: "Confirmada",
+      status: "confirmed",
     },
     {
       id: "sim-2",
@@ -325,7 +316,7 @@ function simulatorDashboard(unit?: string): DashboardData {
       room: "Sala Foco",
       customer: "Rafael Lima",
       duration: "1,0 h",
-      status: "Em andamento",
+      status: "in_progress",
     },
     {
       id: "sim-3",
@@ -334,7 +325,7 @@ function simulatorDashboard(unit?: string): DashboardData {
       room: "Atelier Criativo",
       customer: "Bianca Prado",
       duration: "2,0 h",
-      status: "Aguardando",
+      status: "awaiting_payment",
     },
   ];
   const hours = 4.5;

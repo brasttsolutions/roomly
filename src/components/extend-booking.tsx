@@ -6,6 +6,7 @@ import type { ExtensionOffer } from "@/lib/server/booking-detail";
 import { formatDuration, formatMoney } from "@/lib/utils";
 import { Alert } from "./ui/alert";
 import { Button } from "./ui/button";
+import { Card } from "./ui/card";
 
 /**
  * A extensão é uma reserva nova no bloco seguinte, criada pelo mesmo endpoint,
@@ -94,10 +95,7 @@ export function ExtendBooking({
   }
 
   return (
-    <section
-      aria-label="Estender reserva"
-      className="rounded-lg border border-border-subtle bg-surface-raised p-5"
-    >
+    <Card as="section" aria-label="Estender reserva">
       <h2 className="flex items-center gap-2 text-subheadline font-bold">
         <CalendarPlus size={17} aria-hidden="true" />
         Precisa de mais tempo?
@@ -135,7 +133,7 @@ export function ExtendBooking({
           {error}
         </Alert>
       )}
-    </section>
+    </Card>
   );
 }
 

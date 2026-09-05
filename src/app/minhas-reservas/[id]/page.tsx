@@ -5,26 +5,12 @@ import { ChevronLeft, MapPin } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { ExtendBooking } from "@/components/extend-booking";
 import { AccessCredentialCard } from "@/components/ui/access-credential-card";
-import { Badge } from "@/components/ui/badge";
+import { BookingStatus } from "@/components/ui/booking-status";
 import { bookingDetail } from "@/lib/server/booking-detail";
 import { capitalizeFirst, formatMoney } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Detalhe da reserva" };
 export const dynamic = "force-dynamic";
-
-const STATUS: Record<
-  string,
-  { label: string; tone: "success" | "warning" | "info" | "neutral" | "danger" }
-> = {
-  awaiting_payment: { label: "Aguardando pagamento", tone: "warning" },
-  confirmed: { label: "Confirmada", tone: "success" },
-  in_progress: { label: "Em andamento", tone: "info" },
-  completed: { label: "Concluída", tone: "neutral" },
-  cancelled: { label: "Cancelada", tone: "neutral" },
-  expired: { label: "Expirada", tone: "danger" },
-  refunded: { label: "Reembolsada", tone: "info" },
-  manual_review: { label: "Em revisão", tone: "warning" },
-};
 
 export default async function Page({
   params,
@@ -34,10 +20,6 @@ export default async function Page({
   const booking = await bookingDetail((await params).id);
   if (!booking) notFound();
 
-  const status = STATUS[booking.status] ?? {
-    label: booking.status,
-    tone: "neutral" as const,
-  };
   const date = new Intl.DateTimeFormat("pt-BR", {
     timeZone: booking.timeZone,
     weekday: "long",
@@ -63,7 +45,7 @@ export default async function Page({
 
         <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_340px]">
           <div>
-            <Badge tone={status.tone}>{status.label}</Badge>
+            <BookingStatus value={booking.status} />
             <h1 className="mt-3 text-title1 font-bold">{booking.roomName}</h1>
             <p className="mt-2 flex items-center gap-1.5 text-subheadline text-text-secondary">
               <MapPin size={15} aria-hidden="true" />

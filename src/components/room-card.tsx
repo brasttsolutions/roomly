@@ -6,6 +6,7 @@ import type { RoomDayAvailability } from "./use-availability";
 import { formatIsoDay, formatMoney } from "@/lib/utils";
 import { Badge } from "./ui/badge";
 import { Skeleton } from "./ui/skeleton";
+import { Tooltip } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
 
 /**
@@ -97,12 +98,10 @@ export function RoomCard({
             <Badge>
               <UsersRound size={13} aria-hidden="true" /> até {room.capacity}
             </Badge>
-            {room.features.slice(0, featured ? 4 : 2).map((feature) => (
-              <Badge key={feature}>{feature}</Badge>
-            ))}
-            {room.features.length > (featured ? 4 : 2) && (
-              <Badge>+{room.features.length - (featured ? 4 : 2)}</Badge>
-            )}
+            <RoomAmenities
+              features={room.features}
+              visible={featured ? 4 : 2}
+            />
           </div>
 
           <div className="mt-4 min-h-11">
@@ -145,6 +144,41 @@ export function RoomCard({
         </div>
       </div>
     </article>
+  );
+}
+
+/**
+ * Ícone sempre com texto: um pictograma de TV não distingue "TV 50" de "TV 65"
+ * nem informa se há câmera — e câmera em sala de reunião é informação sensível
+ * de privacidade, que nunca pode depender de desenho.
+ *
+ * O "+2" deixou de ser um selo morto: ele diz quais são os outros.
+ */
+function RoomAmenities({
+  features,
+  visible,
+}: {
+  features: readonly string[];
+  visible: number;
+}) {
+  const rest = features.slice(visible);
+  return (
+    <>
+      {features.slice(0, visible).map((feature) => (
+        <Badge key={feature}>{feature}</Badge>
+      ))}
+      {rest.length > 0 && (
+        <Tooltip content={rest.join(" · ")}>
+          <Badge
+            tabIndex={0}
+            aria-label={`Mais ${rest.length}: ${rest.join(", ")}`}
+            className="cursor-help"
+          >
+            +{rest.length}
+          </Badge>
+        </Tooltip>
+      )}
+    </>
   );
 }
 

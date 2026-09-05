@@ -4,11 +4,19 @@ import { Bell, ChevronDown, Menu, Search, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { AdminSidebar } from "./admin-sidebar";
-export function AdminShell({ children }: { children: ReactNode }) {
+export type AdminUser = { name: string; role: string };
+
+export function AdminShell({
+  children,
+  user,
+}: {
+  children: ReactNode;
+  user: AdminUser;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div className="min-h-screen bg-surface-page lg:flex">
-      <AdminSidebar />
+      <AdminSidebar user={user} />
       {menuOpen && (
         <>
           <button
@@ -17,7 +25,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
             onClick={() => setMenuOpen(false)}
           />
           <div className="lg:hidden">
-            <AdminSidebar mobile onNavigate={() => setMenuOpen(false)} />
+            <AdminSidebar
+              mobile
+              user={user}
+              onNavigate={() => setMenuOpen(false)}
+            />
             <button
               aria-label="Fechar menu"
               className="fixed left-[228px] top-3 z-[60] grid size-10 place-items-center rounded-md text-white hover:bg-white/10"

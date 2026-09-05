@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CalendarDays, Clock3, MapPin } from "lucide-react";
 import { Alert } from "./ui/alert";
 import { Badge } from "./ui/badge";
+import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { EmptyState } from "./ui/empty-state";
 import { cancelBookingAction } from "@/app/minhas-reservas/actions";
@@ -43,7 +44,7 @@ export function CustomerBookings({
           Próxima reserva
         </h2>
         {booking ? (
-          <article className="rounded-lg border border-border-subtle bg-surface-raised p-5 sm:p-6">
+          <Card>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -96,7 +97,7 @@ export function CustomerBookings({
                 </Alert>
               )}
             </div>
-          </article>
+          </Card>
         ) : (
           <EmptyState
             title="Nenhuma reserva futura"
@@ -118,11 +119,11 @@ export function CustomerBookings({
           Histórico
         </h2>
         {history.length === 0 ? (
-          <p className="rounded-lg border border-border-subtle bg-surface-raised p-5 text-subheadline text-text-secondary">
+          <Card className="text-subheadline text-text-secondary">
             Suas reservas anteriores aparecem aqui.
-          </p>
+          </Card>
         ) : (
-          <div className="divide-y divide-border-subtle rounded-lg border border-border-subtle bg-surface-raised">
+          <Card padding="none" className="divide-y divide-border-subtle">
             {history.map((item) => (
               <Link
                 key={item.id}
@@ -138,7 +139,7 @@ export function CustomerBookings({
                 <Badge>{item.status}</Badge>
               </Link>
             ))}
-          </div>
+          </Card>
         )}
       </section>
     </div>

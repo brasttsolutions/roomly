@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { SearchField } from "@/components/ui/search-field";
+import { Stat, StatGrid } from "@/components/ui/stat";
+import { DataTable, type Column } from "@/components/ui/table";
+import type { RoomReport, Policy } from "@/lib/server/admin-views";
 import { adminSections, type AdminSection } from "@/lib/admin-sections";
 import { adminRows, adminResourceOptions } from "@/lib/server/admin-data";
 import {
@@ -149,54 +155,21 @@ async function ReportBody({ month }: { month: string }) {
         </button>
       </form>
 
-      <section className="mb-5 grid gap-px overflow-hidden rounded-lg border border-border-subtle bg-border-subtle sm:grid-cols-2 xl:grid-cols-4">
-        <Total label="Reservas" value={String(report.totals.bookings)} />
-        <Total label="Horas vendidas" value={hours(report.totals.hours)} />
-        <Total label="Receita" value={money(report.totals.revenueCents)} />
-        <Total label="Ocupação média" value={`${report.totals.occupancy}%`} />
-      </section>
+      <StatGrid className="mb-5">
+        <Stat label="Reservas" value={String(report.totals.bookings)} />
+        <Stat label="Horas vendidas" value={hours(report.totals.hours)} />
+        <Stat label="Receita" value={money(report.totals.revenueCents)} />
+        <Stat label="Ocupação média" value={`${report.totals.occupancy}%`} />
+      </StatGrid>
 
-      <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-raised">
-        <table className="w-full min-w-[760px] text-left text-subheadline">
-          <thead className="bg-surface-page text-caption uppercase text-text-secondary">
-            <tr>
-              <th className="px-5 py-3 font-bold">Sala</th>
-              <th className="px-5 py-3 font-bold">Unidade</th>
-              <th className="px-5 py-3 font-bold">Reservas</th>
-              <th className="px-5 py-3 font-bold">Horas</th>
-              <th className="px-5 py-3 font-bold">Ocupação</th>
-              <th className="px-5 py-3 font-bold">Receita</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-subtle">
-            {report.rooms.map((room) => (
-              <tr key={`${room.unit}-${room.room}`} className="hover:bg-surface-page">
-                <td className="px-5 py-4 font-bold">{room.room}</td>
-                <td className="px-5 py-4 text-text-secondary">{room.unit}</td>
-                <td className="px-5 py-4 tabular-nums">{room.bookings}</td>
-                <td className="px-5 py-4 tabular-nums">{hours(room.hours)}</td>
-                <td className="px-5 py-4">
-                  <span className="flex items-center gap-2">
-                    <span
-                      aria-hidden="true"
-                      className="h-1.5 w-20 overflow-hidden rounded-full bg-surface-sunken"
-                    >
-                      <span
-                        className="block h-full bg-action-primary"
-                        style={{ width: `${Math.min(100, room.occupancy)}%` }}
-                      />
-                    </span>
-                    <span className="tabular-nums">{room.occupancy}%</span>
-                  </span>
-                </td>
-                <td className="px-5 py-4 tabular-nums">
-                  {money(room.revenueCents)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Card padding="none" className="overflow-hidden">
+        <DataTable
+          caption={`Ocupação e receita por sala em ${month}`}
+          columns={REPORT_COLUMNS}
+          rows={report.rooms}
+          rowKey={(room) => `${room.unit}-${room.room}`}
+        />
+      </Card>
       {report.rooms.length === 0 && (
         <p className="mt-4 text-subheadline text-text-secondary">
           Nenhuma sala ativa no período.
@@ -215,41 +188,14 @@ async function PolicyBody() {
         aplica. Cada uma é editada no seu próprio lugar — guardar uma cópia aqui
         criaria duas verdades sobre a mesma regra.
       </p>
-      <div className="overflow-x-auto rounded-lg border border-border-subtle bg-surface-raised">
-        <table className="w-full min-w-[720px] text-left text-subheadline">
-          <thead className="bg-surface-page text-caption uppercase text-text-secondary">
-            <tr>
-              <th className="px-5 py-3 font-bold">Política</th>
-              <th className="px-5 py-3 font-bold">Valor em vigor</th>
-              <th className="px-5 py-3 font-bold">Escopo</th>
-              <th className="px-5 py-3 text-right font-bold">Onde muda</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-subtle">
-            {policies.map((policy) => (
-              <tr
-                key={`${policy.name}-${policy.scope}`}
-                className="hover:bg-surface-page"
-              >
-                <td className="px-5 py-4 font-bold">{policy.name}</td>
-                <td className="px-5 py-4">{policy.value}</td>
-                <td className="px-5 py-4 text-text-secondary">
-                  {policy.scope}
-                </td>
-                <td className="px-5 py-4 text-right">
-                  <Link
-                    href={policy.href}
-                    className="inline-flex items-center gap-1 text-subheadline font-bold text-text-link"
-                  >
-                    Abrir
-                    <ChevronRight size={15} aria-hidden="true" />
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Card padding="none" className="overflow-hidden">
+        <DataTable
+          caption="Políticas em vigor e onde cada uma é editada"
+          columns={POLICY_COLUMNS}
+          rows={policies}
+          rowKey={(policy) => `${policy.name}-${policy.scope}`}
+        />
+      </Card>
     </>
   );
 }
@@ -263,7 +209,7 @@ async function RecordTable({
 }) {
   const data = adminSections[section];
   const allRows = await adminRows(section);
-  const rows = query
+  const matched = query
     ? allRows.filter((row) =>
         row.cells.some((cell) =>
           cell
@@ -272,6 +218,7 @@ async function RecordTable({
         ),
       )
     : allRows;
+  const rows = matched.map((row, index) => ({ ...row, key: String(index) }));
   const editable = (["unidades", "salas", "fechaduras"] as string[]).includes(
     section,
   );
@@ -279,98 +226,129 @@ async function RecordTable({
     ? await adminResourceOptions()
     : { locations: [], rooms: [] };
 
+  const columns: Array<Column<(typeof rows)[number]>> = data.columns.map(
+    (header, index) => ({
+      key: String(index),
+      header,
+      primary: index === 0,
+      cell: (row) =>
+        index === row.cells.length - 1 ? (
+          <CellStatus value={row.cells[index]} />
+        ) : (
+          row.cells[index]
+        ),
+    }),
+  );
+  const resultLabel = `${rows.length} ${rows.length === 1 ? "registro encontrado" : "registros encontrados"}`;
+
   return (
-    <section className="overflow-hidden rounded-lg border border-border-subtle bg-surface-raised">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle p-4">
-        <form className="flex min-w-[280px] items-center rounded-md border border-border-subtle">
-          <input
-            aria-label={`Buscar em ${data.title}`}
-            name="q"
+    <Card padding="none" className="overflow-hidden">
+      <div className="border-b border-border-subtle p-4">
+        <form>
+          <SearchField
+            label={`Buscar em ${data.title}`}
             defaultValue={query}
-            placeholder="Buscar"
-            className="h-10 min-w-0 flex-1 px-3 text-subheadline"
+            resultLabel={resultLabel}
+            className="max-w-md"
           />
-          <button
-            type="submit"
-            title="Buscar"
-            className="grid size-10 place-items-center border-l border-border-subtle"
-          >
-            <Search size={17} />
-          </button>
         </form>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] text-left text-subheadline">
-          <thead className="bg-surface-page text-caption uppercase text-text-secondary">
-            <tr>
-              {data.columns.map((column) => (
-                <th key={column} scope="col" className="px-5 py-3 font-bold">
-                  {column}
-                </th>
-              ))}
-              {editable && (
-                <th scope="col" className="px-5 py-3 text-right font-bold">
-                  Ações
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-subtle">
-            {rows.map((row, index) => (
-              <tr key={index} className="hover:bg-surface-page">
-                {row.cells.map((cell, cellIndex) => (
-                  <td
-                    key={cellIndex}
-                    className={
-                      cellIndex === 0
-                        ? "px-5 py-4 font-bold"
-                        : "px-5 py-4 text-text-secondary"
-                    }
-                  >
-                    {cellIndex === row.cells.length - 1 ? (
-                      <Status value={cell} />
-                    ) : (
-                      cell
-                    )}
-                  </td>
-                ))}
-                {editable && (
-                  <td className="px-5 py-4 text-right">
-                    {row.record && (
-                      <AdminEditDialog
-                        section={section as AdminResource}
-                        record={row.record}
-                        label={data.action}
-                        locations={options.locations}
-                        rooms={options.rooms}
-                      />
-                    )}
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="border-t border-border-subtle px-5 py-4 text-caption text-text-secondary">
-        {rows.length} {rows.length === 1 ? "registro" : "registros"}
-      </div>
-    </section>
+      <DataTable
+        caption={`${data.title}: ${data.subtitle}`}
+        columns={columns}
+        rows={rows}
+        rowKey={(row) => row.key}
+        action={
+          editable
+            ? (row) =>
+                row.record ? (
+                  <AdminEditDialog
+                    section={section as AdminResource}
+                    record={row.record}
+                    label={data.action}
+                    locations={options.locations}
+                    rooms={options.rooms}
+                  />
+                ) : null
+            : undefined
+        }
+        empty={
+          <p className="p-5 text-subheadline text-text-secondary">
+            Nada encontrado{query ? ` para "${query}"` : ""}.
+          </p>
+        }
+      />
+      <p className="border-t border-border-subtle px-5 py-4 text-caption text-text-secondary">
+        {resultLabel}
+      </p>
+    </Card>
   );
 }
 
-function Total({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-surface-raised p-5">
-      <p className="text-caption font-bold uppercase text-text-secondary">{label}</p>
-      <strong className="mt-2 block text-title2 tabular-nums">{value}</strong>
-    </div>
-  );
-}
+const REPORT_COLUMNS: ReadonlyArray<Column<RoomReport>> = [
+  { key: "room", header: "Sala", primary: true, cell: (row) => row.room },
+  { key: "unit", header: "Unidade", cell: (row) => row.unit },
+  {
+    key: "bookings",
+    header: "Reservas",
+    numeric: true,
+    cell: (row) => row.bookings,
+  },
+  {
+    key: "hours",
+    header: "Horas",
+    numeric: true,
+    cell: (row) => hours(row.hours),
+  },
+  {
+    key: "occupancy",
+    header: "Ocupação",
+    cell: (row) => (
+      <span className="flex items-center gap-2">
+        <Progress
+          value={row.occupancy}
+          label={`Ocupação de ${row.room}`}
+          className="hidden sm:block"
+        />
+        <span className="tabular-nums">{row.occupancy}%</span>
+      </span>
+    ),
+  },
+  {
+    key: "revenue",
+    header: "Receita",
+    numeric: true,
+    cell: (row) => money(row.revenueCents),
+  },
+];
 
-function Status({ value }: { value: string }) {
-  // Erro e alerta são separados de propósito: "cancelada" é um desfecho, mas
-  // "revisar" e "atrasada" pedem ação de alguém agora.
+const POLICY_COLUMNS: ReadonlyArray<Column<Policy>> = [
+  { key: "name", header: "Política", primary: true, cell: (row) => row.name },
+  { key: "value", header: "Valor em vigor", cell: (row) => row.value },
+  { key: "scope", header: "Escopo", cell: (row) => row.scope },
+  {
+    key: "where",
+    header: "Onde muda",
+    numeric: true,
+    cell: (row) => (
+      <Link
+        href={row.href}
+        className="inline-flex items-center gap-1 text-subheadline font-bold text-text-link"
+      >
+        Abrir
+        <ChevronRight size={15} aria-hidden="true" />
+      </Link>
+    ),
+  },
+];
+
+/**
+ * Heurística sobre texto já formatado. As linhas genéricas do `adminRows` são
+ * `string[]` — fechadura, pagamento e log não compartilham vocabulário de
+ * status. Enquanto essas linhas não forem tipadas, o tom só pode ser adivinhado
+ * a partir da palavra; reservas não passam por aqui, elas usam `BookingStatus`.
+ */
+function CellStatus({ value }: { value: string }) {
   const sucesso = /Ativ|Aprov|Online|Sucesso|Pronto|Confirm|Conclu/.test(value);
   const alerta = /Revisar|Pendente|Atenção|Atrasad|Aguardand|Manuten/.test(
     value,

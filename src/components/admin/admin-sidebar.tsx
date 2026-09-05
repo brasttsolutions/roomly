@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/avatar";
+import type { AdminUser } from "./admin-shell";
 const nav = [
   ["/admin", "Dashboard", LayoutDashboard],
   ["/admin/reservas", "Reservas", CalendarDays],
@@ -33,9 +35,11 @@ const nav = [
 ] as const;
 export function AdminSidebar({
   mobile = false,
+  user,
   onNavigate,
 }: {
   mobile?: boolean;
+  user: AdminUser;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
@@ -78,12 +82,10 @@ export function AdminSidebar({
       </nav>
       <div className="border-t border-white/10 p-4">
         <div className="flex items-center gap-3">
-          <div className="grid size-9 place-items-center rounded-md bg-surface-accent-subtle text-subheadline font-bold text-text-link">
-            TS
-          </div>
+          <Avatar name={user.name} size="lg" labelled />
           <div className="min-w-0">
-            <p className="truncate text-subheadline font-bold">Thiago Silva</p>
-            <p className="truncate text-caption text-white/45">Administrador</p>
+            <p className="truncate text-subheadline font-bold">{user.name}</p>
+            <p className="truncate text-caption text-white/45">{user.role}</p>
           </div>
         </div>
       </div>

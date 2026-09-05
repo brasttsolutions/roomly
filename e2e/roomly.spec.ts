@@ -42,6 +42,11 @@ test("catalog filters rooms and keeps the booking surface reachable", async ({
  * único do processo, e desktop e mobile rodam em paralelo contra ele. Dias
  * diferentes garantem que um teste nunca veja a reserva do outro.
  */
+/** O texto na representação que está de fato na tela: tabela ou lista de cards. */
+function visible(page: Page, text: string) {
+  return page.getByText(text, { exact: true }).filter({ visible: true });
+}
+
 async function pickFreeDay(page: Page, edge: "first" | "last" = "first") {
   await page.getByRole("button", { name: "Próximo mês", exact: true }).click();
   const days = page.locator('[data-testid^="day-"][data-state="free"]');
@@ -121,11 +126,13 @@ test("admin exposes operational status", async ({ page }, testInfo) => {
   await expect(page.getByText("Fechaduras online")).toBeVisible();
   await page.goto("/admin/fechaduras");
   await expect(page.getByRole("heading", { name: "Fechaduras" })).toBeVisible();
-  await expect(page.getByText("TTLock B-101")).toBeVisible();
+  // A `DataTable` mantém tabela e lista de cards no DOM, alternadas por CSS —
+  // o filtro de visibilidade verifica a representação daquele viewport.
+  await expect(visible(page, "TTLock B-101")).toHaveCount(1);
   await page.getByLabel("Buscar em Fechaduras").fill("B-101");
-  await page.getByTitle("Buscar").click();
+  await page.getByRole("button", { name: "Buscar", exact: true }).click();
   await expect(page).toHaveURL(/q=B-101/);
-  await expect(page.getByText("TTLock A-201")).not.toBeVisible();
+  await expect(visible(page, "TTLock A-201")).toHaveCount(0);
   if (testInfo.project.name === "mobile") {
     await page.getByTitle("Abrir menu").click();
     await expect(
@@ -164,8 +171,10 @@ test("room form swaps automatic images for an upload field", async ({
 
 test("admin edits a room from its own row", async ({ page }) => {
   await page.goto("/admin/salas");
-  const linha = page.getByRole("row").filter({ hasText: "Sala Executiva" });
-  await linha.getByRole("button", { name: /Editar/ }).click();
+  await page
+    .getByRole("button", { name: /Editar Sala Executiva/ })
+    .first()
+    .click();
 
   // Só o diálogo aberto monta o formulário: nada de um por linha no DOM.
   const dialogo = page.locator("dialog[open]");
@@ -297,8 +306,8 @@ test("panel puts pendencies before metrics and fills the operational screens", a
   await expect(page.getByText("Ocupação média")).toBeVisible();
 
   await page.goto("/admin/configuracoes");
-  await expect(page.getByText("Expediente")).toBeVisible();
-  await expect(page.getByText("08:00 – 20:00")).toBeVisible();
+  await expect(visible(page, "Expediente")).toHaveCount(1);
+  await expect(visible(page, "08:00 – 20:00")).toHaveCount(1);
 
   await page.goto("/admin/limpeza");
   await expect(page.getByText("Atrasada 45 min")).toBeVisible();
@@ -325,9 +334,15 @@ test.describe("tema escuro", () => {
     const ink = await heading.evaluate((node) => getComputedStyle(node).color);
     expect(ink).toBe("rgb(244, 247, 255)");
 
-    // O primário continua coral nos dois temas: é a marca, não o tema.
-    const cta = page.getByTestId("book-sala-executiva");
-    const label = await cta.evaluate((node) => getComputedStyle(node).color);
-    expect(["rgb(14, 22, 48)", "rgb(23, 34, 67)"]).toContain(label);
+    // O primário continua coral nos dois temas: é a marca, não o tema. Lido do
+    // token, e não de um botão — qual botão é primário no catálogo depende da
+    // disponibilidade do dia, e a asserção não pode depender da hora.
+    const accent = await page.evaluate(() =>
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--action-primary")
+        .trim()
+        .toUpperCase(),
+    );
+    expect(accent).toBe("#FB5131");
   });
 });
