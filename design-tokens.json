@@ -133,6 +133,41 @@
       "info-surface": "#EEF8FF",
       "info-text": "#1953B0",
       "info-border": "#2563C9"
+    },
+    "semanticDark": {
+      "surface-page": "#0E1630",
+      "surface-raised": "#172243",
+      "surface-sunken": "#2F3E68",
+      "surface-inverse": "#2F3E68",
+      "surface-accent-subtle": "#2F3E68",
+      "text-primary": "#F4F7FF",
+      "text-secondary": "#BDC4D9",
+      "text-inverse": "#FFFFFF",
+      "text-on-accent": "#0E1630",
+      "text-link": "#FFA189",
+      "border-subtle": "#2F3E68",
+      "border-default": "#5A6480",
+      "border-control": "#9FA9C3",
+      "border-strong": "#BDC4D9",
+      "action-primary": "#FB5131",
+      "action-primary-hover": "#FF765A",
+      "action-primary-active": "#FFA189",
+      "action-secondary-border": "#9FA9C3",
+      "focus-ring": "#FFFFFF",
+      "focus-ring-inverse": "#0E1630",
+      "success-surface": "#00220C",
+      "success-text": "#8FD7B4",
+      "success-border": "#1FA675",
+      "warning-surface": "#360100",
+      "warning-text": "#FBB189",
+      "warning-border": "#D66C27",
+      "danger-surface": "#420001",
+      "danger-text": "#FF9DA2",
+      "danger-border": "#F4405A",
+      "danger-action": "#F4405A",
+      "info-surface": "#001246",
+      "info-text": "#9AC6FF",
+      "info-border": "#4B8AF4"
     }
   },
   "spacing": {
@@ -474,6 +509,139 @@
         "background": "#E6EDFD",
         "minimum": 4.5,
         "ratio": 5.01
+      },
+      {
+        "name": "escuro: texto primário sobre página",
+        "foreground": "#F4F7FF",
+        "background": "#0E1630",
+        "minimum": 4.5,
+        "ratio": 16.66
+      },
+      {
+        "name": "escuro: texto primário sobre card",
+        "foreground": "#F4F7FF",
+        "background": "#172243",
+        "minimum": 4.5,
+        "ratio": 14.55
+      },
+      {
+        "name": "escuro: texto secundário sobre card",
+        "foreground": "#BDC4D9",
+        "background": "#172243",
+        "minimum": 4.5,
+        "ratio": 8.96
+      },
+      {
+        "name": "escuro: texto secundário sobre página",
+        "foreground": "#BDC4D9",
+        "background": "#0E1630",
+        "minimum": 4.5,
+        "ratio": 10.26
+      },
+      {
+        "name": "escuro: link sobre card",
+        "foreground": "#FFA189",
+        "background": "#172243",
+        "minimum": 4.5,
+        "ratio": 7.96
+      },
+      {
+        "name": "escuro: rótulo sobre ação primária",
+        "foreground": "#0E1630",
+        "background": "#FB5131",
+        "minimum": 4.5,
+        "ratio": 5.38
+      },
+      {
+        "name": "escuro: rótulo sobre ação primária (hover)",
+        "foreground": "#0E1630",
+        "background": "#FF765A",
+        "minimum": 4.5,
+        "ratio": 6.79
+      },
+      {
+        "name": "escuro: rótulo sobre ação primária (ativo)",
+        "foreground": "#0E1630",
+        "background": "#FFA189",
+        "minimum": 4.5,
+        "ratio": 9.11
+      },
+      {
+        "name": "escuro: borda de controle sobre card",
+        "foreground": "#9FA9C3",
+        "background": "#172243",
+        "minimum": 3,
+        "ratio": 6.64
+      },
+      {
+        "name": "escuro: borda de controle sobre página",
+        "foreground": "#9FA9C3",
+        "background": "#0E1630",
+        "minimum": 3,
+        "ratio": 7.6
+      },
+      {
+        "name": "escuro: anel de foco sobre página",
+        "foreground": "#FFFFFF",
+        "background": "#0E1630",
+        "minimum": 3,
+        "ratio": 17.86
+      },
+      {
+        "name": "escuro: anel de foco sobre ação primária",
+        "foreground": "#FFFFFF",
+        "background": "#FB5131",
+        "minimum": 3,
+        "ratio": 3.32
+      },
+      {
+        "name": "escuro: texto inverso sobre superfície elevada",
+        "foreground": "#FFFFFF",
+        "background": "#2F3E68",
+        "minimum": 4.5,
+        "ratio": 10.45
+      },
+      {
+        "name": "escuro: texto de sucesso sobre seu fundo",
+        "foreground": "#8FD7B4",
+        "background": "#00220C",
+        "minimum": 4.5,
+        "ratio": 10.17
+      },
+      {
+        "name": "escuro: texto de alerta sobre seu fundo",
+        "foreground": "#FBB189",
+        "background": "#360100",
+        "minimum": 4.5,
+        "ratio": 10.12
+      },
+      {
+        "name": "escuro: texto de erro sobre seu fundo",
+        "foreground": "#FF9DA2",
+        "background": "#420001",
+        "minimum": 4.5,
+        "ratio": 8.6
+      },
+      {
+        "name": "escuro: texto informativo sobre seu fundo",
+        "foreground": "#9AC6FF",
+        "background": "#001246",
+        "minimum": 4.5,
+        "ratio": 10.12
+      },
+      {
+        "name": "escuro: texto sobre acento suave",
+        "foreground": "#F4F7FF",
+        "background": "#2F3E68",
+        "minimum": 4.5,
+        "ratio": 9.75
+      },
+      {
+        "name": "escuro: bloco reservado sobre seu fundo",
+        "foreground": "#BDC4D9",
+        "background": "#2F3E68",
+        "minimum": 4.5,
+        "ratio": 6
       }
     ]
   }

@@ -50,7 +50,7 @@ export function UserMenu({
         aria-expanded={open}
         aria-controls={menuId}
         data-testid="user-menu-trigger"
-        className="inline-flex h-10 max-w-[220px] items-center gap-2 rounded-md border border-[var(--border-control)] bg-white px-3 text-sm font-semibold hover:bg-surface-page"
+        className="inline-flex h-10 max-w-[220px] items-center gap-2 rounded-md border border-[var(--border-control)] bg-surface-raised px-3 text-sm font-semibold hover:bg-surface-page"
       >
         <CircleUserRound size={18} className="shrink-0" />
         <span className="hidden truncate sm:inline">{name}</span>
@@ -61,7 +61,7 @@ export function UserMenu({
           id={menuId}
           role="menu"
           aria-label="Conta"
-          className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-lg border border-border-subtle bg-white shadow-[0_18px_50px_rgba(34,56,46,.14)]"
+          className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-lg border border-border-subtle bg-surface-raised shadow-[0_18px_50px_rgba(34,56,46,.14)]"
         >
           <div className="border-b border-border-subtle px-4 py-3">
             <p className="truncate text-sm font-bold">{name}</p>

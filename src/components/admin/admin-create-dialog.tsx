@@ -387,7 +387,7 @@ function Select({
         required
         name={name}
         defaultValue={defaultValue ?? ""}
-        className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] bg-white px-3 font-normal"
+        className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] bg-surface-raised px-3 font-normal"
       >
         <option value="">Selecione</option>
         {options.map((option) => (

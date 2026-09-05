@@ -29,7 +29,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </>
       )}
       <div className="min-w-0 flex-1">
-        <header className="flex h-16 items-center justify-between border-b border-border-subtle bg-white px-4 sm:px-6">
+        <header className="flex h-16 items-center justify-between border-b border-border-subtle bg-surface-raised px-4 sm:px-6">
           <button
             className="grid size-10 place-items-center rounded-md border border-[var(--border-control)] lg:hidden"
             title="Abrir menu"

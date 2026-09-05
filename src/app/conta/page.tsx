@@ -28,12 +28,12 @@ export default async function Page() {
           </p>
         </div>
 
-        <section className="rounded-lg border border-border-subtle bg-white p-6 sm:p-7">
+        <section className="rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-7">
           <h2 className="mb-5 text-lg font-bold">Dados pessoais</h2>
           <AccountForm name={identity.name} phone={account.phone} />
         </section>
 
-        <section className="mt-6 rounded-lg border border-border-subtle bg-white p-6 sm:p-7">
+        <section className="mt-6 rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-7">
           <h2 className="flex items-center gap-2 text-lg font-bold">
             <ShieldCheck size={19} className="text-text-link" />
             Segurança
@@ -46,7 +46,7 @@ export default async function Page() {
           <PasswordForm />
         </section>
 
-        <section className="mt-6 rounded-lg border border-border-subtle bg-white p-6 sm:p-7">
+        <section className="mt-6 rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-7">
           <h2 className="text-lg font-bold">Sessões</h2>
           <p className="mb-5 mt-1 text-sm text-text-secondary">
             Encerra o acesso em todos os aparelhos, inclusive neste. Use se
@@ -60,7 +60,7 @@ export default async function Page() {
           </form>
         </section>
 
-        <section className="mt-6 rounded-lg border border-border-subtle bg-white p-6 sm:p-7">
+        <section className="mt-6 rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-7">
           <h2 className="mb-1 text-lg font-bold">Dados da conta</h2>
           <p className="mb-5 text-sm text-text-secondary">
             Só um gestor da empresa altera estes campos.

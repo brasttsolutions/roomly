@@ -9,7 +9,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import {
-  BRAND, palette, semantic, mandatoryPairs, contrast,
+  BRAND, palette, semantic, semanticDark, mandatoryPairs, contrast,
   spacing, radius, shadow, typography, breakpoints, grid, motion, target, zIndex,
 } from "./design-tokens.mjs";
 
@@ -36,7 +36,7 @@ if (falhas.length > 0) {
 const tokens = {
   $schema: "https://design-tokens.github.io/community-group/format/",
   brand: BRAND,
-  color: { palette, semantic },
+  color: { palette, semantic, semanticDark },
   spacing, radius, shadow, typography, breakpoints, grid, motion, target, zIndex,
   accessibility: {
     standard: "WCAG 2.2 AA",
@@ -97,6 +97,25 @@ for (const [nome, v] of Object.entries(typography.scale)) {
   linhas.push(`  --text-${nome}-tracking: ${v.tracking};`);
   linhas.push(`  --text-${nome}-weight: ${v.weight};`);
 }
+linhas.push("}");
+linhas.push("");
+
+/*
+ * Três estados, não dois: a preferência explícita carimba `data-theme`, e o
+ * padrão do sistema não carimba nada. Sem o `:not([data-theme="light"])` uma
+ * escolha clara perderia para um sistema escuro.
+ */
+const escuro = Object.entries(semanticDark).map(
+  ([nome, valor]) => `    --${nome}: ${valor};`,
+);
+linhas.push("@media (prefers-color-scheme: dark) {");
+linhas.push('  :root:not([data-theme="light"]) {');
+linhas.push(...escuro);
+linhas.push("  }");
+linhas.push("}");
+linhas.push("");
+linhas.push(':root[data-theme="dark"] {');
+linhas.push(...escuro.map((linha) => linha.slice(2)));
 linhas.push("}");
 linhas.push("");
 linhas.push("/* Tipos de display encolhem no mobile; corpo e menores não. */");

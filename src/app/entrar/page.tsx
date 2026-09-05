@@ -12,7 +12,7 @@ export default async function Page({
 }) {
   const error = (await searchParams).erro;
   return (
-    <main id="conteudo" className="grid min-h-screen bg-white lg:grid-cols-[1fr_.9fr]">
+    <main id="conteudo" className="grid min-h-screen bg-surface-raised lg:grid-cols-[1fr_.9fr]">
       <section className="flex min-h-[640px] flex-col justify-between p-6 sm:p-10 lg:p-14">
         <Brand />
         <div className="mx-auto w-full max-w-md">

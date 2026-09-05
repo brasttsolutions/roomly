@@ -10,6 +10,8 @@ export function Brand({ inverse = false }: { inverse?: boolean }) {
       <span
         className={
           inverse
+            // Branco literal: a marca invertida vive sobre a barra navy, que
+            // continua escura nos dois temas.
             ? "grid size-9 place-items-center rounded-md bg-white text-text-link"
             : "grid size-9 place-items-center rounded-md bg-action-primary text-text-on-accent"
         }

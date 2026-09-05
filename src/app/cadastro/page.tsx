@@ -12,7 +12,7 @@ export default async function Page({
   const { convite = "", erro } = await searchParams;
   return (
     <main id="conteudo" className="grid min-h-screen place-items-center bg-surface-page p-5">
-      <section className="w-full max-w-md rounded-lg border border-border-subtle bg-white p-6 sm:p-8">
+      <section className="w-full max-w-md rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-8">
         <Brand />
         <h1 className="mt-8 text-2xl font-bold">Criar conta</h1>
         <p className="mt-2 text-sm text-text-secondary">

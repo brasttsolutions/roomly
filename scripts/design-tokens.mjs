@@ -160,6 +160,85 @@ export const semantic = {
 };
 
 /**
+ * Tema escuro. Só a camada semântica muda: componente nenhum referencia
+ * `--color-navy-50`, então a troca acontece aqui e em lugar nenhum mais.
+ *
+ * `surface-inverse` não vira claro: ele é a superfície da credencial de acesso
+ * e do chrome do painel, que precisam continuar destacando-se da página. No
+ * escuro isso é um degrau acima, não a inversão literal do nome.
+ */
+export const semanticDark = {
+  "surface-page": p.navy[950],
+  "surface-raised": p.navy[900],
+  "surface-sunken": p.navy[800],
+  "surface-inverse": p.navy[800],
+  "surface-accent-subtle": p.navy[800],
+
+  "text-primary": p.navy[50],
+  "text-secondary": p.slate[300],
+  "text-inverse": BRAND.white,
+  "text-on-accent": p.navy[950],
+  "text-link": p.coral[300],
+
+  "border-subtle": p.navy[800],
+  "border-default": p.slate[600],
+  "border-control": p.slate[400],
+  "border-strong": p.slate[300],
+
+  "action-primary": p.coral[500],
+  "action-primary-hover": p.coral[400],
+  "action-primary-active": p.coral[300],
+  "action-secondary-border": p.slate[400],
+
+  // Invertido em relação ao claro: no escuro quem carrega o anel é o branco, e
+  // o halo navy é que o separa de uma superfície clara vizinha.
+  "focus-ring": BRAND.white,
+  "focus-ring-inverse": p.navy[950],
+
+  "success-surface": p.success[950],
+  "success-text": p.success[300],
+  "success-border": p.success[500],
+  "warning-surface": p.warning[950],
+  "warning-text": p.warning[300],
+  "warning-border": p.warning[500],
+  "danger-surface": p.danger[950],
+  "danger-text": p.danger[300],
+  "danger-border": p.danger[500],
+  "danger-action": p.danger[500],
+  "info-surface": p.info[950],
+  "info-text": p.info[300],
+  "info-border": p.info[500],
+};
+
+/** Os mesmos contratos, medidos no conjunto escuro. */
+const darkPairs = [
+  { name: "escuro: texto primário sobre página", fg: "text-primary", bg: "surface-page", min: 4.5 },
+  { name: "escuro: texto primário sobre card", fg: "text-primary", bg: "surface-raised", min: 4.5 },
+  { name: "escuro: texto secundário sobre card", fg: "text-secondary", bg: "surface-raised", min: 4.5 },
+  { name: "escuro: texto secundário sobre página", fg: "text-secondary", bg: "surface-page", min: 4.5 },
+  { name: "escuro: link sobre card", fg: "text-link", bg: "surface-raised", min: 4.5 },
+  { name: "escuro: rótulo sobre ação primária", fg: "text-on-accent", bg: "action-primary", min: 4.5 },
+  { name: "escuro: rótulo sobre ação primária (hover)", fg: "text-on-accent", bg: "action-primary-hover", min: 4.5 },
+  { name: "escuro: rótulo sobre ação primária (ativo)", fg: "text-on-accent", bg: "action-primary-active", min: 4.5 },
+  { name: "escuro: borda de controle sobre card", fg: "border-control", bg: "surface-raised", min: 3 },
+  { name: "escuro: borda de controle sobre página", fg: "border-control", bg: "surface-page", min: 3 },
+  { name: "escuro: anel de foco sobre página", fg: "focus-ring", bg: "surface-page", min: 3 },
+  { name: "escuro: anel de foco sobre ação primária", fg: "focus-ring", bg: "action-primary", min: 3 },
+  { name: "escuro: texto inverso sobre superfície elevada", fg: "text-inverse", bg: "surface-inverse", min: 4.5 },
+  { name: "escuro: texto de sucesso sobre seu fundo", fg: "success-text", bg: "success-surface", min: 4.5 },
+  { name: "escuro: texto de alerta sobre seu fundo", fg: "warning-text", bg: "warning-surface", min: 4.5 },
+  { name: "escuro: texto de erro sobre seu fundo", fg: "danger-text", bg: "danger-surface", min: 4.5 },
+  { name: "escuro: texto informativo sobre seu fundo", fg: "info-text", bg: "info-surface", min: 4.5 },
+  { name: "escuro: texto sobre acento suave", fg: "text-primary", bg: "surface-accent-subtle", min: 4.5 },
+  { name: "escuro: bloco reservado sobre seu fundo", fg: "text-secondary", bg: "surface-sunken", min: 4.5 },
+].map((par) => ({
+  name: par.name,
+  fg: semanticDark[par.fg],
+  bg: semanticDark[par.bg],
+  min: par.min,
+}));
+
+/**
  * Contratos de contraste que o sistema promete cumprir.
  * `min` 4.5 = texto normal, 3 = texto grande, componente de UI ou borda de
  * controle (WCAG 1.4.11 e 2.4.11).
@@ -187,6 +266,7 @@ export const mandatoryPairs = [
   { name: "texto informativo sobre seu fundo", fg: semantic["info-text"], bg: semantic["info-surface"], min: 4.5 },
   { name: "texto sobre acento suave", fg: semantic["text-primary"], bg: semantic["surface-accent-subtle"], min: 4.5 },
   { name: "bloco reservado sobre seu fundo", fg: semantic["text-secondary"], bg: semantic["surface-sunken"], min: 4.5 },
+  ...darkPairs,
 ];
 
 /** Escala de 8px. O 2 e o 4 existem só para ajuste óptico de ícone e borda. */

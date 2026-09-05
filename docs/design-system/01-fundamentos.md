@@ -92,14 +92,22 @@ ser confundido com o coral da marca a um relance.
 
 ### 1.4. Tema escuro
 
-A camada semântica já está estruturada para receber o tema escuro sem tocar em
-componente: eles referenciam `--surface-page`, não `--color-navy-50`. Quando o
-tema entrar, a troca acontece em um bloco só, e o mesmo teste de contraste
-passa a validar os dois conjuntos.
+Implementado. A camada semântica recebeu o tema sem tocar em componente: eles
+referenciam `--surface-page`, não `--color-navy-50`, e a troca acontece em
+`semanticDark`. Os mesmos contratos de contraste são medidos nos dois conjuntos
+— 40 pares no total, e o gerador reprova se algum cair.
 
-Mapeamento previsto: `surface-page` → `navy-950`, `surface-raised` → `navy-900`,
-`text-primary` → `navy-50`, `action-primary` mantém `coral-500` mas o rótulo
-migra para `navy-950`.
+`surface-page` → `navy-950`, `surface-raised` → `navy-900`, `text-primary` →
+`navy-50`; `action-primary` mantém `coral-500` com o rótulo em `navy-950`.
+
+Três estados, não dois: a escolha explícita carimba `data-theme`, e o padrão do
+sistema não carimba nada. Por isso o bloco de `prefers-color-scheme` é guardado
+por `:root:not([data-theme="light"])` — sem isso, uma escolha clara perderia
+para um sistema escuro.
+
+`surface-inverse` é a exceção: no escuro ele sobe um degrau (`navy-800`) em vez
+de inverter. Ele é a superfície da credencial de acesso e do chrome do painel,
+que precisam continuar se destacando da página.
 
 ---
 

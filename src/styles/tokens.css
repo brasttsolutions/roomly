@@ -202,6 +202,80 @@
   --text-caption-weight: 500;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-page: #0E1630;
+    --surface-raised: #172243;
+    --surface-sunken: #2F3E68;
+    --surface-inverse: #2F3E68;
+    --surface-accent-subtle: #2F3E68;
+    --text-primary: #F4F7FF;
+    --text-secondary: #BDC4D9;
+    --text-inverse: #FFFFFF;
+    --text-on-accent: #0E1630;
+    --text-link: #FFA189;
+    --border-subtle: #2F3E68;
+    --border-default: #5A6480;
+    --border-control: #9FA9C3;
+    --border-strong: #BDC4D9;
+    --action-primary: #FB5131;
+    --action-primary-hover: #FF765A;
+    --action-primary-active: #FFA189;
+    --action-secondary-border: #9FA9C3;
+    --focus-ring: #FFFFFF;
+    --focus-ring-inverse: #0E1630;
+    --success-surface: #00220C;
+    --success-text: #8FD7B4;
+    --success-border: #1FA675;
+    --warning-surface: #360100;
+    --warning-text: #FBB189;
+    --warning-border: #D66C27;
+    --danger-surface: #420001;
+    --danger-text: #FF9DA2;
+    --danger-border: #F4405A;
+    --danger-action: #F4405A;
+    --info-surface: #001246;
+    --info-text: #9AC6FF;
+    --info-border: #4B8AF4;
+  }
+}
+
+:root[data-theme="dark"] {
+  --surface-page: #0E1630;
+  --surface-raised: #172243;
+  --surface-sunken: #2F3E68;
+  --surface-inverse: #2F3E68;
+  --surface-accent-subtle: #2F3E68;
+  --text-primary: #F4F7FF;
+  --text-secondary: #BDC4D9;
+  --text-inverse: #FFFFFF;
+  --text-on-accent: #0E1630;
+  --text-link: #FFA189;
+  --border-subtle: #2F3E68;
+  --border-default: #5A6480;
+  --border-control: #9FA9C3;
+  --border-strong: #BDC4D9;
+  --action-primary: #FB5131;
+  --action-primary-hover: #FF765A;
+  --action-primary-active: #FFA189;
+  --action-secondary-border: #9FA9C3;
+  --focus-ring: #FFFFFF;
+  --focus-ring-inverse: #0E1630;
+  --success-surface: #00220C;
+  --success-text: #8FD7B4;
+  --success-border: #1FA675;
+  --warning-surface: #360100;
+  --warning-text: #FBB189;
+  --warning-border: #D66C27;
+  --danger-surface: #420001;
+  --danger-text: #FF9DA2;
+  --danger-border: #F4405A;
+  --danger-action: #F4405A;
+  --info-surface: #001246;
+  --info-text: #9AC6FF;
+  --info-border: #4B8AF4;
+}
+
 /* Tipos de display encolhem no mobile; corpo e menores não. */
 @media (max-width: 767px) {
   :root {

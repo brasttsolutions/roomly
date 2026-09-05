@@ -61,7 +61,10 @@ test("customer completes a simulated booking and receives access", async ({
   ).toBeVisible();
   await page.getByTestId("confirm-payment").click();
   await expect(page.getByTestId("booking-confirmation")).toBeVisible();
-  await expect(page.getByText("583 921")).toBeVisible();
+  // A confirmação não mostra código: a fechadura só é provisionada depois da
+  // aprovação do pagamento, e o código real vive na ficha da reserva.
+  await expect(page.getByText("Código de acesso")).toBeVisible();
+  await expect(page.getByText(/Liberado das \d{2}:\d{2}/)).toBeVisible();
 });
 test("customer cancellation revokes the access", async ({ page }) => {
   await page.goto("/minhas-reservas");
@@ -302,4 +305,29 @@ test("panel puts pendencies before metrics and fills the operational screens", a
   await expect(
     page.getByRole("button", { name: "Atribuir a mim" }),
   ).toBeVisible();
+});
+
+test.describe("tema escuro", () => {
+  test.use({ colorScheme: "dark" });
+
+  test("the dark layer swaps only the semantic tokens", async ({ page }) => {
+    await page.goto("/");
+    const ground = await page.evaluate(() =>
+      getComputedStyle(document.body).backgroundColor,
+    );
+    // navy-950: a página troca de fundo sem que nenhum componente saiba disso.
+    expect(ground).toBe("rgb(14, 22, 48)");
+
+    const heading = page.getByRole("heading", {
+      name: "Uma sala pronta quando você precisar.",
+    });
+    await expect(heading).toBeVisible();
+    const ink = await heading.evaluate((node) => getComputedStyle(node).color);
+    expect(ink).toBe("rgb(244, 247, 255)");
+
+    // O primário continua coral nos dois temas: é a marca, não o tema.
+    const cta = page.getByTestId("book-sala-executiva");
+    const label = await cta.evaluate((node) => getComputedStyle(node).color);
+    expect(["rgb(14, 22, 48)", "rgb(23, 34, 67)"]).toContain(label);
+  });
 });

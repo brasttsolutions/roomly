@@ -166,17 +166,6 @@ export function BookingFlow({
       if (!response.ok) {
         throw new Error(body.error ?? "Não foi possível criar a reserva.");
       }
-      localStorage.setItem(
-        "roomly:last-booking",
-        JSON.stringify({
-          room: room.name,
-          date: formatIsoDay(selectedDate),
-          time: selectedBlock.time,
-          endTime: endHour,
-          total,
-          code: "583921",
-        }),
-      );
       // Congela o horário que foi vendido: a grade continua viva atrás da tela
       // de confirmação e não deve reescrever o que a pessoa acabou de comprar.
       setConfirmed({
@@ -199,7 +188,7 @@ export function BookingFlow({
   if (stage === "confirmed")
     return (
       <div
-        className="rounded-lg border border-border-subtle bg-white p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-8"
+        className="rounded-lg border border-border-subtle bg-surface-raised p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-8"
         data-testid="booking-confirmation"
       >
         <Stepper steps={STEPS} current={2} className="mb-6" />
@@ -225,19 +214,19 @@ export function BookingFlow({
             value={method === "pix" ? "PIX aprovado" : "Cartão aprovado"}
           />
         </div>
-        <div className="rounded-md bg-surface-inverse p-5 text-white">
-          <p className="flex items-center gap-2 text-sm text-white/70">
-            <KeyRound size={17} />
+        {/* Nenhum código aqui: a provisão na fechadura acontece depois da
+            aprovação do pagamento, e mostrar um número agora seria inventar. */}
+        <div className="rounded-md bg-surface-inverse p-5 text-text-inverse">
+          <p className="flex items-center gap-2 text-sm opacity-70">
+            <KeyRound size={17} aria-hidden="true" />
             Código de acesso
           </p>
-          <div className="mt-3 flex items-end justify-between gap-4">
-            <strong className="font-mono text-3xl">583 921</strong>
-            <span className="text-right text-xs leading-5 text-white/60">
-              Válido das {confirmed?.accessFrom ?? "--:--"}
-              <br />
-              às {confirmed?.accessTo ?? "--:--"}
-            </span>
-          </div>
+          <p className="mt-3 text-sm leading-6">
+            Liberado das{" "}
+            <strong>{confirmed?.accessFrom ?? "--:--"}</strong> às{" "}
+            <strong>{confirmed?.accessTo ?? "--:--"}</strong>. Ele aparece na
+            ficha da reserva assim que a fechadura confirmar.
+          </p>
         </div>
         <Link
           href="/minhas-reservas"
@@ -249,7 +238,7 @@ export function BookingFlow({
     );
   if (stage === "payment")
     return (
-      <div className="rounded-lg border border-border-subtle bg-white p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
+      <div className="rounded-lg border border-border-subtle bg-surface-raised p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
         <Stepper steps={STEPS} current={1} className="mb-5" />
         <button
           onClick={() => setStage("schedule")}
@@ -329,7 +318,7 @@ export function BookingFlow({
       </div>
     );
   return (
-    <div className="rounded-lg border border-border-subtle bg-white p-5 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
+    <div className="rounded-lg border border-border-subtle bg-surface-raised p-5 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
       <Stepper steps={STEPS} current={0} className="mb-5" />
       <p className="text-xs font-bold uppercase text-text-link">
         Reserve agora

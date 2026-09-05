@@ -53,6 +53,17 @@
   box-sizing: border-box;
 }
 
+/* Faz os controles nativos — data, hora, barra de rolagem — seguirem o tema. */
+:root {
+  color-scheme: light dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 html,
 body {
   background: var(--surface-page);
