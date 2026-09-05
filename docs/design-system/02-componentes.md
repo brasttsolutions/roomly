@@ -1,6 +1,6 @@
 # 02 — Componentes
 
-34 componentes. Cada um traz anatomia, estados, quando **não** usar,
+39 componentes. Cada um traz anatomia, estados, quando **não** usar,
 acessibilidade e medidas prontas para código.
 
 Convenção comum a todos:
@@ -10,6 +10,25 @@ Convenção comum a todos:
 - **Desabilitado**: `opacity: .5` mais `cursor: not-allowed`. O contraste cai,
   então um controle desabilitado nunca carrega informação que só existe nele.
 - **Carregando**: o controle mantém a largura de repouso para a página não pular.
+
+## Estado da implementação
+
+Em `src/components/ui/`: `Button`, `Badge`, `Field`, `Alert`, `Skeleton`,
+`EmptyState`, `Dialog`, `Card`, `Table`, `Stat`, `Avatar`, `Progress`,
+`Tooltip`, `SearchField`, `Toast`, `Breadcrumbs`, `Stepper`, `BookingStatus`,
+`BookingSummary`, `AvailabilityCalendar`, `TimeSlotPicker`,
+`AccessCredentialCard`. `ExtendBooking` e `CleaningQueue` vivem junto das telas
+que os usam.
+
+**Desvios conscientes**, cada um justificado no código:
+
+| Componente | Desvio | Razão |
+| --- | --- | --- |
+| Time Slot Picker | Sem seleção por intervalo | O fluxo já tem seletor de duração; dois controles disputando a mesma decisão confundem |
+| Access Credential Card | Mostra o final do código, não os seis dígitos | O produto nunca armazena o código completo — a fechadura devolve só a impressão digital |
+| Room Card | Sem estado "Em manutenção" | `rooms.status` não tem esse valor; criá-lo é escopo de produto, não de interface |
+| Table | Ordenação por coluna ausente | `aria-sort` sem ordenação real seria enfeite; a ordenação existe onde há dado para ordenar |
+| Tabs | Não existe | Nenhuma tela do produto tem abas hoje |
 
 ---
 

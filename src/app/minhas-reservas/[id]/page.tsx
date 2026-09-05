@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { ExtendBooking } from "@/components/extend-booking";
 import { AccessCredentialCard } from "@/components/ui/access-credential-card";
 import { BookingStatus } from "@/components/ui/booking-status";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { bookingDetail } from "@/lib/server/booking-detail";
 import { capitalizeFirst, formatMoney } from "@/lib/utils";
 
@@ -35,13 +35,12 @@ export default async function Page({
         id="conteudo"
         className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-10"
       >
-        <Link
-          href="/minhas-reservas"
-          className="inline-flex items-center gap-1 text-subheadline font-bold text-text-secondary"
-        >
-          <ChevronLeft size={17} aria-hidden="true" />
-          Minhas reservas
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: "Minhas reservas", href: "/minhas-reservas" },
+            { label: booking.roomName },
+          ]}
+        />
 
         <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_340px]">
           <div>

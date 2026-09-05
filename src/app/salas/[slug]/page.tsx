@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, MapPin, UsersRound } from "lucide-react";
+import { MapPin, UsersRound } from "lucide-react";
 import { BookingFlow } from "@/components/booking-flow";
 import { RoomGallery } from "@/components/room-gallery";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { rooms } from "@/lib/demo-data";
 import { isoDay } from "@/lib/utils";
 import { catalogRoomBySlug } from "@/lib/server/catalog";
@@ -40,13 +40,13 @@ export default async function RoomPage({
     <>
       <SiteHeader />
       <main id="conteudo" className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
-        <Link
-          href="/"
-          className="mb-5 inline-flex items-center gap-1 text-subheadline font-bold text-text-secondary"
-        >
-          <ChevronLeft size={17} />
-          Todas as salas
-        </Link>
+        <Breadcrumbs
+          className="mb-5"
+          items={[
+            { label: "Todas as salas", href: "/" },
+            { label: room.name },
+          ]}
+        />
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
           <div>
             <RoomGallery

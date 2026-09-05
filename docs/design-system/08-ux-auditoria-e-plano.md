@@ -435,6 +435,13 @@ tipografia do produto inteiro. Depois P1, que destrava P4, P5, P12 e P15.
 
 Nove lotes. Cada um é verificável isoladamente e não depende do seguinte.
 
+> **Situação**: os nove lotes foram executados, mais três de acabamento — escala
+> tipográfica aplicada ao produto inteiro, primitivos de exibição de dados com
+> tabela que vira lista no telefone, e toast com escolha de tema. O que ficou de
+> fora está registrado como desvio consciente em
+> [02 — Componentes](02-componentes.md), e a única pendência de infraestrutura é
+> aplicar as migrações 0002 e 0003 no Supabase remoto.
+
 ### Lote 1 — Fundação visual e acessibilidade
 *Resolve P3, P6, P7, P8, P9, P10, P11*
 
