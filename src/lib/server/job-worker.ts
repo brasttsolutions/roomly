@@ -52,9 +52,12 @@ export async function runDueJobs(limit = 10) {
   for (const job of (data ?? []) as Job[]) {
     try {
       await processJob(job);
+      // `attempts` é a marca de posse: o claim incrementa, então o worker cujo
+      // lease venceu carrega um número que já não vale e a escrita dele não
+      // pega.
       const { error: completeError } = await supabase.rpc(
         "complete_durable_job",
-        { target_job_id: job.id },
+        { target_job_id: job.id, target_attempts: job.attempts },
       );
       if (completeError) throw new Error("job_complete_failed");
       results.push({ id: job.id, status: "completed" });
@@ -67,6 +70,7 @@ export async function runDueJobs(limit = 10) {
         target_job_id: job.id,
         target_error_code: code,
         target_manual_review: manualReview,
+        target_attempts: job.attempts,
       });
       logEvent("error", "job.failed", { jobId: job.id, kind: job.kind, code });
       results.push({

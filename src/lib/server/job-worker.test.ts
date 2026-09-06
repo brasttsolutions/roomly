@@ -73,8 +73,11 @@ describe("job worker", () => {
         ignoreDuplicates: true,
       }),
     );
+    // `target_attempts` é a marca de posse do lease: sem ela, um worker
+    // atrasado escreve o desfecho de um job que já é de outro.
     expect(supabase.rpcs.complete_durable_job).toHaveBeenCalledWith({
       target_job_id: "job_1",
+      target_attempts: 0,
     });
     expect(supabase.rpcs.retry_durable_job).not.toHaveBeenCalled();
   });
@@ -279,6 +282,7 @@ describe("notificação por e-mail", () => {
       target_job_id: "job_email",
       target_error_code: "resend_not_configured",
       target_manual_review: true,
+      target_attempts: 0,
     });
   });
 
@@ -301,6 +305,7 @@ describe("notificação por e-mail", () => {
       // O detalhe do provedor sobrevive até a tela de logs.
       target_error_code: "resend_rejected:validation_error",
       target_manual_review: true,
+      target_attempts: 0,
     });
   });
 
