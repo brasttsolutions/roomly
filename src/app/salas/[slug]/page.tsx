@@ -6,10 +6,12 @@ import { RoomGallery } from "@/components/room-gallery";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { companyOfRoom } from "@/lib/server/company-profile";
 import { rooms } from "@/lib/demo-data";
 import { isoDay } from "@/lib/utils";
 import { catalogRoomBySlug } from "@/lib/server/catalog";
 import { paymentMode } from "@/lib/modes";
+import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
@@ -35,7 +37,10 @@ export default async function RoomPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const room = await catalogRoomBySlug(slug);
+  const [room, coworking] = await Promise.all([
+    catalogRoomBySlug(slug),
+    companyOfRoom(slug),
+  ]);
   if (!room) notFound();
   return (
     <>
@@ -57,9 +62,22 @@ export default async function RoomPage({
             <div className="py-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="flex items-center gap-1.5 text-subheadline font-semibold text-text-secondary">
-                    <MapPin size={16} />
-                    {[room.location, room.floor].filter(Boolean).join(" · ")}
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-subheadline font-semibold text-text-secondary">
+                    <span className="flex items-center gap-1.5">
+                      <MapPin size={16} aria-hidden="true" />
+                      {[room.location, room.floor].filter(Boolean).join(" · ")}
+                    </span>
+                    {/* Quem aluga quer saber de quem é a sala antes de pagar.
+                        O rótulo nomeia o coworking em vez de dizer só "perfil":
+                        num leitor de tela, "Ver perfil" sozinho não diz de quem. */}
+                    {coworking && (
+                      <Link
+                        href={`/coworkings/${coworking.slug}`}
+                        className="font-bold text-text-link hover:underline"
+                      >
+                        Ver perfil de {coworking.name}
+                      </Link>
+                    )}
                   </p>
                   {room.address && (
                     <p className="mt-1 text-subheadline text-[var(--text-secondary)]">

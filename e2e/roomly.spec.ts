@@ -393,3 +393,23 @@ test.describe("gaveta do painel sem JavaScript", () => {
     await expect(nav).toBeHidden();
   });
 });
+
+test("room links to the coworking profile, which lists its rooms", async ({
+  page,
+}) => {
+  await page.goto("/salas/sala-executiva");
+  // O rótulo nomeia o coworking: "Ver perfil" sozinho não diz de quem, e num
+  // leitor de tela essa é a única pista.
+  const link = page.getByRole("link", { name: /Ver perfil de Ágora Coworking/ });
+  await expect(link).toBeVisible();
+  await link.click();
+
+  await expect(page).toHaveURL(/\/coworkings\/agora-coworking/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Ágora Coworking" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "3 salas disponíveis" }),
+  ).toBeVisible();
+  await expect(visible(page, "Sala Foco")).toHaveCount(1);
+});
