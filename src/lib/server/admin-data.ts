@@ -38,25 +38,25 @@ export async function adminRows(section: AdminSection): Promise<AdminRow[]> {
   if (section === "reservas" || section === "calendario") {
     const { data, error } = await supabase
       .from("bookings")
-      .select("id,start_at,end_at,status,profiles(name),rooms(name)")
+      .select("id,start_at,end_at,status,customers(name),rooms(name)")
       .order("start_at", { ascending: false })
       .limit(100);
     if (error) throw new Error(`admin_bookings_failed:${error.code}`);
     return (data ?? []).map((row) => {
-      const profile = row.profiles as { name?: string } | null;
+      const customer = row.customers as { name?: string } | null;
       const room = row.rooms as { name?: string } | null;
       return plain(
         section === "calendario"
           ? [
               formatDate(row.start_at),
               room?.name ?? "Sala",
-              profile?.name ?? "Cliente",
+              customer?.name ?? "Cliente",
               formatDate(row.end_at),
               statusLabel(row.status),
             ]
           : [
               `#${String(row.id).slice(0, 8).toUpperCase()}`,
-              profile?.name ?? "Cliente",
+              customer?.name ?? "Cliente",
               room?.name ?? "Sala",
               formatDate(row.start_at),
               statusLabel(row.status),
@@ -335,7 +335,7 @@ export async function adminDashboardData(): Promise<{
   const [bookingResult, lockResult, jobResult] = await Promise.all([
     supabase
       .from("bookings")
-      .select("start_at,end_at,status,profiles(name),rooms(name)")
+      .select("start_at,end_at,status,customers(name),rooms(name)")
       .gte("start_at", start.toISOString())
       .lt("start_at", end.toISOString())
       .order("start_at"),
@@ -352,7 +352,7 @@ export async function adminDashboardData(): Promise<{
     return {
       time: time(startAt),
       room: (row.rooms as { name?: string } | null)?.name ?? "Sala",
-      customer: (row.profiles as { name?: string } | null)?.name ?? "Cliente",
+      customer: (row.customers as { name?: string } | null)?.name ?? "Cliente",
       duration: `${Math.round((endAt.getTime() - startAt.getTime()) / 3_600_000)}h`,
       status: statusLabel(row.status),
     } as TodayBooking;

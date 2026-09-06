@@ -74,7 +74,7 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
     await Promise.all([
       supabase
         .from("bookings")
-        .select("id,start_at,end_at,status,room_id,profiles(name)")
+        .select("id,start_at,end_at,status,room_id,customers(name)")
         .in("room_id", roomIds)
         .in("status", OCCUPYING)
         .gte("start_at", weekStart.toISOString())
@@ -226,7 +226,7 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
       endTime: clock(row.end_at),
       room: roomName.get(row.room_id) ?? "Sala",
       customer:
-        (row.profiles as { name?: string } | null)?.name ?? "Cliente",
+        (row.customers as { name?: string } | null)?.name ?? "Cliente",
       duration: `${((Date.parse(row.end_at) - Date.parse(row.start_at)) / 3_600_000)
         .toFixed(1)
         .replace(".", ",")} h`,

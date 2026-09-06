@@ -82,7 +82,7 @@ export async function dayCalendar(day: string): Promise<DayCalendar> {
       .order("name"),
     supabase
       .from("bookings")
-      .select("id,room_id,start_at,end_at,status,profiles(name)")
+      .select("id,room_id,start_at,end_at,status,customers(name)")
       .in("status", ["awaiting_payment", "confirmed", "in_progress", "completed"])
       .gte("start_at", start.toISOString())
       .lt("start_at", end.toISOString())
@@ -114,7 +114,7 @@ export async function dayCalendar(day: string): Promise<DayCalendar> {
     bookings: (bookingResult.data ?? []).map((row) => ({
       id: String(row.id),
       roomId: String(row.room_id),
-      customer: (row.profiles as { name?: string } | null)?.name ?? "Cliente",
+      customer: (row.customers as { name?: string } | null)?.name ?? "Cliente",
       startMinutes: localMinutes(row.start_at),
       endMinutes: localMinutes(row.end_at),
       label: `${clock(row.start_at)} – ${clock(row.end_at)}`,
