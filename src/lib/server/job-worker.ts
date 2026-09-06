@@ -72,7 +72,11 @@ export async function runDueJobs(limit = 10) {
         target_manual_review: manualReview,
         target_attempts: job.attempts,
       });
-      logEvent("error", "job.failed", { jobId: job.id, kind: job.kind, code });
+      logEvent("error", "job.failed", {
+        jobId: job.id,
+        kind: job.kind,
+        errorCode: code,
+      });
       results.push({
         id: job.id,
         status: manualReview ? "manual_review" : "retry",
