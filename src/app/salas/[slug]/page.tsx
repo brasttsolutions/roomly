@@ -9,6 +9,7 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { rooms } from "@/lib/demo-data";
 import { isoDay } from "@/lib/utils";
 import { catalogRoomBySlug } from "@/lib/server/catalog";
+import { paymentMode } from "@/lib/modes";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
@@ -98,7 +99,7 @@ export default async function RoomPage({
               room={room}
               today={isoDay()}
               mercadoPagoPublicKey={
-                process.env.ROOMLY_PAYMENT_MODE === "mercado_pago"
+                paymentMode() === "mercado_pago"
                   ? process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY
                   : undefined
               }

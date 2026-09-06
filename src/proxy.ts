@@ -1,8 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { integrationMode } from "@/lib/modes";
 
 export async function proxy(request: NextRequest) {
-  if (process.env.ROOMLY_INTEGRATION_MODE !== "supabase") {
+  if (integrationMode() !== "supabase") {
     return NextResponse.next();
   }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

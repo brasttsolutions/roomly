@@ -10,6 +10,7 @@ import {
 import { logEvent } from "@/lib/server/logger";
 import { processPaymentEvent } from "@/lib/server/payment-events";
 import { paymentProvider } from "@/lib/server/payment-provider";
+import { paymentMode } from "@/lib/modes";
 
 export const runtime = "nodejs";
 
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
   const raw = await request.text();
   if (raw.length > 262_144)
     return json({ error: "Payload muito grande." }, 413, id);
-  const realProvider = process.env.ROOMLY_PAYMENT_MODE === "mercado_pago";
+  const realProvider = paymentMode() === "mercado_pago";
   const secret =
     process.env.MERCADO_PAGO_WEBHOOK_SECRET ?? "roomly-local-simulator";
   const url = new URL(request.url);

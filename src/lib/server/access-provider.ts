@@ -1,4 +1,5 @@
 import "server-only";
+import { accessMode } from "@/lib/modes";
 import type { AccessProvider } from "@/integrations/contracts";
 import { TTLockSimulator } from "@/integrations/simulators";
 import { integrationMode } from "@/lib/supabase/config";
@@ -7,8 +8,7 @@ let provider: AccessProvider | undefined;
 
 export function accessProvider() {
   if (provider) return provider;
-  const mode = process.env.ROOMLY_ACCESS_MODE ?? "simulator";
-  if (mode !== "simulator") {
+  if (accessMode() !== "simulator") {
     throw new Error("ttlock_provider_requires_completed_physical_poc");
   }
   if (

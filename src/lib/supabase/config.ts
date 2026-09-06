@@ -1,17 +1,15 @@
 import { z } from "zod";
+import { integrationMode } from "@/lib/modes";
 
 const publicConfigSchema = z.object({
   url: z.url(),
   anonKey: z.string().min(20),
 });
 
-export type IntegrationMode = "simulator" | "supabase";
-
-export function integrationMode(): IntegrationMode {
-  return process.env.ROOMLY_INTEGRATION_MODE === "supabase"
-    ? "supabase"
-    : "simulator";
-}
+// O modo mora em `@/lib/modes` junto dos outros dois; segue exportado daqui
+// porque é por aqui que o resto do produto sempre o pediu.
+export { integrationMode };
+export type { IntegrationMode } from "@/lib/modes";
 
 export function supabasePublicConfig() {
   const parsed = publicConfigSchema.safeParse({

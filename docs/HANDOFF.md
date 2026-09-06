@@ -117,6 +117,11 @@ Vercel planejado para hospedagem
 
 # 3. Modos de integração existentes
 
+> Os três modos são lidos por `src/lib/modes.ts`, que aceita apenas os valores
+> conhecidos. Valor desconhecido estoura no boot em vez de cair no simulador
+> calado — antes, `ROOMLY_PAYMENT_MODE=simulador` subia normalmente e cobrava
+> com o simulador.
+
 O projeto foi estruturado para conseguir funcionar localmente mesmo sem credenciais reais.
 
 Existem três configurações importantes:
@@ -706,7 +711,10 @@ Também ficou registrada uma pendência de segurança:
 
 **substituir comparação simples do HMAC por comparação resistente a timing attack antes da produção.**
 
-Essa pendência foi explicitamente registrada anteriormente.
+> **Resolvida.** A comparação usa `timingSafeEqual` do `node:crypto`, com o
+> tamanho conferido antes — `timingSafeEqual` estoura se os buffers têm
+> tamanhos diferentes. Ver `src/modules/payments/webhook.ts` e
+> `src/app/api/internal/jobs/run/route.ts`. Verificado em 05/09/2026.
 
 ---
 
