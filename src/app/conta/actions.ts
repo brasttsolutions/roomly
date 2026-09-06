@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requestIdentity } from "@/lib/server/identity";
+import { requestCustomer } from "@/lib/server/customer";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -34,8 +34,8 @@ export async function updateAccount(
   if (integrationMode() === "simulator") {
     return { ok: true, message: "Cadastro validado no simulador." };
   }
-  const identity = await requestIdentity();
-  if (!identity) return { ok: false, error: "Sessão expirada." };
+  const customer = await requestCustomer();
+  if (!customer) return { ok: false, error: "Sessão expirada." };
   const parsed = profileSchema.safeParse({
     name: formData.get("name"),
     phone: formData.get("phone") ?? undefined,
@@ -46,14 +46,13 @@ export async function updateAccount(
   // serviço restrita à linha da própria sessão: nem o identificador do perfil
   // nem o da empresa vêm do formulário.
   const { error } = await createSupabaseAdminClient()
-    .from("profiles")
+    .from("customers")
     .update({
       name: parsed.data.name,
       phone: parsed.data.phone || null,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", identity.profileId)
-    .eq("company_id", identity.companyId);
+    .eq("id", customer.id);
   if (error) return { ok: false, error: "Não foi possível salvar." };
   revalidatePath("/conta");
   return { ok: true, message: "Dados atualizados." };
@@ -66,8 +65,8 @@ export async function changePassword(
   if (integrationMode() === "simulator") {
     return { ok: true, message: "Senha validada no simulador." };
   }
-  const identity = await requestIdentity();
-  if (!identity) return { ok: false, error: "Sessão expirada." };
+  const customer = await requestCustomer();
+  if (!customer) return { ok: false, error: "Sessão expirada." };
   const parsed = passwordSchema.safeParse({
     password: formData.get("password"),
     confirmation: formData.get("confirmation"),

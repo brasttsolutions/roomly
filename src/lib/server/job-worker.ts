@@ -168,13 +168,13 @@ async function sendNotification(job: Job, bookingId: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("bookings")
-    .select("start_at,end_at,profiles(email,name),rooms(name)")
+    .select("start_at,end_at,customers(email,name),rooms(name)")
     .eq("id", bookingId)
     .single();
   if (error || !data) throw new Error("booking_not_found");
-  const profile = Array.isArray(data.profiles)
-    ? data.profiles[0]
-    : data.profiles;
+  const profile = Array.isArray(data.customers)
+    ? data.customers[0]
+    : data.customers;
   const room = Array.isArray(data.rooms) ? data.rooms[0] : data.rooms;
   if (!profile?.email) throw new Error("notification_destination_not_found");
   const { data: existing } = await supabase

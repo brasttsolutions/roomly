@@ -119,10 +119,11 @@ export async function adminRows(section: AdminSection): Promise<AdminRow[]> {
     }));
   }
   if (section === "clientes") {
+    // Cliente não pertence mais a um coworking: quem aparece aqui é quem
+    // reservou nesta empresa, e a RLS de `customers` já restringe a isso.
     const { data, error } = await supabase
-      .from("profiles")
+      .from("customers")
       .select("name,email,status,bookings(count)")
-      .eq("role", "customer")
       .order("name");
     if (error) throw new Error(`admin_customers_failed:${error.code}`);
     return (data ?? []).map((row) =>

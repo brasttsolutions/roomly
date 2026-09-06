@@ -12,6 +12,7 @@ const state = globalThis as typeof globalThis & {
   roomlyBookings?: Map<string, BookingRecord>;
 };
 const demoBookings = (state.roomlyBookings ??= new Map());
+const DEMO_COMPANY_ID = "10000000-0000-4000-8000-000000000001";
 const demoPrices: Record<string, number> = {
   "30000000-0000-4000-8000-000000000001": 12000,
   "30000000-0000-4000-8000-000000000002": 7500,
@@ -28,8 +29,8 @@ class SimulatorBookingRepository implements BookingRepository {
       60_000;
     const booking: BookingRecord = {
       id: `booking_${randomUUID().slice(0, 8)}`,
-      companyId: command.companyId,
-      userId: command.profileId,
+      companyId: DEMO_COMPANY_ID,
+      userId: command.customerId,
       roomId: command.roomId,
       startAt: command.startAt,
       endAt: command.endAt,
@@ -62,11 +63,14 @@ class SupabaseBookingRepository implements BookingRepository {
     const existing = await this.findExisting(command.idempotencyKey);
     if (existing) return { booking: existing, duplicate: true };
 
+    // A empresa é a dona da sala, não a de quem reserva: o cliente da
+    // plataforma não pertence a coworking nenhum.
+    const room = await this.roomOwner(command.roomId);
     const { data, error } = await supabase.rpc("create_booking_hold", {
-      target_company_id: command.companyId,
-      target_location_id: await this.locationId(command.roomId),
+      target_company_id: room.companyId,
+      target_location_id: room.locationId,
       target_room_id: command.roomId,
-      target_user_id: command.profileId,
+      target_user_id: command.customerId,
       target_start_at: command.startAt,
       target_end_at: command.endAt,
       target_idempotency_key: command.idempotencyKey,
@@ -99,16 +103,16 @@ class SupabaseBookingRepository implements BookingRepository {
     }
   }
 
-  private async locationId(roomId: string) {
+  private async roomOwner(roomId: string) {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("rooms")
-      .select("location_id")
+      .select("company_id,location_id")
       .eq("id", roomId)
       .eq("status", "active")
       .single();
     if (error || !data) throw new Error("room_not_found");
-    return data.location_id;
+    return { companyId: data.company_id, locationId: data.location_id };
   }
 
   private async findExisting(idempotencyKey: string) {

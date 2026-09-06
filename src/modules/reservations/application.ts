@@ -1,8 +1,8 @@
 import type { PaymentProvider } from "@/integrations/contracts";
 
 export type BookingCommand = Readonly<{
-  companyId: string;
-  profileId: string;
+  /** Cliente da plataforma. A empresa não entra aqui: ela é da sala. */
+  customerId: string;
   roomId: string;
   startAt: string;
   endAt: string;

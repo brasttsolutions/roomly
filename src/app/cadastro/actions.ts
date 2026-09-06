@@ -7,7 +7,10 @@ import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const signupSchema = z.object({
-  invitation: z.string().min(32).max(200),
+  // Vazio é o caso normal: quem aluga sala cria a própria conta. O convite
+  // continua existindo para a equipe do coworking, que precisa de empresa e
+  // papel — coisas que ninguém escolhe por conta própria.
+  invitation: z.string().max(200).optional().default(""),
   name: z.string().trim().min(2).max(120),
   email: z
     .email()
@@ -25,6 +28,8 @@ export async function signUp(formData: FormData) {
   });
   if (!parsed.success) redirect("/cadastro?erro=dados-invalidos");
   if (integrationMode() === "simulator") redirect("/minhas-reservas");
+
+  if (!parsed.data.invitation) return signUpCustomer(parsed.data);
 
   const admin = createSupabaseAdminClient();
   const tokenHash = createHash("sha256")
@@ -68,4 +73,26 @@ export async function signUp(formData: FormData) {
     redirect("/minhas-reservas");
   }
   redirect("/entrar?cadastro=confirme-email");
+}
+
+/**
+ * Cadastro aberto: nenhuma empresa é escolhida aqui. A linha em `customers`
+ * nasce no primeiro acesso autenticado, por `ensure_customer` — que a amarra ao
+ * `auth.uid()` e tira o e-mail do token, não deste formulário.
+ */
+async function signUpCustomer(input: {
+  name: string;
+  email: string;
+  password: string;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signUp({
+    email: input.email,
+    password: input.password,
+    options: { data: { full_name: input.name } },
+  });
+  if (error) redirect("/cadastro?erro=cadastro-falhou");
+  // Sem sessão significa que o Supabase exige confirmação por e-mail.
+  if (!data.session) redirect("/entrar?cadastro=confirme-email");
+  redirect("/minhas-reservas");
 }

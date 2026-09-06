@@ -222,7 +222,7 @@ function notificationBookingRow() {
     company_id: "company_1",
     start_at: "2030-01-10T14:00:00.000Z",
     end_at: "2030-01-10T15:00:00.000Z",
-    profiles: { email: "cliente@example.test", name: "Marina" },
+    customers: { email: "cliente@example.test", name: "Marina" },
     rooms: { name: "Sala Executiva" },
   };
 }

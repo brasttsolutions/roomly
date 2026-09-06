@@ -6,7 +6,6 @@ import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { signOutEverywhere } from "@/app/entrar/actions";
 import { accountView } from "@/lib/server/account";
-import { roleLabel } from "@/lib/roles";
 import { BOOKING_TIME_ZONE } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Editar conta" };
@@ -15,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function Page() {
   const account = await accountView();
   if (!account) redirect("/entrar");
-  const { identity } = account;
+  const { customer } = account;
   return (
     <>
       <SiteHeader />
@@ -30,7 +29,7 @@ export default async function Page() {
 
         <section className="rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-7">
           <h2 className="mb-5 text-title3 font-bold">Dados pessoais</h2>
-          <AccountForm name={identity.name} phone={account.phone} />
+          <AccountForm name={customer.name} phone={account.phone} />
         </section>
 
         <section className="mt-6 rounded-lg border border-border-subtle bg-surface-raised p-6 sm:p-7">
@@ -66,9 +65,7 @@ export default async function Page() {
             Só um gestor da empresa altera estes campos.
           </p>
           <dl className="grid gap-4 sm:grid-cols-2">
-            <Info label="E-mail" value={identity.email} />
-            <Info label="Empresa" value={account.company} />
-            <Info label="Papel" value={roleLabel(identity.role)} />
+            <Info label="E-mail" value={customer.email} />
             <Info label="Fuso das reservas" value={BOOKING_TIME_ZONE} />
           </dl>
         </section>

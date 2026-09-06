@@ -5,7 +5,7 @@ import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { rooms as demoRooms } from "@/lib/demo-data";
 import { availabilityRoomBySlug, busyIntervals } from "./availability";
-import { requestIdentity } from "./identity";
+import { requestCustomer } from "./customer";
 
 export type ExtensionOffer = Readonly<{
   /** Minutos que ainda cabem depois do fim da reserva. Zero quando não cabe. */
@@ -48,8 +48,8 @@ export async function bookingDetail(
 ): Promise<BookingDetailView | null> {
   if (integrationMode() === "simulator")
     return id === DEMO_BOOKING_ID ? demoBookingDetail() : null;
-  const identity = await requestIdentity();
-  if (!identity) return null;
+  const customer = await requestCustomer();
+  if (!customer) return null;
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
@@ -59,8 +59,7 @@ export async function bookingDetail(
         "rooms(name,slug,hourly_price_cents,locations(name,address,city,state,timezone))," +
         "booking_access_codes(status,valid_from,valid_until,access_code_fingerprint)",
     )
-    .eq("company_id", identity.companyId)
-    .eq("user_id", identity.profileId)
+    .eq("user_id", customer.id)
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`booking_detail_failed:${error.code}`);

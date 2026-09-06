@@ -6,7 +6,7 @@ import {
 import { bookingRepository } from "@/lib/server/booking-repository";
 import { paymentProvider } from "@/lib/server/payment-provider";
 import { clientAddress, json, rateLimit, requestId } from "@/lib/server/http";
-import { requestIdentity } from "@/lib/server/identity";
+import { requestCustomer } from "@/lib/server/customer";
 import { logEvent } from "@/lib/server/logger";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -20,8 +20,8 @@ export async function POST(request: Request) {
     logEvent("warn", "booking.rate_limited", { requestId: id });
     return json({ error: "Muitas tentativas. Aguarde um minuto." }, 429, id);
   }
-  const identity = await requestIdentity();
-  if (!identity) {
+  const customer = await requestCustomer();
+  if (!customer) {
     logEvent("warn", "booking.unauthorized", { requestId: id });
     return json({ error: "Autenticação necessária." }, 401, id);
   }
@@ -53,9 +53,8 @@ export async function POST(request: Request) {
   }
   try {
     const result = await createBooking(bookingRepository(), paymentProvider(), {
-      companyId: identity.companyId,
-      profileId: identity.profileId,
-      payerEmail: identity.email,
+      customerId: customer.id,
+      payerEmail: customer.email,
       ...parsed.data,
     });
     logEvent(
@@ -64,7 +63,7 @@ export async function POST(request: Request) {
       {
         requestId: id,
         bookingId: result.booking.id,
-        companyId: identity.companyId,
+        companyId: customer.id,
         roomId: result.booking.roomId,
       },
     );

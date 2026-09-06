@@ -1,32 +1,17 @@
 import "server-only";
 import { integrationMode } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { requestIdentity, type RequestIdentity } from "./identity";
+import { requestCustomer, type RequestCustomer } from "./customer";
 
 export type AccountView = Readonly<{
-  identity: RequestIdentity;
+  customer: RequestCustomer;
   phone: string;
-  company: string;
 }>;
 
 export async function accountView(): Promise<AccountView | null> {
-  const identity = await requestIdentity();
-  if (!identity) return null;
-  if (integrationMode() === "simulator") {
-    return { identity, phone: "", company: "Roomly (simulador)" };
-  }
-  const supabase = await createSupabaseServerClient();
-  const [profile, company] = await Promise.all([
-    supabase.from("profiles").select("phone").eq("id", identity.profileId).maybeSingle(),
-    supabase
-      .from("companies")
-      .select("name")
-      .eq("id", identity.companyId)
-      .maybeSingle(),
-  ]);
-  return {
-    identity,
-    phone: profile.data?.phone ?? "",
-    company: company.data?.name ?? "Empresa",
-  };
+  const customer = await requestCustomer();
+  if (!customer) return null;
+  // A empresa saiu daqui de propósito: o cliente é da plataforma, não de um
+  // coworking, e mostrar uma empresa seria inventar um vínculo que não existe.
+  if (integrationMode() === "simulator") return { customer, phone: "" };
+  return { customer, phone: customer.phone ?? "" };
 }

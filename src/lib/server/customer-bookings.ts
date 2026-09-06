@@ -2,7 +2,7 @@ import "server-only";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { demoBookingDetail, type BookingDetailView } from "./booking-detail";
-import { requestIdentity } from "./identity";
+import { requestCustomer } from "./customer";
 
 export type CustomerBookingView = Readonly<{
   id: string;
@@ -25,16 +25,15 @@ export async function customerBookings(): Promise<{
     // divergiriam no primeiro ajuste.
     return { current: asListItem(demoBookingDetail()), history: [] };
   }
-  const identity = await requestIdentity();
-  if (!identity) return { current: null, history: [] };
+  const customer = await requestCustomer();
+  if (!customer) return { current: null, history: [] };
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("bookings")
     .select(
       "id,start_at,end_at,status,rooms(name,locations(name)),booking_access_codes(status)",
     )
-    .eq("company_id", identity.companyId)
-    .eq("user_id", identity.profileId)
+    .eq("user_id", customer.id)
     .order("start_at", { ascending: false })
     .limit(50);
   if (error) throw new Error(`customer_bookings_failed:${error.code}`);

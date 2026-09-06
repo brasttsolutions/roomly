@@ -8,8 +8,7 @@ import {
 } from "./application";
 
 const command: BookingCommand = {
-  companyId: "company_1",
-  profileId: "profile_1",
+  customerId: "customer_1",
   roomId: "room_1",
   startAt: "2026-09-03T17:00:00.000Z",
   endAt: "2026-09-03T18:30:00.000Z",
@@ -19,8 +18,8 @@ const command: BookingCommand = {
 };
 const booking = {
   id: "booking_1",
-  companyId: command.companyId,
-  userId: command.profileId,
+  companyId: "company_1",
+  userId: command.customerId,
   roomId: command.roomId,
   startAt: command.startAt,
   endAt: command.endAt,

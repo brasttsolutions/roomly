@@ -16,7 +16,9 @@ export default async function Page({
         <Brand />
         <h1 className="mt-8 text-title2 font-bold">Criar conta</h1>
         <p className="mt-2 text-subheadline text-text-secondary">
-          Use o mesmo e-mail que recebeu o convite.
+          {convite
+            ? "Use o mesmo e-mail que recebeu o convite."
+            : "Crie sua conta para reservar salas."}
         </p>
         <form action={signUp} className="mt-6 grid gap-4">
           <input type="hidden" name="invitation" value={convite} />
