@@ -23,8 +23,14 @@ export async function POST(request: Request) {
   if (raw.length > 262_144)
     return json({ error: "Payload muito grande." }, 413, id);
   const realProvider = paymentMode() === "mercado_pago";
-  const secret =
-    process.env.MERCADO_PAGO_WEBHOOK_SECRET ?? "roomly-local-simulator";
+  // Sem segredo configurado nenhuma assinatura confere. O padrão literal que
+  // existia aqui estava no repositório: em modo simulador, qualquer pessoa
+  // assinava uma notificação e confirmava reserva sem pagar.
+  const secret = process.env.MERCADO_PAGO_WEBHOOK_SECRET;
+  if (!secret) {
+    logEvent("error", "payment_webhook.secret_missing", { requestId: id });
+    return json({ error: "Assinatura inválida." }, 401, id);
+  }
   const url = new URL(request.url);
   const signatureValid = realProvider
     ? validMercadoPagoSignature({
