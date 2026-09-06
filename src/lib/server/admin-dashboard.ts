@@ -3,6 +3,23 @@ import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BOOKING_TIME_ZONE, isoDay } from "@/lib/utils";
 
+/**
+ * Consulta que falha tem que derrubar a tela, não virar lista vazia. O painel
+ * lia oito consultas sem olhar o erro nenhuma vez: um coworking lotado era
+ * apresentado como "0 reservas hoje, 0% de ocupação", com HTTP 200 e sem log.
+ * Quem olha esse número decide preço com ele.
+ */
+function linhas<T>(
+  resultado: { data: T[] | null; error: { code?: string } | null },
+  consulta: string,
+): T[] {
+  if (resultado.error)
+    throw new Error(
+      `admin_dashboard_${consulta}_failed:${resultado.error.code ?? "unknown"}`,
+    );
+  return resultado.data ?? [];
+}
+
 export type Pendency = Readonly<{
   id: string;
   severity: "danger" | "warning";
@@ -53,7 +70,7 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
   // Unidades e salas não dependem uma da outra — o recorte por unidade é feito
   // aqui, em memória. Em série custavam duas idas ao banco antes de a primeira
   // consulta de reservas começar.
-  const [{ data: locationRows }, { data: roomRows }] = await Promise.all([
+  const [locationResult, roomResult] = await Promise.all([
     supabase
       .from("locations")
       .select("id,name,opening_time,closing_time")
@@ -61,10 +78,10 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
       .order("name"),
     supabase.from("rooms").select("id,name,location_id").eq("status", "active"),
   ]);
-  const locations = locationRows ?? [];
+  const locations = linhas(locationResult, "locations");
   const selected = locations.find((location) => location.name === unit) ?? null;
 
-  const rooms = (roomRows ?? []).filter(
+  const rooms = linhas(roomResult, "rooms").filter(
     (room) => !selected || room.location_id === selected.id,
   );
   const roomIds = rooms.map((room) => room.id);
@@ -103,7 +120,7 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
         .eq("status", "manual_review"),
     ]);
 
-  const bookings = weekResult.data ?? [];
+  const bookings = linhas(weekResult, "week");
   const now = Date.now();
 
   const todayRows = bookings.filter(
@@ -121,18 +138,20 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
   const occupancy =
     openHours > 0 ? Math.round((bookedHoursToday / openHours) * 100) : 0;
 
-  const revenueCents = (monthResult.data ?? []).reduce(
+  const monthRows = linhas(monthResult, "month");
+  const revenueCents = monthRows.reduce(
     (total, row) => total + Number(row.total_cents ?? 0),
     0,
   );
-  const paidCount = (monthResult.data ?? []).length;
+  const paidCount = monthRows.length;
 
-  const locks = (lockResult.data ?? []).filter(
+  const locks = linhas(lockResult, "locks").filter(
     (lock) => roomIds.length === 0 || roomIds.includes(lock.room_id),
   );
 
   const pendencies: Pendency[] = [];
-  for (const request of cleaningResult.data ?? []) {
+  const cleaningRows = linhas(cleaningResult, "cleaning");
+  for (const request of cleaningRows) {
     const late = Date.parse(request.scheduled_at) < now;
     pendencies.push({
       id: `cleaning:${request.id}`,
@@ -155,7 +174,7 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
       href: "/admin/fechaduras",
     });
   }
-  for (const access of accessResult.data ?? []) {
+  for (const access of linhas(accessResult, "access")) {
     pendencies.push({
       id: `access:${access.booking_id}`,
       severity: "danger",
@@ -164,7 +183,7 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
       href: "/admin/reservas",
     });
   }
-  for (const job of jobResult.data ?? []) {
+  for (const job of linhas(jobResult, "jobs")) {
     pendencies.push({
       id: `job:${job.id}`,
       severity: "warning",
@@ -178,7 +197,7 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
     a.severity === b.severity ? 0 : a.severity === "danger" ? -1 : 1,
   );
 
-  const nextCleaning = (cleaningResult.data ?? []).find(
+  const nextCleaning = cleaningRows.find(
     (request) => Date.parse(request.scheduled_at) >= now,
   );
 

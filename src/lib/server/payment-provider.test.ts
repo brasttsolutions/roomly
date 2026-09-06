@@ -3,6 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const original = { ...process.env };
 afterEach(() => {
   process.env = { ...original };
+  // `NODE_ENV` é somente leitura nos tipos do Next; `stubEnv` é o caminho que o
+  // vitest oferece para trocá-la sem mentir para o compilador.
+  vi.unstubAllEnvs();
   vi.resetModules();
 });
 
@@ -16,7 +19,7 @@ describe("provedor de pagamento", () => {
   it("recusa o simulador contra o banco de produção", async () => {
     // O deploy que esquece `ROOMLY_PAYMENT_MODE` confirmava reserva sem cobrar
     // ninguém. A trava de acesso já existia; a de dinheiro não.
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     process.env.ROOMLY_INTEGRATION_MODE = "supabase";
     delete process.env.ROOMLY_PAYMENT_MODE;
     const paymentProvider = await carregar();
@@ -24,7 +27,7 @@ describe("provedor de pagamento", () => {
   });
 
   it("aceita o simulador fora de produção", async () => {
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     process.env.ROOMLY_INTEGRATION_MODE = "supabase";
     delete process.env.ROOMLY_PAYMENT_MODE;
     const paymentProvider = await carregar();
@@ -32,7 +35,7 @@ describe("provedor de pagamento", () => {
   });
 
   it("aceita o simulador em produção quando o banco também é simulado", async () => {
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     process.env.ROOMLY_INTEGRATION_MODE = "simulator";
     delete process.env.ROOMLY_PAYMENT_MODE;
     const paymentProvider = await carregar();
@@ -40,7 +43,7 @@ describe("provedor de pagamento", () => {
   });
 
   it("exige o token quando o modo é Mercado Pago", async () => {
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     process.env.ROOMLY_PAYMENT_MODE = "mercado_pago";
     delete process.env.MERCADO_PAGO_ACCESS_TOKEN;
     const paymentProvider = await carregar();
