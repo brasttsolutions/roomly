@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(8);
+select plan(9);
 
 -- Empresa B é criada ao lado da empresa do seed (empresa A) para provar que a RLS
 -- separa dois inquilinos, e não apenas dois usuários da mesma empresa.
@@ -23,15 +23,20 @@ values
   ('10000000-0000-4000-8000-000000000001','a0000000-0000-4000-8000-00000000000a','customer'),
   ('11000000-0000-4000-8000-000000000002','b0000000-0000-4000-8000-00000000000b','customer');
 
-insert into public.profiles(id,company_id,auth_user_id,name,email)
+-- Cliente é da plataforma: não há `company_id` aqui, e é justamente isso que
+-- esta suíte precisa provar que continua isolado.
+insert into public.customers(id,auth_user_id,name,email)
 values
-  ('41000000-0000-4000-8000-00000000000a','10000000-0000-4000-8000-000000000001','a0000000-0000-4000-8000-00000000000a','Cliente A','cliente.a@roomly.local'),
-  ('41000000-0000-4000-8000-00000000000b','11000000-0000-4000-8000-000000000002','b0000000-0000-4000-8000-00000000000b','Cliente B','cliente.b@roomly.local');
+  ('41000000-0000-4000-8000-00000000000a','a0000000-0000-4000-8000-00000000000a','Cliente A','cliente.a@roomly.local'),
+  ('41000000-0000-4000-8000-00000000000b','b0000000-0000-4000-8000-00000000000b','Cliente B','cliente.b@roomly.local');
 
 insert into public.bookings(id,company_id,location_id,room_id,user_id,start_at,end_at,subtotal_cents,total_cents,status,hold_expires_at,idempotency_key)
 values
   ('71000000-0000-4000-8000-00000000000a','10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','41000000-0000-4000-8000-00000000000a','2026-10-01 14:00Z','2026-10-01 15:00Z',12000,12000,'confirmed',null,'rls-booking-a'),
-  ('71000000-0000-4000-8000-00000000000b','11000000-0000-4000-8000-000000000002','21000000-0000-4000-8000-000000000002','31000000-0000-4000-8000-000000000002','41000000-0000-4000-8000-00000000000b','2026-10-01 14:00Z','2026-10-01 15:00Z',9000,9000,'confirmed',null,'rls-booking-b');
+  ('71000000-0000-4000-8000-00000000000b','11000000-0000-4000-8000-000000000002','21000000-0000-4000-8000-000000000002','31000000-0000-4000-8000-000000000002','41000000-0000-4000-8000-00000000000b','2026-10-01 14:00Z','2026-10-01 15:00Z',9000,9000,'confirmed',null,'rls-booking-b'),
+  -- O cliente B reservando numa sala da empresa A: era exatamente isto que o
+  -- modelo antigo recusava com `tenant_access_denied`.
+  ('71000000-0000-4000-8000-00000000000c','10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000002','41000000-0000-4000-8000-00000000000b','2026-10-02 14:00Z','2026-10-02 15:00Z',7500,7500,'confirmed',null,'rls-booking-c');
 
 insert into public.payments(company_id,booking_id,provider,provider_payment_id,payment_method,status,amount_cents,idempotency_key)
 values
@@ -48,15 +53,22 @@ set local request.jwt.claims = '{"sub":"b0000000-0000-4000-8000-00000000000b","r
 select is(auth.uid(),'b0000000-0000-4000-8000-00000000000b'::uuid,'a sessão de teste é o cliente da empresa B');
 
 select is(
-  (select count(*)::integer from public.bookings where company_id='10000000-0000-4000-8000-000000000001'),
+  (select count(*)::integer from public.bookings where user_id='41000000-0000-4000-8000-00000000000a'),
   0,
-  'cliente da empresa B não enxerga reservas da empresa A'
+  'cliente B não enxerga reserva de outro cliente'
 );
 
 select is(
   (select count(*)::integer from public.bookings),
-  1,
-  'cliente da empresa B enxerga apenas a própria reserva'
+  2,
+  'cliente B enxerga as próprias reservas, e só elas'
+);
+
+-- A prova do modelo novo: a mesma conta reservando em dois coworkings.
+select is(
+  (select count(distinct company_id)::integer from public.bookings),
+  2,
+  'a mesma conta alcança reservas em coworkings diferentes'
 );
 
 select is(

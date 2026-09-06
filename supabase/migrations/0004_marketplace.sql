@@ -90,14 +90,28 @@ alter table public.notifications
 
 alter table public.customers enable row level security;
 
+-- Consultar `bookings` direto na política de `customers` cria recursão: a
+-- política de `bookings` consulta `customers` de volta, e o Postgres recusa com
+-- `infinite recursion detected in policy`. A função roda como `security
+-- definer`, então lê `bookings` sem reaplicar a RLS e o ciclo se fecha.
+create or replace function public.customer_booked_in_managed_company(target_customer_id uuid)
+returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.bookings b
+    where b.user_id = target_customer_id
+      and public.can_manage_company(b.company_id)
+  );
+$$;
+
+revoke all on function public.customer_booked_in_managed_company(uuid) from public;
+grant execute on function public.customer_booked_in_managed_company(uuid) to authenticated;
+
 -- O gestor enxerga quem reservou na empresa dele, e só. Cliente de outro
 -- coworking não aparece.
 create policy customers_self_or_manager on public.customers for select using (
   auth_user_id = auth.uid()
-  or exists (
-    select 1 from public.bookings b
-    where b.user_id = customers.id and public.can_manage_company(b.company_id)
-  )
+  or public.customer_booked_in_managed_company(id)
 );
 
 create policy customers_self_update on public.customers for update

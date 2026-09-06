@@ -13,8 +13,11 @@ select ok(
   'bookings has RLS enabled'
 );
 
-insert into public.profiles(id,company_id,name,email)
-values ('40000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','Test Customer','test@roomly.local');
+-- Quem reserva é cliente da plataforma, não perfil de um coworking.
+insert into auth.users(id,email)
+values ('a1000000-0000-4000-8000-000000000001','test@roomly.local');
+insert into public.customers(id,auth_user_id,name,email)
+values ('40000000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000001','Test Customer','test@roomly.local');
 
 select lives_ok($test$
   insert into public.bookings(company_id,location_id,room_id,user_id,start_at,end_at,subtotal_cents,total_cents,status,hold_expires_at,idempotency_key)

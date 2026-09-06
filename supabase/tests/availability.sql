@@ -9,8 +9,10 @@ select has_function('public','room_busy_intervals','availability RPC exists');
 update public.rooms set cleaning_time_minutes=20
 where id='30000000-0000-4000-8000-000000000001';
 
-insert into public.profiles(id,company_id,name,email)
-values ('40000000-0000-4000-8000-0000000000a1','10000000-0000-4000-8000-000000000001','Availability Customer','availability@roomly.local');
+insert into auth.users(id,email)
+values ('a1000000-0000-4000-8000-0000000000a1','availability@roomly.local');
+insert into public.customers(id,auth_user_id,name,email)
+values ('40000000-0000-4000-8000-0000000000a1','a1000000-0000-4000-8000-0000000000a1','Availability Customer','availability@roomly.local');
 
 -- Uma reserva confirmada, um hold vencido e uma reserva cancelada. Só a
 -- primeira pode aparecer como ocupação.
