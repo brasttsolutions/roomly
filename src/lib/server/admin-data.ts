@@ -8,6 +8,7 @@ import {
 import { adminMetrics, todayBookings } from "@/lib/demo-data";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { cleaningNoticeFields } from "@/modules/cleaning/notice";
 
 type AdminMetric = Readonly<{
   label: string;
@@ -67,7 +68,7 @@ export async function adminRows(section: AdminSection): Promise<AdminRow[]> {
     const { data, error } = await supabase
       .from("rooms")
       .select(
-        "id,location_id,name,description,capacity,hourly_price_cents,status,locations(name),room_feature_relations(room_features(name))",
+        "id,location_id,name,description,capacity,hourly_price_cents,cleaning_notice_offset_minutes,status,locations(name),room_feature_relations(room_features(name))",
       )
       .order("name");
     if (error) throw new Error(`admin_rooms_failed:${error.code}`);
@@ -87,6 +88,16 @@ export async function adminRows(section: AdminSection): Promise<AdminRow[]> {
         capacity: String(row.capacity),
         hourlyPriceCents: String(row.hourly_price_cents),
         status: row.status,
+        // O banco guarda um inteiro com sinal; o formulário mostra minutos e
+        // direção separados, que é como a pessoa pensa o ajuste.
+        ...(({ cleaningNoticeMinutes, cleaningNoticeWhen }) => ({
+          cleaningNoticeMinutes: String(cleaningNoticeMinutes),
+          cleaningNoticeWhen,
+        }))(
+          cleaningNoticeFields(
+            Number(row.cleaning_notice_offset_minutes ?? 0),
+          ),
+        ),
         hasCamera: hasCamera(row.room_feature_relations) ? "on" : "",
       },
     }));

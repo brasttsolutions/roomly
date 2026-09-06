@@ -413,3 +413,20 @@ test("room links to the coworking profile, which lists its rooms", async ({
   ).toBeVisible();
   await expect(visible(page, "Sala Foco")).toHaveCount(1);
 });
+
+test("room form lets the owner choose when cleaning is called", async ({
+  page,
+}) => {
+  await page.goto("/admin/salas");
+  await page.getByRole("button", { name: "Nova sala" }).click();
+
+  const grupo = page.getByRole("group", { name: "Acionar a limpeza" });
+  await expect(grupo).toBeVisible();
+  // O padrão é o fim da reunião: é o comportamento que o produto sempre teve, e
+  // uma sala nova não deve mudar de conduta sozinha.
+  await expect(grupo.getByLabel("Quando")).toHaveValue("fim");
+
+  await grupo.getByLabel("Quando").selectOption("antes");
+  await grupo.getByLabel("Minutos").fill("30");
+  await expect(grupo.getByLabel("Minutos")).toHaveValue("30");
+});

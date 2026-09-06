@@ -233,6 +233,32 @@ function RoomFields({
           defaultValue={record?.hourlyPriceCents}
         />
       </div>
+      <fieldset className="rounded-md border border-border-subtle p-3">
+        <legend className="px-1 text-caption font-bold uppercase text-text-secondary">
+          Acionar a limpeza
+        </legend>
+        <div className="grid grid-cols-[110px_1fr] items-end gap-3">
+          <Field
+            label="Minutos"
+            name="cleaningNoticeMinutes"
+            type="number"
+            defaultValue={record?.cleaningNoticeMinutes ?? "0"}
+          />
+          <Select
+            label="Quando"
+            name="cleaningNoticeWhen"
+            options={[
+              { id: "antes", name: "antes de acabar a reunião" },
+              { id: "fim", name: "no momento em que acabar" },
+              { id: "depois", name: "após acabar a reunião" },
+            ]}
+            defaultValue={record?.cleaningNoticeWhen ?? "fim"}
+          />
+        </div>
+        <p className="mt-2 text-caption text-text-secondary">
+          Com &quot;no momento em que acabar&quot;, os minutos são ignorados.
+        </p>
+      </fieldset>
       <Checkbox
         name="randomImages"
         label={

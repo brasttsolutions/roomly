@@ -3,6 +3,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requestIdentity } from "@/lib/server/identity";
+import { cleaningNoticeOffset } from "@/modules/cleaning/notice";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendInvitationEmail } from "@/integrations/resend";
@@ -53,9 +54,15 @@ const roomSchema = z.object({
   description: z.string().trim().min(10).max(1000),
   capacity: z.coerce.number().int().min(1).max(100),
   hourlyPriceCents: z.coerce.number().int().min(0).max(10_000_000),
+  // Minutos e direção chegam separados porque é assim que se lê na tela, e
+  // viram um inteiro com sinal porque é assim que a regra existe: dois campos
+  // no banco permitiriam gravar "-30 minutos depois".
+  cleaningNoticeMinutes: z.coerce.number().int().min(0).max(240).default(0),
+  cleaningNoticeWhen: z.enum(["antes", "fim", "depois"]).default("fim"),
   randomImages: checkbox,
   hasCamera: checkbox,
 });
+
 const lockSchema = z.object({
   resource: z.literal("fechaduras"),
   roomId: postgresUuid,
@@ -143,6 +150,7 @@ export async function updateAdminResource(
         description: parsed.data.description,
         capacity: parsed.data.capacity,
         hourly_price_cents: parsed.data.hourlyPriceCents,
+        cleaning_notice_offset_minutes: cleaningNoticeOffset(parsed.data),
         status: parsed.data.status,
         updated_at: new Date().toISOString(),
       })
@@ -263,6 +271,7 @@ export async function createAdminResource(
         description: parsed.data.description,
         capacity: parsed.data.capacity,
         hourly_price_cents: parsed.data.hourlyPriceCents,
+        cleaning_notice_offset_minutes: cleaningNoticeOffset(parsed.data),
       })
       .select("id")
       .single();
