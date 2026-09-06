@@ -81,6 +81,12 @@ export async function POST(request: Request) {
     logEvent("error", "booking.create_failed", {
       requestId: id,
       error: error instanceof Error ? error.message : "unknown",
+      // Sem a causa, toda falha de cobrança vira a mesma linha de log e não dá
+      // para distinguir cartão recusado de credencial errada do provedor.
+      cause:
+        error instanceof Error && error.cause instanceof Error
+          ? error.cause.message
+          : undefined,
     });
     if (error instanceof PaymentFailedAfterHold) {
       return json(
