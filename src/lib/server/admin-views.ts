@@ -2,6 +2,7 @@ import "server-only";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BOOKING_TIME_ZONE, isoDay } from "@/lib/utils";
+import { requestIdentity } from "./identity";
 
 /* ------------------------------------------------------------------ limpeza */
 
@@ -453,4 +454,49 @@ function simulatorReport(month: string): MonthReport {
     },
   ];
   return { month, rooms, totals: sumRooms(rooms) };
+}
+
+/* ----------------------------------------------- perfil público da empresa */
+
+export type CompanyOperation = Readonly<{
+  name: string;
+  slug: string;
+  description: string;
+  websiteUrl: string;
+  logoUrl: string;
+  cleaningContactPhone: string;
+}>;
+
+/**
+ * Lê da tabela, não da view: aqui quem olha é o gestor da própria empresa, e
+ * ele precisa dos campos para editar. A view existe para o público.
+ */
+export async function companyOperation(): Promise<CompanyOperation | null> {
+  if (integrationMode() === "simulator") {
+    return {
+      name: "Ágora Coworking",
+      slug: "agora-coworking",
+      description: "Espaços de trabalho em Joinville.",
+      websiteUrl: "",
+      logoUrl: "",
+      cleaningContactPhone: "",
+    };
+  }
+  const identity = await requestIdentity();
+  if (!identity) return null;
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("companies")
+    .select("name,slug,description,website_url,logo_url,cleaning_contact_phone")
+    .eq("id", identity.companyId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    name: data.name,
+    slug: data.slug,
+    description: data.description ?? "",
+    websiteUrl: data.website_url ?? "",
+    logoUrl: data.logo_url ?? "",
+    cleaningContactPhone: data.cleaning_contact_phone ?? "",
+  };
 }

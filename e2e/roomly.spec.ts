@@ -430,3 +430,21 @@ test("room form lets the owner choose when cleaning is called", async ({
   await grupo.getByLabel("Minutos").fill("30");
   await expect(grupo.getByLabel("Minutos")).toHaveValue("30");
 });
+
+test("owner edits the coworking profile from the settings screen", async ({
+  page,
+}) => {
+  await page.goto("/admin/configuracoes");
+  await expect(
+    page.getByRole("heading", { name: "Perfil do coworking" }),
+  ).toBeVisible();
+  // O formulário aponta para a própria página pública: quem edita precisa saber
+  // onde o texto vai aparecer.
+  await expect(
+    page.getByRole("link", { name: "Ágora Coworking" }),
+  ).toHaveAttribute("href", "/coworkings/agora-coworking");
+
+  await page.getByLabel("Telefone da limpeza").fill("(47) 90000-0000");
+  await page.getByTestId("save-company").click();
+  await expect(page.getByText(/Salvo no simulador|atualizado/)).toBeVisible();
+});

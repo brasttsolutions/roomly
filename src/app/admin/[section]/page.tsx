@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { SearchField } from "@/components/ui/search-field";
 import { Stat, StatGrid } from "@/components/ui/stat";
@@ -13,10 +13,12 @@ import { adminSections, type AdminSection } from "@/lib/admin-sections";
 import { adminRows, adminResourceOptions } from "@/lib/server/admin-data";
 import {
   cleaningQueue,
+  companyOperation,
   dayCalendar,
   effectivePolicies,
   monthReport,
 } from "@/lib/server/admin-views";
+import { CompanyProfileForm } from "@/components/admin/company-profile-form";
 import { CleaningQueue } from "@/components/admin/cleaning-queue";
 import { DayCalendarGrid } from "@/components/admin/day-calendar";
 import {
@@ -180,9 +182,26 @@ async function ReportBody({ month }: { month: string }) {
 }
 
 async function PolicyBody() {
-  const policies = await effectivePolicies();
+  const [policies, company] = await Promise.all([
+    effectivePolicies(),
+    companyOperation(),
+  ]);
   return (
     <>
+      {company && (
+        <Card padding="none" className="mb-6 overflow-hidden">
+          <CardHeader
+            title="Perfil do coworking"
+            hint="Aparece na página pública, para quem vai alugar."
+          />
+          <div className="p-5">
+            <CompanyProfileForm
+              values={company}
+              profileHref={`/coworkings/${company.slug}`}
+            />
+          </div>
+        </Card>
+      )}
       <p className="mb-5 max-w-prose text-subheadline text-text-secondary">
         Estas são as regras em vigor, lidas de onde o sistema realmente as
         aplica. Cada uma é editada no seu próprio lugar — guardar uma cópia aqui
