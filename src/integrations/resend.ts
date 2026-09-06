@@ -83,6 +83,8 @@ export async function sendBookingEmail(input: {
   email: string;
   subject: string;
   content: string;
+  /** Versão rica. O texto continua indo junto, nunca no lugar. */
+  html?: string;
   idempotencyKey: string;
 }): Promise<{ delivered: boolean }> {
   if (emailMode() === "simulator") return { delivered: false };
@@ -94,6 +96,7 @@ export async function sendBookingEmail(input: {
       to: [input.email],
       subject: input.subject,
       text: input.content,
+      ...(input.html ? { html: input.html } : {}),
     },
     { idempotencyKey: `roomly-booking/${input.idempotencyKey}` },
   );

@@ -3,6 +3,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { paymentProvider } from "@/lib/server/payment-provider";
 import { accessProvider } from "@/lib/server/access-provider";
 import { sendBookingEmail } from "@/integrations/resend";
+import { renderBookingConfirmed } from "@/modules/notifications/booking-email";
+import { appBaseUrl, appBaseUrlIsPublic } from "@/lib/app-url";
 import { notifyCleaningAutomation } from "@/integrations/n8n";
 import { logEvent } from "@/lib/server/logger";
 
@@ -168,7 +170,7 @@ async function sendNotification(job: Job, bookingId: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("bookings")
-    .select("start_at,end_at,customers(email,name),rooms(name)")
+    .select("id,start_at,end_at,total_cents,customers(email,name),rooms(name,locations(name,address))")
     .eq("id", bookingId)
     .single();
   if (error || !data) throw new Error("booking_not_found");
@@ -185,11 +187,30 @@ async function sendNotification(job: Job, bookingId: string) {
     .eq("channel", "email")
     .maybeSingle();
   if (existing?.status === "sent") return;
-  const subject = "Reserva confirmada no Roomly";
+  const location = (room as { locations?: { name?: string; address?: string } | null } | null)
+    ?.locations;
+  const email = renderBookingConfirmed({
+    customerName: profile.name ?? "",
+    roomName: room?.name ?? "Sala",
+    unitName: location?.name ?? null,
+    address: location?.address ?? null,
+    startAt: data.start_at,
+    endAt: data.end_at,
+    totalCents: Number(data.total_cents ?? 0),
+    // Sem endereço público, um botão levaria a um link morto na caixa de quem
+    // recebeu — pior do que não ter botão.
+    bookingUrl: appBaseUrlIsPublic()
+      ? `${appBaseUrl()}/minhas-reservas/${data.id}`
+      : null,
+    accessNote:
+      "O código de acesso da sala aparece na sua reserva pouco antes do horário.",
+  });
+  const subject = email.subject;
   const { delivered } = await sendBookingEmail({
     email: profile.email,
     subject,
-    content: `${profile.name}, sua reserva de ${room?.name ?? "sala"} foi confirmada para ${new Date(data.start_at).toLocaleString("pt-BR")}.`,
+    content: email.text,
+    html: email.html,
     idempotencyKey: job.dedupe_key,
   });
   // `pending` quando o provedor é o simulador: a notificação existe e não foi
