@@ -720,6 +720,20 @@ Também ficou registrada uma pendência de segurança:
 
 # 18. Fluxo de limpeza
 
+> **Quem trabalha a fila.** `can_manage_company` exclui justamente quem limpa a
+> sala. A migração `0003` criou `is_company_staff`, que inclui o papel
+> `cleaning`, e a política `cleaning_staff_update`. Provado em
+> `supabase/tests/cleaning_policy.sql`: a equipe avança a própria fila, um
+> cliente da mesma empresa não altera nada, e a limpeza de outro inquilino não
+> alcança a fila. Verificado em 06/09/2026.
+>
+> **Quando o aviso sai.** `rooms.cleaning_notice_offset_minutes` — negativo
+> avisa antes do fim da reserva, 0 no fim, positivo depois. O dono escolhe no
+> cadastro da sala. O job nasce na confirmação da reserva, por gatilho; antes
+> ele só nascia em `booking.complete`, que exige `end_at <= now()`, e por isso
+> avisar antes era impossível.
+
+
 Ao finalizar uma reserva:
 
 ```text
