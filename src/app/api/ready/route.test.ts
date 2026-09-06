@@ -17,6 +17,21 @@ async function faltando() {
 }
 
 describe("prontidão para produção", () => {
+  it("recusa produção rodando em modo simulador", async () => {
+    // Aconteceu de verdade: o primeiro deploy subiu sem
+    // `ROOMLY_INTEGRATION_MODE`, serviu dados de demonstração para a internet
+    // inteira, e a sonda respondia "ready".
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.ROOMLY_INTEGRATION_MODE = "simulator";
+    expect(await faltando()).toContain("production_integration_mode");
+  });
+
+  it("aceita o simulador fora de produção", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    process.env.ROOMLY_INTEGRATION_MODE = "simulator";
+    expect(await faltando()).not.toContain("production_integration_mode");
+  });
+
   it("dá um motivo só para o acesso, não dois contraditórios", async () => {
     // As duas linhas antigas cobriam os dois únicos modos possíveis, então
     // produção respondia 503 para sempre com mensagens que se alternavam.

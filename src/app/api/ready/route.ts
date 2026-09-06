@@ -8,6 +8,16 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const mode = integrationMode();
   if (mode === "simulator") {
+    // Simulador em produção é o pior estado possível: o site responde, mostra
+    // salas de demonstração e confirma reserva que não existe, com pagamento
+    // que ninguém cobrou. O atalho antigo devolvia "pronto" aqui sem olhar o
+    // ambiente, então a sonda dizia que estava tudo bem.
+    if (process.env.NODE_ENV === "production") {
+      return Response.json(
+        { status: "not_ready", missing: ["production_integration_mode"], mode },
+        { status: 503 },
+      );
+    }
     return Response.json({ status: "ready", mode });
   }
   const config = supabasePublicConfig();
