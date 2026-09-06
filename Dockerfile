@@ -36,6 +36,10 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
+# O `server.js` do standalone usa `process.env.HOSTNAME || '0.0.0.0'`, e o Docker
+# preenche HOSTNAME com o id do contêiner. Sem fixar, o servidor deixa de
+# escutar em todas as interfaces e o proxy do host não alcança o app.
+ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
