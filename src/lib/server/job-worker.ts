@@ -34,6 +34,9 @@ const manualReviewErrors = new Set([
   // e-mail sem chave repetia oito vezes com espera crescente — mais de uma hora
   // — antes de aparecer para alguém em "Precisa de atenção".
   "resend_not_configured",
+  // Recusa do provedor por configuração — domínio não verificado, remetente
+  // inválido, chave sem permissão. Repetir não conserta nenhuma delas.
+  "resend_rejected",
   "ttlock_provider_requires_completed_physical_poc",
 ]);
 
@@ -55,7 +58,9 @@ export async function runDueJobs(limit = 10) {
       results.push({ id: job.id, status: "completed" });
     } catch (cause) {
       const code = errorCode(cause);
-      const manualReview = manualReviewErrors.has(code);
+      // O código pode carregar o detalhe do provedor depois de `:`; a decisão
+      // de repetir olha só a família do erro.
+      const manualReview = manualReviewErrors.has(code.split(":")[0]);
       await supabase.rpc("retry_durable_job", {
         target_job_id: job.id,
         target_error_code: code,

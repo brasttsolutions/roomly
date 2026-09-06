@@ -11,6 +11,33 @@ import { emailMode } from "@/lib/modes";
  * `resend_not_configured` é erro de configuração: nenhuma tentativa futura vai
  * corrigi-lo, então o worker o manda direto para revisão em vez de repetir.
  */
+/**
+ * Só estes melhoram sozinhos. "Domínio não verificado" chega como
+ * `validation_error` e não vai mudar de opinião na décima tentativa — antes,
+ * como todo erro do provedor era tratado como passageiro, ele repetia oito
+ * vezes com espera crescente enquanto ninguém era avisado.
+ */
+const TRANSIENT = new Set([
+  "rate_limit_exceeded",
+  "internal_server_error",
+  "application_error",
+]);
+
+function failDelivery(error: {
+  name: string;
+  message: string;
+  statusCode: number | null;
+}): never {
+  const status = error.statusCode ?? 0;
+  const transient =
+    TRANSIENT.has(error.name) || status === 429 || status >= 500;
+  // O nome do provedor viaja junto do código para chegar inteiro em
+  // `durable_jobs.last_error_code` e na tela de logs.
+  throw new Error(
+    `${transient ? "resend_provider_error" : "resend_rejected"}:${error.name}`,
+  );
+}
+
 function credentials() {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
@@ -59,6 +86,6 @@ export async function sendBookingEmail(input: {
     { from, to: [input.email], subject: input.subject, text: input.content },
     { idempotencyKey: `roomly-booking/${input.idempotencyKey}` },
   );
-  if (error) throw new Error("resend_provider_error");
+  if (error) failDelivery(error);
   return { delivered: true };
 }

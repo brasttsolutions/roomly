@@ -78,11 +78,42 @@ describe("provedor de e-mail", () => {
     );
   });
 
-  it("distingue falha do provedor de ausência de configuração", async () => {
+  // Foi o erro real ao apontar o remetente para um domínio ainda não cadastrado
+  // no Resend. Repetir isso oito vezes só adia a descoberta.
+  it("trata domínio não verificado como recusa definitiva", async () => {
     realProvider();
-    send.mockResolvedValue({ error: { message: "domain not verified" } });
+    send.mockResolvedValue({
+      error: {
+        name: "validation_error",
+        statusCode: 403,
+        message: "The brastt.com.br domain is not verified.",
+      },
+    });
     await expect(sendBookingEmail(booking)).rejects.toThrow(
-      "resend_provider_error",
+      "resend_rejected:validation_error",
+    );
+  });
+
+  it("mantém como passageiro o que melhora sozinho", async () => {
+    realProvider();
+    for (const error of [
+      { name: "rate_limit_exceeded", statusCode: 429, message: "slow down" },
+      { name: "internal_server_error", statusCode: 500, message: "oops" },
+    ]) {
+      send.mockResolvedValue({ error });
+      await expect(sendBookingEmail(booking)).rejects.toThrow(
+        `resend_provider_error:${error.name}`,
+      );
+    }
+  });
+
+  it("na dúvida prefere a revisão humana à repetição cega", async () => {
+    realProvider();
+    send.mockResolvedValue({
+      error: { name: "um_erro_novo", statusCode: 400, message: "?" },
+    });
+    await expect(sendBookingEmail(booking)).rejects.toThrow(
+      "resend_rejected:um_erro_novo",
     );
   });
 });

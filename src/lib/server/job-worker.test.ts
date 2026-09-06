@@ -282,6 +282,44 @@ describe("notificação por e-mail", () => {
     });
   });
 
+  it("manda recusa do provedor para revisão com o detalhe preservado", async () => {
+    const supabase = createSupabaseStub({
+      jobs: [notificationJob()],
+      booking: notificationBookingRow(),
+      accessCode: null,
+    });
+    mocks.createSupabaseAdminClient.mockReturnValue(supabase);
+    mocks.sendBookingEmail.mockRejectedValue(
+      new Error("resend_rejected:validation_error"),
+    );
+
+    const result = await runDueJobs();
+
+    expect(result).toEqual([{ id: "job_email", status: "manual_review" }]);
+    expect(supabase.rpcs.retry_durable_job).toHaveBeenCalledWith({
+      target_job_id: "job_email",
+      // O detalhe do provedor sobrevive até a tela de logs.
+      target_error_code: "resend_rejected:validation_error",
+      target_manual_review: true,
+    });
+  });
+
+  it("continua repetindo o que é passageiro", async () => {
+    const supabase = createSupabaseStub({
+      jobs: [notificationJob()],
+      booking: notificationBookingRow(),
+      accessCode: null,
+    });
+    mocks.createSupabaseAdminClient.mockReturnValue(supabase);
+    mocks.sendBookingEmail.mockRejectedValue(
+      new Error("resend_provider_error:rate_limit_exceeded"),
+    );
+
+    const result = await runDueJobs();
+
+    expect(result).toEqual([{ id: "job_email", status: "retry" }]);
+  });
+
   it("grava a notificação como pendente quando o provedor é o simulador", async () => {
     const supabase = createSupabaseStub({
       jobs: [notificationJob()],
