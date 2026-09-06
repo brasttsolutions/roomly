@@ -3,6 +3,7 @@ import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { requireSupabasePublicConfig } from "./config";
+import { hardenedCookie } from "./cookies";
 
 /** Um cliente por requisição evita reprocessar cookies e renovar o token à toa. */
 export const createSupabaseServerClient = cache(
@@ -15,7 +16,7 @@ export const createSupabaseServerClient = cache(
         setAll: (values) => {
           try {
             values.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
+              cookieStore.set(name, value, hardenedCookie(options)),
             );
           } catch {
             // Rendering Server Components cannot write cookies. Actions and
