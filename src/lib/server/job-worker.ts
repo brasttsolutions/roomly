@@ -140,11 +140,16 @@ async function createCleaningRequest(job: Job, bookingId: string) {
   const supabase = createSupabaseAdminClient();
   const { data: booking, error } = await supabase
     .from("bookings")
-    .select("room_id,end_at")
+    .select("room_id,end_at,status,companies(cleaning_contact_phone)")
     .eq("company_id", job.company_id)
     .eq("id", bookingId)
     .single();
   if (error || !booking) throw new Error("booking_not_found");
+  // O aviso pode ser agendado para antes do fim da reunião, então a reserva
+  // ainda pode ser cancelada no meio do caminho. Chamar a limpeza para uma sala
+  // que ninguém usou é pior do que não chamar.
+  if (!["confirmed", "in_progress", "completed"].includes(String(booking.status)))
+    return;
   const { error: insertError } = await supabase
     .from("cleaning_requests")
     .upsert(
@@ -157,7 +162,9 @@ async function createCleaningRequest(job: Job, bookingId: string) {
       { onConflict: "company_id,booking_id", ignoreDuplicates: true },
     );
   if (insertError) throw new Error("cleaning_request_failed");
+  const company = booking.companies as { cleaning_contact_phone?: string } | null;
   await notifyCleaningAutomation({
+    contactPhone: company?.cleaning_contact_phone ?? null,
     bookingId,
     companyId: job.company_id,
     roomId: booking.room_id,

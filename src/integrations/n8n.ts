@@ -2,6 +2,8 @@ import "server-only";
 import { createHmac } from "node:crypto";
 
 export async function notifyCleaningAutomation(input: {
+  /** Telefone da equipe de limpeza, para o fluxo não guardar isso fixo. */
+  contactPhone?: string | null;
   bookingId: string;
   companyId: string;
   roomId: string;
@@ -13,6 +15,7 @@ export async function notifyCleaningAutomation(input: {
   if (!url || !secret) throw new Error("n8n_not_configured");
   const body = JSON.stringify({
     event: "cleaning.requested",
+    contactPhone: input.contactPhone ?? null,
     bookingId: input.bookingId,
     companyId: input.companyId,
     roomId: input.roomId,
