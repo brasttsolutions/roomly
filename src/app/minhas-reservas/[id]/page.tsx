@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MapPin } from "lucide-react";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ExtendBooking } from "@/components/extend-booking";
 import { AccessCredentialCard } from "@/components/ui/access-credential-card";
@@ -83,6 +84,7 @@ export default async function Page({
           </aside>
         </div>
       </main>
+          <SiteFooter />
     </>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LogOut, ShieldCheck } from "lucide-react";
 import { AccountForm, PasswordForm } from "@/components/account-forms";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { signOutEverywhere } from "@/app/entrar/actions";
@@ -70,6 +71,7 @@ export default async function Page() {
           </dl>
         </section>
       </main>
+          <SiteFooter />
     </>
   );
 }

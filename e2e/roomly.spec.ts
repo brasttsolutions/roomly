@@ -448,3 +448,45 @@ test("owner edits the coworking profile from the settings screen", async ({
   await page.getByTestId("save-company").click();
   await expect(page.getByText(/Salvo no simulador|atualizado/)).toBeVisible();
 });
+
+test("rodapé leva às páginas legais e a página de cookies é honesta", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const rodape = page.getByRole("contentinfo");
+  await expect(rodape.getByText("68.790.675/0001-15")).toBeVisible();
+  await rodape.getByRole("link", { name: "Aviso de Privacidade" }).click();
+
+  await expect(page).toHaveURL(/\/privacidade/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Aviso de Privacidade" }),
+  ).toBeVisible();
+  // O controlador identificado é o que torna o documento válido; sem ele a
+  // página é decoração.
+  await expect(
+    page.getByRole("main").getByText("68.790.675 Arthur Schmitt de Freitas"),
+  ).toBeVisible();
+
+  await page.goto("/cookies");
+  // A página existe para dizer que não há rastreamento. Se alguém adicionar um
+  // rastreador e esquecer de atualizar o texto, a afirmação vira mentira, e
+  // este teste é o lembrete de que ela é verificável.
+  await expect(page.getByText(/Não há Google Analytics/)).toBeVisible();
+  await expect(page.getByRole("row")).toHaveCount(3);
+});
+
+test("aba Como funciona explica a reserva do começo ao fim", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "Como funciona" }).first().click();
+
+  await expect(page).toHaveURL(/\/como-funciona/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: /Da escolha do horário/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("listitem").filter({ hasText: "PASSO" })).toHaveCount(6);
+  await page.getByRole("link", { name: "Ver salas disponíveis" }).click();
+  await expect(page).toHaveURL(/localhost:3100\/$|127\.0\.0\.1:3100\/$/);
+});

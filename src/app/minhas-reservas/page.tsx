@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CustomerBookings } from "@/components/customer-bookings";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { customerBookings } from "@/lib/server/customer-bookings";
 export const metadata: Metadata = { title: "Minhas reservas" };
@@ -22,6 +23,7 @@ export default async function Page() {
           history={bookings?.history}
         />
       </main>
+          <SiteFooter />
     </>
   );
 }

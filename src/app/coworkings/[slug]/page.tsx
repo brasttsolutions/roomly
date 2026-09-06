@@ -5,6 +5,7 @@ import { Building2, ExternalLink, MapPin } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { RoomCard } from "@/components/room-card";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { companyProfileBySlug } from "@/lib/server/company-profile";
 
@@ -116,6 +117,7 @@ export default async function CoworkingPage({
           )}
         </section>
       </main>
+          <SiteFooter />
     </>
   );
 }

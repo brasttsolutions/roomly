@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CatalogBrowser } from "@/components/catalog-browser";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { catalogRooms } from "@/lib/server/catalog";
 import { isoDay } from "@/lib/utils";
@@ -32,6 +33,7 @@ export default async function HomePage() {
           today={isoDay()}
         />
       </main>
+          <SiteFooter />
     </>
   );
 }

@@ -31,6 +31,15 @@ export async function SiteHeader() {
           aria-label="Navegação principal"
         >
           <ThemeToggle />
+          {/* Some no celular junto com os rótulos dos outros itens: a barra tem
+              largura para ícone e conta, e "Como funciona" vive no rodapé, que
+              é onde se procura por esse tipo de página. */}
+          <Link
+            href="/como-funciona"
+            className="hidden h-10 items-center rounded-md px-3 text-subheadline font-semibold text-text-secondary hover:bg-surface-page sm:inline-flex"
+          >
+            Como funciona
+          </Link>
           <Link
             href="/minhas-reservas"
             className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-subheadline font-semibold text-text-secondary hover:bg-surface-page"

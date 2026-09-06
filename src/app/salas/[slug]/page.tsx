@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MapPin, UsersRound } from "lucide-react";
 import { BookingFlow } from "@/components/booking-flow";
 import { RoomGallery } from "@/components/room-gallery";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -125,6 +126,7 @@ export default async function RoomPage({
           </div>
         </div>
       </main>
+          <SiteFooter />
     </>
   );
 }
