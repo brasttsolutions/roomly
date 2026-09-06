@@ -374,8 +374,9 @@ cálculo de preço no servidor · `Button` e `Badge` (portados para tokens).
 
 ### Remover
 
-- `/sentry-example-page` e `/api/sentry-example-api` — **depois** de validar o
-  Sentry, para o qual servem.
+- ~~`/sentry-example-page` e `/api/sentry-example-api`~~ — removidas em
+  05/09/2026, depois de o Sentry ser validado: source maps enviados no build e
+  um erro real disparado da página chegou ao painel (6 envelopes, todos 200).
 - Gravação em `localStorage` de `roomly:last-booking` — nada lê.
 - Link duplicado no Room Card (foto e seta para o mesmo destino).
 - Barra de progresso fixa em `72%` na credencial.
