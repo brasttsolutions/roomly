@@ -64,6 +64,26 @@ describe("provedor de e-mail", () => {
     expect(send).not.toHaveBeenCalled();
   });
 
+  it("manda a resposta para uma caixa que existe", async () => {
+    realProvider();
+    process.env.RESEND_REPLY_TO_EMAIL = "contato@example.test";
+    await sendBookingEmail(booking);
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({ replyTo: "contato@example.test" }),
+      expect.anything(),
+    );
+  });
+
+  it("omite o Reply-To quando não há para onde responder", async () => {
+    realProvider();
+    delete process.env.RESEND_REPLY_TO_EMAIL;
+    await sendBookingEmail(booking);
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({ replyTo: undefined }),
+      expect.anything(),
+    );
+  });
+
   it("entrega e informa o envio quando está configurado", async () => {
     realProvider();
     await expect(sendBookingEmail(booking)).resolves.toEqual({

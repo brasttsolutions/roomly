@@ -29,6 +29,7 @@ const to = process.argv[2];
 const mode = process.env.ROOMLY_EMAIL_MODE?.trim() || "simulator";
 const apiKey = process.env.RESEND_API_KEY;
 const from = process.env.RESEND_FROM_EMAIL;
+const replyTo = process.env.RESEND_REPLY_TO_EMAIL?.trim() || undefined;
 
 if (!to) {
   fail(
@@ -41,11 +42,13 @@ if (!to) {
 } else {
   console.log(`remetente: ${from}`);
   console.log(`destino:   ${to}`);
+  console.log(`reply-to:  ${replyTo ?? "(nenhum)"}`);
 
   let result;
   try {
     result = await new Resend(apiKey).emails.send({
       from,
+      replyTo,
       to: [to],
       subject: "Roomly — teste de entrega",
       text: "Se esta mensagem chegou, a credencial do Resend e o remetente estão corretos.\n\nEnviado por scripts/smoke-email.mjs.",

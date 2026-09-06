@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { appBaseUrlIsPublic } from "@/lib/app-url";
 import { accessMode, emailMode, paymentMode } from "@/lib/modes";
 import { integrationMode, supabasePublicConfig } from "@/lib/supabase/config";
 
@@ -34,6 +35,7 @@ export async function GET() {
     process.env.NODE_ENV === "production" &&
       emailMode() !== "resend" &&
       "production_email_provider",
+    !appBaseUrlIsPublic() && "app_base_url_not_public",
   ].filter(Boolean);
   if (missing.length > 0) {
     return Response.json({ status: "not_ready", missing }, { status: 503 });

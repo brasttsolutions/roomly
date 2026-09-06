@@ -42,7 +42,11 @@ function credentials() {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
   if (!apiKey || !from) throw new Error("resend_not_configured");
-  return { apiKey, from };
+  // O remetente costuma ser um endereço sem caixa, num subdomínio de envio.
+  // Sem `Reply-To`, a resposta de quem recebeu volta como erro para a própria
+  // pessoa — ela responde e ninguém lê.
+  const replyTo = process.env.RESEND_REPLY_TO_EMAIL?.trim() || undefined;
+  return { apiKey, from, replyTo };
 }
 
 export async function sendInvitationEmail(input: {
@@ -54,10 +58,11 @@ export async function sendInvitationEmail(input: {
   // mão. Devolver "enviado" aqui seria mentir para quem está olhando a tela.
   if (emailMode() === "simulator")
     return { sent: false as const, reason: "simulator" as const };
-  const { apiKey, from } = credentials();
+  const { apiKey, from, replyTo } = credentials();
   const { error } = await new Resend(apiKey).emails.send(
     {
       from,
+      replyTo,
       to: [input.email],
       subject: "Seu convite para o Roomly",
       text: `Você recebeu acesso ao Roomly. Crie sua conta em: ${input.invitationUrl}\n\nO convite expira em 7 dias.`,
@@ -81,9 +86,15 @@ export async function sendBookingEmail(input: {
   idempotencyKey: string;
 }): Promise<{ delivered: boolean }> {
   if (emailMode() === "simulator") return { delivered: false };
-  const { apiKey, from } = credentials();
+  const { apiKey, from, replyTo } = credentials();
   const { error } = await new Resend(apiKey).emails.send(
-    { from, to: [input.email], subject: input.subject, text: input.content },
+    {
+      from,
+      replyTo,
+      to: [input.email],
+      subject: input.subject,
+      text: input.content,
+    },
     { idempotencyKey: `roomly-booking/${input.idempotencyKey}` },
   );
   if (error) failDelivery(error);

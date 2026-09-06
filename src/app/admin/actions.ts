@@ -6,6 +6,7 @@ import { requestIdentity } from "@/lib/server/identity";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { sendInvitationEmail } from "@/integrations/resend";
+import { appBaseUrl, appBaseUrlIsPublic } from "@/lib/app-url";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   invalidImage,
@@ -13,6 +14,12 @@ import {
   replaceRoomImages,
   uploadRoomImages,
 } from "@/lib/server/room-images";
+
+const INVITE_REASON: Record<string, string> = {
+  simulator: "provedor em simulador",
+  provider_error: "falha no provedor",
+  local_app_url: "NEXT_PUBLIC_APP_URL aponta para esta máquina",
+};
 
 export type AdminActionState = {
   ok: boolean;
@@ -300,14 +307,16 @@ export async function createAdminResource(
       expires_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
     }));
     if (!error) {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-      const invitationUrl = `${baseUrl}/cadastro?convite=${encodeURIComponent(token)}`;
-      const delivery = await sendInvitationEmail({
-        email: parsed.data.email,
-        invitationUrl,
-        idempotencyKey: createHash("sha256").update(token).digest("hex"),
-      });
+      const invitationUrl = `${appBaseUrl()}/cadastro?convite=${encodeURIComponent(token)}`;
+      // Mandar de verdade um link que só abre nesta máquina é pior do que não
+      // mandar: quem recebe não tem como saber que o endereço é inútil.
+      const delivery = appBaseUrlIsPublic()
+        ? await sendInvitationEmail({
+            email: parsed.data.email,
+            invitationUrl,
+            idempotencyKey: createHash("sha256").update(token).digest("hex"),
+          })
+        : ({ sent: false, reason: "local_app_url" } as const);
       revalidatePath("/admin/clientes");
       // Um endereço solto num aviso verde faz quem convidou acreditar que o
       // e-mail saiu. O convite vale de qualquer forma — o que muda é quem
@@ -317,7 +326,7 @@ export async function createAdminResource(
         : {
             ok: true,
             tone: "warning",
-            message: `Convite criado, mas o e-mail não foi enviado (${delivery.reason === "simulator" ? "provedor em simulador" : "falha no provedor"}). Envie este link a ${parsed.data.email}: ${invitationUrl}`,
+            message: `Convite criado, mas o e-mail não foi enviado (${INVITE_REASON[delivery.reason]}). Envie este link a ${parsed.data.email}: ${invitationUrl}`,
           };
     }
   }
