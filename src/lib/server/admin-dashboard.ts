@@ -9,6 +9,13 @@ import { BOOKING_TIME_ZONE, isoDay } from "@/lib/utils";
  * apresentado como "0 reservas hoje, 0% de ocupação", com HTTP 200 e sem log.
  * Quem olha esse número decide preço com ele.
  */
+/**
+ * A partir daqui a fila está parada de verdade, não só ocupada. O worker roda a
+ * cada minuto quando existe agendador; quinze minutos de atraso não é fila
+ * cheia, é ninguém puxando.
+ */
+const QUEUE_STALLED_MS = 15 * 60_000;
+
 function linhas<T>(
   resultado: { data: T[] | null; error: { code?: string } | null },
   consulta: string,
@@ -70,6 +77,7 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
   // Unidades e salas não dependem uma da outra — o recorte por unidade é feito
   // aqui, em memória. Em série custavam duas idas ao banco antes de a primeira
   // consulta de reservas começar.
+  const now = Date.now();
   const [locationResult, roomResult] = await Promise.all([
     supabase
       .from("locations")
@@ -87,8 +95,15 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
   const roomIds = rooms.map((room) => room.id);
   const roomName = new Map(rooms.map((room) => [room.id, room.name]));
 
-  const [weekResult, monthResult, lockResult, cleaningResult, accessResult, jobResult] =
-    await Promise.all([
+  const [
+    weekResult,
+    monthResult,
+    lockResult,
+    cleaningResult,
+    accessResult,
+    jobResult,
+    stalledResult,
+  ] = await Promise.all([
       supabase
         .from("bookings")
         .select("id,start_at,end_at,status,room_id,customers(name)")
@@ -118,10 +133,20 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
         .from("durable_jobs")
         .select("id,kind", { count: "exact" })
         .eq("status", "manual_review"),
+      // A fila só anda se alguém chamar `/api/internal/jobs/run`. Sem
+      // agendador, o pagamento confirma e nada acontece depois: sem código de
+      // porta, sem e-mail, sem hold expirando. As sondas continuam verdes e o
+      // primeiro sinal é o cliente parado na porta.
+      supabase
+        .from("durable_jobs")
+        .select("id,kind,available_at")
+        .eq("status", "pending")
+        .lt("available_at", new Date(now - QUEUE_STALLED_MS).toISOString())
+        .order("available_at")
+        .limit(1),
     ]);
 
   const bookings = linhas(weekResult, "week");
-  const now = Date.now();
 
   const todayRows = bookings.filter(
     (row) =>
@@ -181,6 +206,16 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
       title: "Acesso não liberado",
       detail: `Reserva #${String(access.booking_id).slice(0, 8).toUpperCase()} — o cliente pagou e a porta não abre.`,
       href: "/admin/reservas",
+    });
+  }
+  for (const parado of linhas(stalledResult, "stalled")) {
+    const atraso = Math.round((now - Date.parse(parado.available_at)) / 60_000);
+    pendencies.push({
+      id: "queue-stalled",
+      severity: "danger",
+      title: "Fila de tarefas parada",
+      detail: `${parado.kind} esperando há ${atraso} minutos. Nenhuma reserva vai liberar acesso nem enviar e-mail enquanto isso durar.`,
+      href: "/admin/logs",
     });
   }
   for (const job of linhas(jobResult, "jobs")) {
