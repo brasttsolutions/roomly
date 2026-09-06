@@ -129,7 +129,7 @@ function DialogForm({
         </Alert>
       )}
       {state.ok && state.message && section === "clientes" && (
-        <Alert tone="success" className="mt-4">
+        <Alert tone={state.tone ?? "success"} className="mt-4">
           <span className="break-all">{state.message}</span>
         </Alert>
       )}

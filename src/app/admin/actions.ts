@@ -17,6 +17,8 @@ import {
 export type AdminActionState = {
   ok: boolean;
   message?: string;
+  /** `warning` quando deu certo mas exige uma ação de quem está na tela. */
+  tone?: "success" | "warning";
   error?: string;
 };
 
@@ -307,10 +309,16 @@ export async function createAdminResource(
         idempotencyKey: createHash("sha256").update(token).digest("hex"),
       });
       revalidatePath("/admin/clientes");
-      return {
-        ok: true,
-        message: delivery.sent ? "Convite enviado por e-mail." : invitationUrl,
-      };
+      // Um endereço solto num aviso verde faz quem convidou acreditar que o
+      // e-mail saiu. O convite vale de qualquer forma — o que muda é quem
+      // entrega o link.
+      return delivery.sent
+        ? { ok: true, tone: "success", message: "Convite enviado por e-mail." }
+        : {
+            ok: true,
+            tone: "warning",
+            message: `Convite criado, mas o e-mail não foi enviado (${delivery.reason === "simulator" ? "provedor em simulador" : "falha no provedor"}). Envie este link a ${parsed.data.email}: ${invitationUrl}`,
+          };
     }
   }
   if (error) return { ok: false, error: "Não foi possível salvar o cadastro." };

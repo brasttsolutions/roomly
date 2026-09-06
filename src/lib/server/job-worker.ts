@@ -30,6 +30,10 @@ const manualReviewErrors = new Set([
   "lock_not_found",
   "notification_destination_not_found",
   "payment_not_found",
+  // Erro de configuração não melhora com nova tentativa: sem isto, um envio de
+  // e-mail sem chave repetia oito vezes com espera crescente — mais de uma hora
+  // — antes de aparecer para alguém em "Precisa de atenção".
+  "resend_not_configured",
   "ttlock_provider_requires_completed_physical_poc",
 ]);
 
@@ -176,16 +180,22 @@ async function sendNotification(job: Job, bookingId: string) {
     .eq("channel", "email")
     .maybeSingle();
   if (existing?.status === "sent") return;
-  await sendBookingEmail({
+  const subject = "Reserva confirmada no Roomly";
+  const { delivered } = await sendBookingEmail({
     email: profile.email,
-    subject: "Reserva confirmada no Roomly",
+    subject,
     content: `${profile.name}, sua reserva de ${room?.name ?? "sala"} foi confirmada para ${new Date(data.start_at).toLocaleString("pt-BR")}.`,
     idempotencyKey: job.dedupe_key,
   });
+  // `pending` quando o provedor é o simulador: a notificação existe e não foi
+  // entregue. Gravar `sent` com data de envio faria o painel afirmar uma
+  // entrega que ninguém fez.
+  const status = delivered ? "sent" : "pending";
+  const sentAt = delivered ? new Date().toISOString() : null;
   if (existing) {
     await supabase
       .from("notifications")
-      .update({ status: "sent", sent_at: new Date().toISOString() })
+      .update({ status, sent_at: sentAt })
       .eq("id", existing.id);
   } else {
     await supabase.from("notifications").insert({
@@ -194,10 +204,12 @@ async function sendNotification(job: Job, bookingId: string) {
       type: String(job.payload.template ?? "booking-confirmed"),
       channel: "email",
       destination: profile.email,
-      subject: "Reserva confirmada no Roomly",
-      content: "Confirmação de reserva enviada por e-mail.",
-      status: "sent",
-      sent_at: new Date().toISOString(),
+      subject,
+      content: delivered
+        ? "Confirmação de reserva enviada por e-mail."
+        : "Confirmação de reserva pendente: provedor de e-mail em simulador.",
+      status,
+      sent_at: sentAt,
     });
   }
 }

@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { accessMode, integrationMode, paymentMode, readMode } from "./modes";
+import {
+  accessMode,
+  emailMode,
+  integrationMode,
+  paymentMode,
+  readMode,
+} from "./modes";
 
 const original = { ...process.env };
 afterEach(() => {
@@ -18,9 +24,11 @@ describe("modos de integração", () => {
     process.env.ROOMLY_PAYMENT_MODE = "mercado_pago";
     process.env.ROOMLY_ACCESS_MODE = "ttlock";
     process.env.ROOMLY_INTEGRATION_MODE = "supabase";
+    process.env.ROOMLY_EMAIL_MODE = "resend";
     expect(paymentMode()).toBe("mercado_pago");
     expect(accessMode()).toBe("ttlock");
     expect(integrationMode()).toBe("supabase");
+    expect(emailMode()).toBe("resend");
   });
 
   // O motivo de tudo isto: `simulador` era o valor real do `.env.local`, e o

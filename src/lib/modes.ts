@@ -14,6 +14,7 @@ const MODES = {
   ROOMLY_INTEGRATION_MODE: ["simulator", "supabase"],
   ROOMLY_PAYMENT_MODE: ["simulator", "mercado_pago"],
   ROOMLY_ACCESS_MODE: ["simulator", "ttlock"],
+  ROOMLY_EMAIL_MODE: ["simulator", "resend"],
 } as const;
 
 type ModeName = keyof typeof MODES;
@@ -40,7 +41,9 @@ export function readMode<N extends ModeName>(name: N): ModeOf<N> {
 export type IntegrationMode = ModeOf<"ROOMLY_INTEGRATION_MODE">;
 export type PaymentMode = ModeOf<"ROOMLY_PAYMENT_MODE">;
 export type AccessMode = ModeOf<"ROOMLY_ACCESS_MODE">;
+export type EmailMode = ModeOf<"ROOMLY_EMAIL_MODE">;
 
 export const integrationMode = () => readMode("ROOMLY_INTEGRATION_MODE");
 export const paymentMode = () => readMode("ROOMLY_PAYMENT_MODE");
 export const accessMode = () => readMode("ROOMLY_ACCESS_MODE");
+export const emailMode = () => readMode("ROOMLY_EMAIL_MODE");

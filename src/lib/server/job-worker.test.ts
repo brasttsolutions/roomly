@@ -31,7 +31,7 @@ describe("job worker", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.paymentProvider.mockReturnValue({ refund: vi.fn() });
-    mocks.sendBookingEmail.mockResolvedValue(undefined);
+    mocks.sendBookingEmail.mockResolvedValue({ delivered: true });
     mocks.notifyCleaningAutomation.mockResolvedValue(undefined);
   });
 
@@ -217,6 +217,27 @@ function createRefundSupabaseStub() {
   };
 }
 
+function notificationBookingRow() {
+  return {
+    company_id: "company_1",
+    start_at: "2030-01-10T14:00:00.000Z",
+    end_at: "2030-01-10T15:00:00.000Z",
+    profiles: { email: "cliente@example.test", name: "Marina" },
+    rooms: { name: "Sala Executiva" },
+  };
+}
+
+function notificationJob() {
+  return {
+    id: "job_email",
+    company_id: "company_1",
+    kind: "notification.send",
+    payload: { bookingId: "booking_1" },
+    attempts: 0,
+    dedupe_key: "notification.send:booking_1",
+  };
+}
+
 function bookingRow() {
   return {
     company_id: "company_1",
@@ -230,6 +251,75 @@ function bookingRow() {
   };
 }
 
+
+describe("notificação por e-mail", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.notifyCleaningAutomation.mockResolvedValue(undefined);
+  });
+
+  // Falta de credencial não melhora esperando. Antes disto o job repetia oito
+  // vezes com espera crescente — mais de uma hora — antes de aparecer para
+  // alguém em "Precisa de atenção".
+  it("manda configuração ausente direto para revisão, sem repetir", async () => {
+    const supabase = createSupabaseStub({
+      jobs: [notificationJob()],
+      booking: notificationBookingRow(),
+      accessCode: null,
+    });
+    mocks.createSupabaseAdminClient.mockReturnValue(supabase);
+    mocks.sendBookingEmail.mockRejectedValue(
+      new Error("resend_not_configured"),
+    );
+
+    const result = await runDueJobs();
+
+    expect(result).toEqual([{ id: "job_email", status: "manual_review" }]);
+    expect(supabase.rpcs.retry_durable_job).toHaveBeenCalledWith({
+      target_job_id: "job_email",
+      target_error_code: "resend_not_configured",
+      target_manual_review: true,
+    });
+  });
+
+  it("grava a notificação como pendente quando o provedor é o simulador", async () => {
+    const supabase = createSupabaseStub({
+      jobs: [notificationJob()],
+      booking: notificationBookingRow(),
+      accessCode: null,
+    });
+    mocks.createSupabaseAdminClient.mockReturnValue(supabase);
+    mocks.sendBookingEmail.mockResolvedValue({ delivered: false });
+
+    const result = await runDueJobs();
+
+    expect(result).toEqual([{ id: "job_email", status: "completed" }]);
+    expect(supabase.tables.notifications.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destination: "cliente@example.test",
+        status: "pending",
+        sent_at: null,
+      }),
+    );
+  });
+
+  it("registra o envio quando o provedor entregou", async () => {
+    const supabase = createSupabaseStub({
+      jobs: [notificationJob()],
+      booking: notificationBookingRow(),
+      accessCode: null,
+    });
+    mocks.createSupabaseAdminClient.mockReturnValue(supabase);
+    mocks.sendBookingEmail.mockResolvedValue({ delivered: true });
+
+    await runDueJobs();
+
+    const [row] = supabase.tables.notifications.insert.mock.calls[0];
+    expect(row.status).toBe("sent");
+    expect(row.sent_at).toEqual(expect.any(String));
+  });
+});
+
 function createSupabaseStub(input: {
   jobs: Array<Record<string, unknown>>;
   booking: Record<string, unknown> | null;
@@ -238,6 +328,7 @@ function createSupabaseStub(input: {
     status: string;
     external_code_id: string | null;
   } | null;
+  notification?: Record<string, unknown> | null;
 }) {
   const rpcs = {
     claim_durable_jobs: vi
@@ -259,6 +350,11 @@ function createSupabaseStub(input: {
     },
     durable_jobs: {
       upsert: vi.fn().mockResolvedValue({ error: null }),
+    },
+    notifications: {
+      select: vi.fn(() => selectChain(input.notification ?? null, false)),
+      insert: vi.fn().mockResolvedValue({ error: null }),
+      update: vi.fn(() => updateChain()),
     },
   };
 

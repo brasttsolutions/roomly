@@ -764,9 +764,23 @@ e-mail remetente
 Variáveis:
 
 ```env
+ROOMLY_EMAIL_MODE=simulator   # simulator | resend
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=
 ```
+
+> **O envio real é escolha explícita.** Em `simulator` nada é enviado e a
+> notificação fica gravada como `pending` — a verdade, em vez de `sent` com data
+> inventada; o convite devolve o link para quem convidou entregar à mão. Em
+> `resend` sem credencial, `resend_not_configured` vai **direto para revisão
+> manual**, sem as oito repetições com espera crescente que antes escondiam o
+> problema por mais de uma hora.
+>
+> Para ligar: verificar o domínio no Resend, criar a API Key, preencher
+> `RESEND_API_KEY` e `RESEND_FROM_EMAIL` no `.env.local` (um endereço **do
+> domínio verificado**) e trocar `ROOMLY_EMAIL_MODE` para `resend`.
+> `/api/ready` cobra as duas variáveis assim que o modo for `resend`, e cobra o
+> próprio modo em produção (`production_email_provider`).
 
 Fluxos importantes para testar:
 
