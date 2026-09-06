@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "pstack-skill": {
+      "source": "fabricioctelles/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pstack-skill/SKILL.md",
+      "computedHash": "ee6e11c99b67daae33a4335b99b2122ac476fd9fc57a69e39d5142fc753c8f12"
+    },
     "ultimate-design-system-master": {
       "source": "fabricioctelles/skills",
       "sourceType": "github",
