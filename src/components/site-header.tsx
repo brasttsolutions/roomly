@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, CircleUserRound, LayoutDashboard } from "lucide-react";
+import { requestCustomer } from "@/lib/server/customer";
 import { requestIdentity } from "@/lib/server/identity";
 import { roleLabel } from "@/lib/roles";
 import { Brand } from "./brand";
@@ -7,8 +8,20 @@ import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 
 export async function SiteHeader() {
-  const identity = await requestIdentity();
+  // Duas identidades, e a pessoa pode ter as duas: quem trabalha num coworking
+  // também aluga sala. `requestIdentity` só enxerga quem tem perfil de equipe —
+  // depois que o cliente virou identidade de plataforma, sem `profiles`, o
+  // cabeçalho passou a mostrar "Entrar" para quem estava logado.
+  const [identity, customer] = await Promise.all([
+    requestIdentity(),
+    requestCustomer(),
+  ]);
   const canManage = identity ? identity.role !== "customer" : false;
+  const account = identity
+    ? { name: identity.name, email: identity.email, role: roleLabel(identity.role) }
+    : customer
+      ? { name: customer.name, email: customer.email, role: "Cliente" }
+      : null;
   return (
     <header className="sticky top-0 z-40 border-b border-border-subtle bg-surface-raised/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
@@ -35,11 +48,11 @@ export async function SiteHeader() {
               <span className="hidden sm:inline">Área administrativa</span>
             </Link>
           )}
-          {identity ? (
+          {account ? (
             <UserMenu
-              name={identity.name}
-              email={identity.email}
-              roleLabel={roleLabel(identity.role)}
+              name={account.name}
+              email={account.email}
+              roleLabel={account.role}
               canManage={canManage}
             />
           ) : (
