@@ -35,5 +35,6 @@ jobs:
       - run: npx supabase start
       - run: npx supabase db reset --local
       - run: npx supabase test db --local
+      - run: npm run test:embeds
       - if: always()
         run: npx supabase stop --no-backup
