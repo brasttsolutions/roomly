@@ -235,6 +235,59 @@ function RoomFields({
       </div>
       <fieldset className="rounded-md border border-border-subtle p-3">
         <legend className="px-1 text-caption font-bold uppercase text-text-secondary">
+          Sobre o espaço
+        </legend>
+        <Field
+          label="Tamanho em m² (opcional)"
+          name="sizeSqm"
+          type="number"
+          required={false}
+          defaultValue={record?.sizeSqm}
+        />
+        <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+          <Checkbox
+            name="hasWifi"
+            label="Wi-Fi"
+            defaultChecked={record?.hasWifi === "on"}
+          />
+          <Checkbox
+            name="hasAirConditioning"
+            label="Ar-condicionado"
+            defaultChecked={record?.hasAirConditioning === "on"}
+          />
+          <Checkbox
+            name="hasCoffee"
+            label="Café / água"
+            defaultChecked={record?.hasCoffee === "on"}
+          />
+          <Checkbox
+            name="hasParking"
+            label="Estacionamento"
+            defaultChecked={record?.hasParking === "on"}
+          />
+        </div>
+        <div className="mt-3">
+          <Field
+            label="Link do mapa (opcional)"
+            name="mapUrl"
+            type="url"
+            required={false}
+            defaultValue={record?.mapUrl}
+          />
+        </div>
+        <label className="mt-3 block text-subheadline font-bold">
+          Instruções de chegada (opcional)
+          <textarea
+            name="arrivalInstructions"
+            rows={3}
+            defaultValue={record?.arrivalInstructions}
+            placeholder="Como encontrar a sala: andar, recepção, o que dizer na entrada."
+            className="mt-2 w-full rounded-md border border-[var(--border-control)] p-3 font-normal"
+          />
+        </label>
+      </fieldset>
+      <fieldset className="rounded-md border border-border-subtle p-3">
+        <legend className="px-1 text-caption font-bold uppercase text-text-secondary">
           Acionar a limpeza
         </legend>
         <div className="grid grid-cols-[110px_1fr] items-end gap-3">

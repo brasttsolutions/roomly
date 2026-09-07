@@ -61,7 +61,43 @@ const roomSchema = z.object({
   cleaningNoticeWhen: z.enum(["antes", "fim", "depois"]).default("fim"),
   randomImages: checkbox,
   hasCamera: checkbox,
+  // Campos descritivos do espaço. Todos opcionais: campo em branco no formulário
+  // vira nulo/false no banco, sem obrigar o dono a preencher tudo de uma vez.
+  sizeSqm: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : v),
+    z.coerce.number().positive().max(10000).optional(),
+  ),
+  hasWifi: checkbox,
+  hasAirConditioning: checkbox,
+  hasCoffee: checkbox,
+  hasParking: checkbox,
+  mapUrl: z
+    .union([z.literal(""), z.url({ protocol: /^https?$/ }).max(500)])
+    .optional()
+    .default(""),
+  arrivalInstructions: z.string().trim().max(2000).optional().default(""),
 });
+
+/** Colunas descritivas do espaço, iguais na criação e na edição da sala. */
+function amenityColumns(d: {
+  sizeSqm?: number;
+  hasWifi?: "on";
+  hasAirConditioning?: "on";
+  hasCoffee?: "on";
+  hasParking?: "on";
+  mapUrl?: string;
+  arrivalInstructions?: string;
+}) {
+  return {
+    size_sqm: d.sizeSqm ?? null,
+    has_wifi: d.hasWifi === "on",
+    has_air_conditioning: d.hasAirConditioning === "on",
+    has_coffee: d.hasCoffee === "on",
+    has_parking: d.hasParking === "on",
+    map_url: d.mapUrl ? d.mapUrl : null,
+    arrival_instructions: d.arrivalInstructions ? d.arrivalInstructions : null,
+  };
+}
 
 const lockSchema = z.object({
   resource: z.literal("fechaduras"),
@@ -159,6 +195,7 @@ export async function updateAdminResource(
         capacity: parsed.data.capacity,
         hourly_price_cents: parsed.data.hourlyPriceCents,
         cleaning_notice_offset_minutes: cleaningNoticeOffset(parsed.data),
+        ...amenityColumns(parsed.data),
         status: parsed.data.status,
         updated_at: new Date().toISOString(),
       })
@@ -289,6 +326,7 @@ export async function createAdminResource(
         capacity: parsed.data.capacity,
         hourly_price_cents: parsed.data.hourlyPriceCents,
         cleaning_notice_offset_minutes: cleaningNoticeOffset(parsed.data),
+        ...amenityColumns(parsed.data),
       })
       .select("id")
       .single();

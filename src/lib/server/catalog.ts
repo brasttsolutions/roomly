@@ -15,7 +15,7 @@ export async function catalogRooms(): Promise<readonly Room[]> {
   const { data, error } = await supabase
     .from("rooms")
     .select(
-      "id,slug,name,description,capacity,hourly_price_cents,companies(name),locations(name,address,city,state),room_images(url,position),room_feature_relations(room_features(name))",
+      "id,slug,name,description,capacity,hourly_price_cents,size_sqm,has_wifi,has_air_conditioning,has_coffee,has_parking,map_url,arrival_instructions,companies(name),locations(name,address,city,state),room_images(url,position),room_feature_relations(room_features(name))",
     )
     .eq("status", "active")
     .order("name");
@@ -72,5 +72,12 @@ function mapRoom(row: Record<string, unknown>): Room {
         ?.map((relation) => relation.room_features?.name)
         .filter((name): name is string => Boolean(name)) ?? [],
     accent: demoRooms.find((room) => room.slug === slug)?.accent ?? "green",
+    sizeSqm: row.size_sqm != null ? Number(row.size_sqm) : undefined,
+    hasWifi: Boolean(row.has_wifi),
+    hasAirConditioning: Boolean(row.has_air_conditioning),
+    hasCoffee: Boolean(row.has_coffee),
+    hasParking: Boolean(row.has_parking),
+    mapUrl: (row.map_url as string | null) ?? undefined,
+    arrivalInstructions: (row.arrival_instructions as string | null) ?? undefined,
   };
 }

@@ -114,6 +114,7 @@ export default async function RoomPage({
                   ))}
                 </div>
               </div>
+              <RoomSpace room={room} />
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 <Spec label="Acesso" value="Código temporário" />
                 <Spec label="Cancelamento" value="Grátis até 24h antes" />
@@ -170,6 +171,72 @@ function retomarSelecao({
         ? minutos
         : undefined,
   };
+}
+
+/**
+ * "Sobre o espaço": os campos descritivos que o dono preenche no painel. Só
+ * aparece o que existe — sala sem nenhum desses campos não ganha uma seção
+ * vazia. As comodidades listam apenas as marcadas como presentes.
+ */
+function RoomSpace({
+  room,
+}: {
+  room: {
+    sizeSqm?: number;
+    hasWifi?: boolean;
+    hasAirConditioning?: boolean;
+    hasCoffee?: boolean;
+    hasParking?: boolean;
+    mapUrl?: string;
+    arrivalInstructions?: string;
+  };
+}) {
+  const comodidades = [
+    room.hasWifi && "Wi-Fi",
+    room.hasAirConditioning && "Ar-condicionado",
+    room.hasCoffee && "Café / água",
+    room.hasParking && "Estacionamento",
+  ].filter((item): item is string => Boolean(item));
+
+  const temAlgo =
+    room.sizeSqm ||
+    comodidades.length > 0 ||
+    room.mapUrl ||
+    room.arrivalInstructions;
+  if (!temAlgo) return null;
+
+  return (
+    <div className="mt-6 border-b border-border-subtle pb-5">
+      <h2 className="mb-3 text-subheadline font-bold">Sobre o espaço</h2>
+      <div className="flex flex-wrap gap-2">
+        {room.sizeSqm ? <Badge>{room.sizeSqm} m²</Badge> : null}
+        {comodidades.map((item) => (
+          <Badge key={item}>{item}</Badge>
+        ))}
+      </div>
+      {room.arrivalInstructions && (
+        <div className="mt-4">
+          <p className="text-caption font-bold uppercase text-[var(--text-secondary)]">
+            Como chegar
+          </p>
+          <p className="mt-1 max-w-2xl whitespace-pre-line text-subheadline leading-6 text-text-secondary">
+            {room.arrivalInstructions}
+          </p>
+        </div>
+      )}
+      {room.mapUrl && (
+        <a
+          href={room.mapUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-flex items-center gap-1.5 text-subheadline font-bold text-text-link hover:underline"
+        >
+          <MapPin size={15} aria-hidden="true" />
+          Ver no mapa
+        </a>
+      )}
+    </div>
+  );
 }
 
 function Spec({ label, value }: { label: string; value: string }) {

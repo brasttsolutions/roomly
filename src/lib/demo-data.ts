@@ -15,6 +15,14 @@ export type Room = Readonly<{
   floor: string;
   features: readonly string[];
   accent: "green" | "coral" | "blue";
+  /** Campos descritivos do espaço. Opcionais: nem toda sala tem todos. */
+  sizeSqm?: number;
+  hasWifi?: boolean;
+  hasAirConditioning?: boolean;
+  hasCoffee?: boolean;
+  hasParking?: boolean;
+  mapUrl?: string;
+  arrivalInstructions?: string;
 }>;
 
 export const rooms: readonly Room[] = [
@@ -33,6 +41,13 @@ export const rooms: readonly Room[] = [
     floor: "2º andar",
     features: ['TV 65"', "Videoconferência", "Lousa", "Café", "Wi-Fi"],
     accent: "green",
+    sizeSqm: 24,
+    hasWifi: true,
+    hasAirConditioning: true,
+    hasCoffee: true,
+    hasParking: true,
+    arrivalInstructions:
+      "2º andar, torre A. Fale na recepção que tem reserva pelo Roomly; a sala fica à direita do elevador.",
   },
   {
     id: "30000000-0000-4000-8000-000000000002",
