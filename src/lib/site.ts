@@ -22,6 +22,8 @@ export const socials: ReadonlyArray<{
   name: string;
   href: string;
 }> = [
-  { name: "Instagram", href: "" },
+  { name: "Instagram", href: "https://www.instagram.com/brastt.solutions/" },
+  // LinkedIn em criação. Fica aqui vazio de propósito: no dia em que existir,
+  // basta colar o endereço e ele aparece.
   { name: "LinkedIn", href: "" },
 ].filter((perfil) => perfil.href.trim().length > 0);

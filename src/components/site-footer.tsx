@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, ShieldCheck } from "lucide-react";
+import { ExternalLink, Mail, ShieldCheck } from "lucide-react";
 import { site, socials } from "@/lib/site";
 import { Brand } from "./brand";
 
@@ -35,9 +35,14 @@ export function SiteFooter() {
                       href={perfil.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex h-9 items-center rounded-md border border-border-subtle px-3 text-caption font-semibold text-text-secondary hover:bg-surface-page"
+                      aria-label={`${perfil.name} do Roomly (abre em nova aba)`}
+                      className="inline-flex h-9 items-center gap-2 rounded-md border border-border-subtle px-3 text-caption font-semibold text-text-secondary hover:bg-surface-page hover:text-text-link"
                     >
                       {perfil.name}
+                      {/* O ícone diz que sai do Roomly; o rótulo diz para onde
+                          vai. O lucide não traz mais ícones de marca, e não
+                          vale inlinear SVG de terceiro por causa disso. */}
+                      <ExternalLink size={13} aria-hidden="true" />
                     </a>
                   </li>
                 ))}
