@@ -19,8 +19,9 @@ export default async function Page() {
           </p>
         </div>
         <CustomerBookings
-          current={bookings?.current ?? null}
-          history={bookings?.history}
+          upcoming={bookings?.upcoming ?? []}
+          completed={bookings?.completed ?? []}
+          cancelled={bookings?.cancelled ?? []}
         />
       </main>
           <SiteFooter />
