@@ -44,6 +44,11 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# O serviço de cron roda a mesma imagem com outro comando de partida. Sem esta
+# linha ele sobe e morre em "arquivo não encontrado", porque a saída standalone
+# do Next só traz o servidor. O script usa apenas `fetch`, que é nativo do
+# Node 22, então nenhuma dependência precisa vir junto.
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/run-jobs.mjs ./scripts/run-jobs.mjs
 USER nextjs
 EXPOSE 3000
 # Vivacidade, não prontidão. `/api/ready` responde 503 de propósito enquanto a
