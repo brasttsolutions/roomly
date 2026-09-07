@@ -1727,3 +1727,54 @@ instância local, 3 (banco) por suíte pgTAP verde depois do `db push`.
   enviado; decisão do dono.
 - Verificação dinâmica dos achados 8/9/10 no remoto exigiria dois inquilinos de
   teste; cobertos por leitura + suíte verde.
+
+# 35. Polimento de produto e novas features (2026-09-07)
+
+Sequência de ondas de acabamento, cada uma verificada (`npm run verify`) e
+commitada. Todas no `origin/master`.
+
+## Páginas e rotas novas
+- `/termos` — Termos de Uso (rascunho com padrões, marcado para revisão).
+- `/cancelamento` — Política de Cancelamento e Reembolso (grátis até 24h antes =
+  integral; menos de 24h ou no-show = sem reembolso; extensão conforme
+  disponibilidade). Rascunho para revisão jurídica.
+- `/faq` — perguntas frequentes em acordeão.
+- `/para-empresas` — landing para coworkings, no menu do cabeçalho.
+- `/recuperar` e `/redefinir` — fluxo de "esqueci minha senha" (usa o reset do
+  Supabase; a rota `/auth/confirmar` estabelece a sessão de recuperação).
+- `/minhas-reservas/[id]/comprovante` — comprovante de pagamento, imprime/salva
+  em PDF pelo navegador.
+
+## Mudanças de produto
+- **Card da sala e página** mostram o coworking (`companies(name)`); fim do
+  rótulo genérico "Unidade".
+- **Selos de confiança** ao lado da reserva; **rodapé** com identidade jurídica.
+- **Login/cadastro**: mostrar/ocultar senha, validação, loading, termos à vista.
+- **Área do Cliente** (`/minhas-reservas`): card-herói "Próxima reserva" (estado
+  do acesso e janela — nunca o código cheio, que fica só na ficha), abas
+  Próximas/Concluídas/Canceladas, "como chegar", adicionar ao calendário (.ics),
+  suporte, cancelar.
+- **Campos da sala** (migração 0013): m², Wi-Fi, ar, café, estacionamento, mapa,
+  instruções de chegada — no formulário de admin e na página da sala.
+- **Extensão em 1 clique**: cada duração é um botão com preço; a sala define o
+  limite `extension_cutoff_minutes` (migração 0014, padrão 5) a partir do qual a
+  extensão fecha perto do fim.
+
+## Migrações — estado do `db push`
+- 0011, 0012, 0013: **aplicadas no remoto** pelo dono.
+- **0014 (extension_cutoff): PENDENTE de `db push`.** Sem ela, o campo de limite
+  de extensão não existe em produção. Testes pgTAP: `extension_cutoff.sql`,
+  `room_amenities.sql`.
+
+## Limpeza de dados (remoto)
+- Empresa renomeada de "Ágora Coworking (demonstração)" → "Ágora Coworking" (CNPJ
+  ainda o falso do seed; o dono ajusta pelo painel).
+- Empresa de teste "Carmem" removida (perfil, membro e usuário de auth).
+
+## Pendências do dono / decisões em aberto
+- `db push` da 0014.
+- Dados no painel: endereço da unidade Kromi (está "Rua helga", minúsculo),
+  fotos, m²/comodidades por sala, nome/CNPJ real da empresa.
+- Salas de demonstração (Sala Executiva, Atelier, Foco) ainda no catálogo, por
+  escolha do dono ("deixar por enquanto"); desativar quando quiser.
+- Não feitos por decisão: CSP e checagem de imagem por magic-byte.
