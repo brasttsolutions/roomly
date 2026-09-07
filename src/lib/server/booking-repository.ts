@@ -98,8 +98,17 @@ class SupabaseBookingRepository implements BookingRepository {
       target_payment_method: input.paymentMethod,
       target_idempotency_key: input.idempotencyKey,
     });
-    if (error && error.code !== "23505") {
-      throw new Error(`payment_record_failed:${error.code ?? "unknown"}`);
+    // A retentativa idempotente legítima (mesma reserva + mesmo pagamento +
+    // mesma chave) agora é resolvida DENTRO da função, que devolve a linha
+    // existente sem erro. Por isso paramos de engolir `23505` cego: um erro aqui
+    // é real — `payment_id_conflict` (id de pagamento de OUTRA reserva),
+    // `payment_already_pending` (a reserva já tem pendência) ou falha de acesso.
+    // Tratar qualquer um deles como sucesso era o que deixava o webhook de um
+    // terceiro sequestrar a reserva.
+    if (error) {
+      throw new Error(
+        `payment_record_failed:${error.code ?? "unknown"}:${error.message ?? ""}`,
+      );
     }
   }
 

@@ -60,7 +60,14 @@ export async function createBooking(
 ) {
   const hold = await repository.createHold(command);
   if (hold.duplicate && hold.booking.paymentId) {
-    return { ...hold, checkout: `existing:${hold.booking.paymentId}` };
+    // Já existe cobrança para este hold. Sem consultar o provedor não se sabe se
+    // ela foi aprovada, então o status seguro é "pendente": a tela nunca deve
+    // cravar "confirmada" só porque a tentativa é repetida.
+    return {
+      ...hold,
+      status: "pending" as const,
+      checkout: `existing:${hold.booking.paymentId}`,
+    };
   }
 
   let charge;
@@ -90,6 +97,9 @@ export async function createBooking(
   return {
     booking: { ...hold.booking, paymentId: charge.externalId },
     duplicate: hold.duplicate,
+    // O status real da cobrança sobe até a tela: PIX nasce "pending" e só o
+    // webhook confirma; cartão pode voltar "approved" ou "rejected" na hora.
+    status: charge.status,
     checkout: charge.checkoutReference,
   };
 }

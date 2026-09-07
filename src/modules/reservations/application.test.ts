@@ -60,6 +60,35 @@ describe("booking application", () => {
     expect(result.checkout).toBe("pix_1");
   });
 
+  it("propaga o status real da cobrança para a tela decidir o que dizer", async () => {
+    const { repository, paymentProvider } = dependencies();
+    const result = await createBooking(repository, paymentProvider, command);
+    // PIX nasce pendente: a tela não pode cravar "confirmada".
+    expect(result.status).toBe("pending");
+  });
+
+  it("propaga aprovação imediata do cartão", async () => {
+    const { repository, paymentProvider } = dependencies();
+    vi.mocked(paymentProvider.createCharge).mockResolvedValue({
+      externalId: "payment_2",
+      status: "approved",
+      checkoutReference: "confirmed:payment_2",
+    });
+    const result = await createBooking(repository, paymentProvider, command);
+    expect(result.status).toBe("approved");
+  });
+
+  it("não confirma quando o cartão é recusado", async () => {
+    const { repository, paymentProvider } = dependencies();
+    vi.mocked(paymentProvider.createCharge).mockResolvedValue({
+      externalId: "payment_3",
+      status: "rejected",
+      checkoutReference: "payment:payment_3",
+    });
+    const result = await createBooking(repository, paymentProvider, command);
+    expect(result.status).toBe("rejected");
+  });
+
   it("does not create another charge for a completed idempotent attempt", async () => {
     const { repository, paymentProvider } = dependencies(true, "payment_1");
     const result = await createBooking(repository, paymentProvider, command);

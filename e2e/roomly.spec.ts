@@ -53,7 +53,7 @@ async function pickFreeDay(page: Page, edge: "first" | "last" = "first") {
   await (edge === "first" ? days.first() : days.last()).click();
 }
 
-test("customer completes a simulated booking and receives access", async ({
+test("customer completes a simulated PIX booking and gets the copy-paste code", async ({
   page,
 }, testInfo) => {
   const slug =
@@ -65,11 +65,15 @@ test("customer completes a simulated booking and receives access", async ({
     page.getByRole("heading", { name: "Como prefere pagar?" }),
   ).toBeVisible();
   await page.getByTestId("confirm-payment").click();
-  await expect(page.getByTestId("booking-confirmation")).toBeVisible();
-  // A confirmação não mostra código: a fechadura só é provisionada depois da
-  // aprovação do pagamento, e o código real vive na ficha da reserva.
-  await expect(page.getByText("Código de acesso")).toBeVisible();
-  await expect(page.getByText(/Liberado das \d{2}:\d{2}/)).toBeVisible();
+  // PIX nasce pendente: a tela NÃO pode dizer "confirmada" antes do pagamento.
+  // Ela mostra o copia-e-cola e explica que a confirmação vem depois.
+  await expect(page.getByTestId("booking-pix")).toBeVisible();
+  await expect(page.getByText("Aguardando pagamento")).toBeVisible();
+  await expect(page.getByTestId("pix-code")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Pague o PIX para confirmar" })).toBeVisible();
+  // O anúncio falso de "Reserva confirmada / PIX aprovado" não pode aparecer.
+  await expect(page.getByText("Reserva confirmada")).toHaveCount(0);
+  await expect(page.getByText("PIX aprovado")).toHaveCount(0);
 });
 test("customer cancellation revokes the access", async ({ page }) => {
   await page.goto("/minhas-reservas");
@@ -224,7 +228,8 @@ test("a booked block cannot be selected and says why", async ({
 
   await page.getByTestId("continue-booking").click();
   await page.getByTestId("confirm-payment").click();
-  await expect(page.getByTestId("booking-confirmation")).toBeVisible();
+  // O hold já bloqueia a sala; a tela de PIX pendente confirma que a POST saiu.
+  await expect(page.getByTestId("booking-pix")).toBeVisible();
 
   await page.goto(`/salas/${slug}`);
   await page.getByRole("button", { name: "Próximo mês", exact: true }).click();

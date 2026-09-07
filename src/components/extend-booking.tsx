@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { CalendarPlus } from "lucide-react";
 import type { ExtensionOffer } from "@/lib/server/booking-detail";
@@ -14,13 +14,11 @@ import { Card } from "./ui/card";
  * próprias seria uma segunda verdade sobre quem pode ocupar a sala.
  */
 export function ExtendBooking({
-  bookingId,
   roomId,
   endAt,
   offer,
   timeZone,
 }: {
-  bookingId: string;
   roomId: string;
   /** Fim da reserva atual: é onde a extensão começa. */
   endAt: string;
@@ -30,6 +28,14 @@ export function ExtendBooking({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  // Chave de idempotência aleatória, fixada na primeira tentativa desta tela.
+  // A anterior era `extend:<bookingId>:<duração>` — adivinhável a partir do id
+  // da reserva. Isso deixava um terceiro "queimar" a chave da vítima (o índice
+  // único é permanente, então a extensão dela passava a falhar para sempre), e
+  // fazia uma segunda extensão legítima colidir com a primeira. Estável por
+  // montagem: dois cliques ainda compartilham a chave (não compram dois
+  // blocos), e uma nova extensão, feita depois, recarrega a tela e ganha outra.
+  const idempotencyKey = useRef<string | null>(null);
 
   const options: number[] = [];
   for (
@@ -59,6 +65,7 @@ export function ExtendBooking({
   async function extend() {
     setSubmitting(true);
     setError(null);
+    idempotencyKey.current ??= crypto.randomUUID();
     try {
       const response = await fetch("/api/bookings", {
         method: "POST",
@@ -68,9 +75,7 @@ export function ExtendBooking({
           startAt: new Date(endAt).toISOString(),
           endAt: new Date(Date.parse(endAt) + chosen * 60_000).toISOString(),
           paymentMethod: "pix",
-          // A idempotência amarra a extensão a esta reserva e a esta duração:
-          // dois cliques não compram dois blocos.
-          idempotencyKey: `extend:${bookingId}:${chosen}`,
+          idempotencyKey: idempotencyKey.current,
         }),
       });
       const body = (await response.json()) as { error?: string };

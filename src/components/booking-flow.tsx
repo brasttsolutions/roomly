@@ -6,6 +6,7 @@ import {
   Check,
   ChevronLeft,
   Clock3,
+  Copy,
   CreditCard,
   KeyRound,
   LockKeyhole,
@@ -40,8 +41,14 @@ const MercadoPagoCard = dynamic(
   { ssr: false },
 );
 
-type Stage = "schedule" | "payment" | "confirmed";
+type Stage = "schedule" | "payment" | "pending" | "confirmed";
 const STEPS = ["Horário", "Pagamento", "Confirmação"] as const;
+
+/** Status de cobrança que o servidor devolve — a tela só decide a partir dele. */
+type ChargeStatus = "pending" | "approved" | "rejected" | "cancelled" | "refunded";
+
+/** Prefixos de referência que NÃO são um código PIX copia-e-cola exibível. */
+const NON_PIX_CODE = ["existing:", "payment:", "card:", "confirmed:", "event:"];
 export function BookingFlow({
   room,
   today,
@@ -78,6 +85,7 @@ export function BookingFlow({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<ConfirmedSlot | null>(null);
+  const [pending, setPending] = useState<PendingCharge | null>(null);
   const [holdExpiresAt, setHoldExpiresAt] = useState<string | null>(null);
   const idempotencyKey = useRef<string | null>(null);
 
@@ -189,6 +197,8 @@ export function BookingFlow({
       const body = (await response.json()) as {
         error?: string;
         holdExpiresAt?: string;
+        status?: ChargeStatus;
+        checkout?: string;
       };
       // Mesmo quando o pagamento falha, o hold pode já existir: o contador do
       // resumo passa a valer para quem vai tentar de novo.
@@ -202,15 +212,46 @@ export function BookingFlow({
       if (!response.ok) {
         throw new Error(body.error ?? "Não foi possível criar a reserva.");
       }
+      // 201 quer dizer só "hold criado". Quem decide a mensagem é o status real
+      // da cobrança — nunca o código HTTP.
+      const status: ChargeStatus = body.status ?? "pending";
+      // Cartão recusado ou cobrança cancelada não é reserva: é erro claro, com o
+      // hold ainda de pé para uma nova tentativa enquanto o contador corre.
+      if (status === "rejected" || status === "cancelled") {
+        setError(
+          status === "rejected"
+            ? "Pagamento recusado. Confira os dados do cartão ou tente outra forma de pagamento."
+            : "O pagamento foi cancelado antes de ser concluído. Tente novamente.",
+        );
+        return false;
+      }
       // Congela o horário que foi vendido: a grade continua viva atrás da tela
       // de confirmação e não deve reescrever o que a pessoa acabou de comprar.
-      setConfirmed({
+      const slot: ConfirmedSlot = {
         time: selectedBlock.time,
         endTime: endHour,
         accessFrom: clockLabel(new Date(start.getTime() - 300_000), timeZone),
         accessTo: clockLabel(new Date(end.getTime() + 300_000), timeZone),
-      });
-      setStage("confirmed");
+      };
+      // Só "approved" (tipicamente cartão aprovado na hora) pode dizer
+      // "confirmada". PIX nasce pendente e só o webhook do provedor confirma.
+      if (status === "approved") {
+        setConfirmed(slot);
+        setStage("confirmed");
+        return true;
+      }
+      // Pendente: o PIX precisa do copia-e-cola para a pessoa conseguir pagar; o
+      // cartão em análise mostra o aguardo. Descartar o `checkout` aqui — como
+      // era antes — deixava a reserva PIX impagável.
+      const reference = body.checkout ?? "";
+      const pixCode =
+        method === "pix" &&
+        reference.length > 0 &&
+        !NON_PIX_CODE.some((prefix) => reference.startsWith(prefix))
+          ? reference
+          : null;
+      setPending({ method, slot, pixCode });
+      setStage("pending");
       return true;
     } catch (cause) {
       setError(
@@ -221,6 +262,15 @@ export function BookingFlow({
       setSubmitting(false);
     }
   }
+  if (stage === "pending" && pending)
+    return (
+      <PixPending
+        pending={pending}
+        room={room}
+        selectedDate={selectedDate}
+        total={total}
+      />
+    );
   if (stage === "confirmed")
     return (
       <div
@@ -609,6 +659,101 @@ type ConfirmedSlot = {
   accessFrom: string;
   accessTo: string;
 };
+
+type PendingCharge = {
+  method: "pix" | "card";
+  slot: ConfirmedSlot;
+  /** Código PIX copia-e-cola, quando o provedor devolveu um exibível. */
+  pixCode: string | null;
+};
+
+/**
+ * Cobrança criada mas ainda não paga. Para PIX mostra o copia-e-cola — sem ele a
+ * reserva era impagável — e deixa claro que a confirmação vem depois do
+ * pagamento. Nunca diz "confirmada".
+ */
+function PixPending({
+  pending,
+  room,
+  selectedDate,
+  total,
+}: {
+  pending: PendingCharge;
+  room: Room;
+  selectedDate: string;
+  total: number;
+}) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    if (!pending.pixCode) return;
+    try {
+      await navigator.clipboard.writeText(pending.pixCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      setCopied(false);
+    }
+  }
+  return (
+    <div
+      className="rounded-lg border border-border-subtle bg-surface-raised p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-8"
+      data-testid="booking-pix"
+    >
+      <Stepper steps={STEPS} current={1} className="mb-6" />
+      <div className="mb-6 grid size-12 place-items-center rounded-md bg-surface-accent-subtle text-text-link">
+        {pending.method === "pix" ? <QrCode size={25} /> : <Clock3 size={25} />}
+      </div>
+      <Badge tone="warning">Aguardando pagamento</Badge>
+      <h2 className="mt-3 text-title2 font-bold">
+        {pending.method === "pix"
+          ? "Pague o PIX para confirmar"
+          : "Pagamento em análise"}
+      </h2>
+      <p className="mt-2 text-subheadline leading-6 text-text-secondary">
+        {pending.method === "pix"
+          ? `Sua sala em ${formatIsoWeekday(selectedDate)} fica reservada até o pagamento ser confirmado. Assim que o PIX cair, a reserva confirma sozinha.`
+          : "Estamos confirmando o pagamento com o provedor. A reserva confirma assim que ele aprovar."}
+      </p>
+      <div className="my-6 border-y border-border-subtle py-5">
+        <Info label="Sala" value={room.name} />
+        <Info
+          label="Horário"
+          value={`${pending.slot.time} – ${pending.slot.endTime}`}
+        />
+        <Info label="Total" value={formatMoney(total)} />
+      </div>
+      {pending.method === "pix" && pending.pixCode && (
+        <div className="rounded-md border border-border-control bg-surface-page p-4">
+          <p className="text-caption font-bold uppercase text-text-secondary">
+            PIX copia e cola
+          </p>
+          <p
+            className="mt-2 break-all font-mono text-subheadline"
+            data-testid="pix-code"
+          >
+            {pending.pixCode}
+          </p>
+          <Button className="mt-4 w-full" variant="secondary" onClick={() => void copy()}>
+            <Copy size={16} />
+            {copied ? "Código copiado" : "Copiar código PIX"}
+          </Button>
+        </div>
+      )}
+      {pending.method === "pix" && !pending.pixCode && (
+        <Alert tone="info">
+          Abra o app do seu banco para concluir o PIX. A reserva confirma assim
+          que o pagamento cair.
+        </Alert>
+      )}
+      <Link
+        href="/minhas-reservas"
+        className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-md bg-action-primary text-subheadline font-bold text-text-on-accent"
+      >
+        Acompanhar em minhas reservas
+      </Link>
+    </div>
+  );
+}
 
 /** Hora local da unidade. O horário mostrado tem que ser o do prédio. */
 function clockLabel(instant: Date, timeZone: string) {

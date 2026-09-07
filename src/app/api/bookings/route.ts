@@ -71,6 +71,10 @@ export async function POST(request: Request) {
       {
         booking: result.booking,
         checkout: result.checkout,
+        // O status real da cobrança: a tela usa isto para não anunciar
+        // "confirmada" antes de o pagamento existir de verdade.
+        status: result.status,
+        paymentMethod: parsed.data.paymentMethod,
         duplicate: result.duplicate || undefined,
         holdExpiresAt: result.booking.holdExpiresAt,
       },

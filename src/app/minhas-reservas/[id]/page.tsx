@@ -61,7 +61,6 @@ export default async function Page({
             {booking.extension && (
               <div className="mt-6">
                 <ExtendBooking
-                  bookingId={booking.id}
                   roomId={booking.roomId}
                   endAt={booking.endAt}
                   offer={booking.extension}
