@@ -18,6 +18,7 @@ const ROTAS = [
   "/salas/sala-executiva",
   "/coworkings/agora-coworking",
   "/minhas-reservas",
+  "/minhas-reservas/booking_demo/comprovante",
   "/conta",
   "/entrar",
   "/cadastro",

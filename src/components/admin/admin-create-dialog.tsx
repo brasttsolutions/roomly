@@ -312,6 +312,21 @@ function RoomFields({
           Com &quot;no momento em que acabar&quot;, os minutos são ignorados.
         </p>
       </fieldset>
+      <fieldset className="rounded-md border border-border-subtle p-3">
+        <legend className="px-1 text-caption font-bold uppercase text-text-secondary">
+          Extensão da reserva
+        </legend>
+        <Field
+          label="Fechar extensão faltando (min para o fim)"
+          name="extensionCutoffMinutes"
+          type="number"
+          defaultValue={record?.extensionCutoffMinutes ?? "5"}
+        />
+        <p className="mt-1 text-caption text-text-secondary">
+          Faltando mais que isso, o cliente estende quanto couber; a partir daí,
+          a extensão fecha.
+        </p>
+      </fieldset>
       <Checkbox
         name="randomImages"
         label={

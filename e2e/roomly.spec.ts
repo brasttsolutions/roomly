@@ -103,7 +103,9 @@ test("booking detail shows the credential state and the extension offer", async 
 
   const extension = page.getByRole("region", { name: "Estender reserva" });
   await expect(extension).toContainText("O expediente encerra às 20:00.");
-  await expect(page.getByTestId("extend-booking")).toContainText("Estender até");
+  // Extensão em um clique: cada duração é um botão com o preço à vista.
+  await expect(page.getByTestId("extend-60")).toBeVisible();
+  await expect(page.getByTestId("extend-60")).toContainText("R$");
 });
 test("header shows the signed-in account and opens its menu", async ({
   page,
@@ -630,5 +632,24 @@ test("login tem mostrar/ocultar senha e caminho de recuperação", async ({
   // Resposta neutra: não confirma nem nega a existência da conta.
   await expect(
     page.getByRole("heading", { name: "Verifique seu e-mail" }),
+  ).toBeVisible();
+});
+
+/**
+ * Comprovante de pagamento: alcançável pela ficha da reserva, mostra os dados
+ * e traz o botão de imprimir/salvar em PDF.
+ */
+test("reserva gera comprovante de pagamento", async ({ page }) => {
+  await page.goto("/minhas-reservas");
+  await page.getByTestId("booking-detail-link").click();
+  await page.getByRole("link", { name: "Baixar comprovante" }).click();
+
+  await expect(page).toHaveURL(/\/comprovante$/);
+  await expect(
+    page.getByRole("heading", { name: "Comprovante de reserva" }),
+  ).toBeVisible();
+  await expect(page.getByText("Pago", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /imprimir comprovante/i }),
   ).toBeVisible();
 });

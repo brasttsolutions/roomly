@@ -135,6 +135,22 @@ async function extensionOffer(
   const room = await availabilityRoomBySlug(booking.roomSlug);
   if (!room) return null;
 
+  // O limite que a dona da sala definiu: perto demais do fim, a extensão fecha.
+  // Enquanto faltar MAIS que isso, dá para estender quanto couber; a partir
+  // daí, não. Zero minutos disponíveis com o motivo faz a tela dizer por quê.
+  const restante = end - Date.now();
+  if (restante <= room.extensionCutoffMinutes * 60_000) {
+    return {
+      maxMinutes: 0,
+      minMinutes: room.config.minimumMinutes,
+      priceCentsPerSlot: slotPrice(booking),
+      reason:
+        room.extensionCutoffMinutes > 0
+          ? `A extensão fecha quando faltam ${room.extensionCutoffMinutes} min para o fim da reserva.`
+          : "A reserva está terminando e não pode mais ser estendida.",
+    };
+  }
+
   const day = new Intl.DateTimeFormat("en-CA", {
     timeZone: room.config.timeZone,
     year: "numeric",

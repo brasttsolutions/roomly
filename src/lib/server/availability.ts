@@ -18,6 +18,8 @@ export type AvailabilityRoom = Readonly<{
   name: string;
   locationName: string;
   cleaningMinutes: number;
+  /** Minutos antes do fim a partir dos quais a extensão fecha. Definido pela sala. */
+  extensionCutoffMinutes: number;
   config: AvailabilityConfig;
 }>;
 
@@ -46,13 +48,14 @@ export async function availabilityRooms(): Promise<readonly AvailabilityRoom[]> 
       name: room.name,
       locationName: room.location,
       cleaningMinutes: SIMULATOR_CLEANING_MINUTES,
+      extensionCutoffMinutes: 5,
       config: SIMULATOR_CONFIG,
     }));
   }
   const { data, error } = await anonClient()
     .from("rooms")
     .select(
-      "id,slug,name,cleaning_time_minutes,minimum_booking_minutes,maximum_booking_minutes,locations(name,timezone,opening_time,closing_time)",
+      "id,slug,name,cleaning_time_minutes,extension_cutoff_minutes,minimum_booking_minutes,maximum_booking_minutes,locations(name,timezone,opening_time,closing_time)",
     )
     .eq("status", "active")
     .order("name");
@@ -70,6 +73,7 @@ export async function availabilityRooms(): Promise<readonly AvailabilityRoom[]> 
       name: String(row.name),
       locationName: location?.name ?? "Unidade",
       cleaningMinutes: Number(row.cleaning_time_minutes ?? 0),
+      extensionCutoffMinutes: Number(row.extension_cutoff_minutes ?? 5),
       config: {
         timeZone: location?.timezone ?? BOOKING_TIME_ZONE,
         openingTime: (location?.opening_time ?? "08:00").slice(0, 5),

@@ -73,7 +73,7 @@ export async function adminRows(section: AdminSection): Promise<AdminRow[]> {
     const { data, error } = await supabase
       .from("rooms")
       .select(
-        "id,location_id,name,description,capacity,hourly_price_cents,cleaning_notice_offset_minutes,size_sqm,has_wifi,has_air_conditioning,has_coffee,has_parking,map_url,arrival_instructions,status,locations(name),room_feature_relations(room_features(name))",
+        "id,location_id,name,description,capacity,hourly_price_cents,cleaning_notice_offset_minutes,extension_cutoff_minutes,size_sqm,has_wifi,has_air_conditioning,has_coffee,has_parking,map_url,arrival_instructions,status,locations(name),room_feature_relations(room_features(name))",
       )
       .eq("company_id", identity.companyId)
       .order("name");
@@ -105,6 +105,7 @@ export async function adminRows(section: AdminSection): Promise<AdminRow[]> {
           ),
         ),
         hasCamera: hasCamera(row.room_feature_relations) ? "on" : "",
+        extensionCutoffMinutes: String(row.extension_cutoff_minutes ?? 5),
         sizeSqm: row.size_sqm != null ? String(row.size_sqm) : "",
         hasWifi: row.has_wifi ? "on" : "",
         hasAirConditioning: row.has_air_conditioning ? "on" : "",

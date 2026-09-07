@@ -1,17 +1,21 @@
 "use client";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, Loader2 } from "lucide-react";
 import type { ExtensionOffer } from "@/lib/server/booking-detail";
 import { formatDuration, formatMoney } from "@/lib/utils";
 import { Alert } from "./ui/alert";
-import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 
 /**
  * A extensão é uma reserva nova no bloco seguinte, criada pelo mesmo endpoint,
  * com o mesmo hold e a mesma idempotência. Um caminho paralelo com regras
  * próprias seria uma segunda verdade sobre quem pode ocupar a sala.
+ *
+ * Um clique resolve: cada botão é uma duração com o preço à vista, e clicar já
+ * estende e cobra. Não há passo de "confirmar" — o preço no botão é a
+ * confirmação. Enquanto uma extensão está em curso, os botões desabilitam para
+ * não comprar dois blocos.
  */
 export function ExtendBooking({
   roomId,
@@ -25,17 +29,11 @@ export function ExtendBooking({
   offer: ExtensionOffer;
   timeZone: string;
 }) {
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
-  // Chave de idempotência aleatória, fixada na primeira tentativa desta tela.
-  // A anterior era `extend:<bookingId>:<duração>` — adivinhável a partir do id
-  // da reserva. Isso deixava um terceiro "queimar" a chave da vítima (o índice
-  // único é permanente, então a extensão dela passava a falhar para sempre), e
-  // fazia uma segunda extensão legítima colidir com a primeira. Estável por
-  // montagem: dois cliques ainda compartilham a chave (não compram dois
-  // blocos), e uma nova extensão, feita depois, recarrega a tela e ganha outra.
-  const idempotencyKey = useRef<string | null>(null);
+  // Qual duração está sendo processada agora (null = nenhuma). Serve de trava
+  // contra duplo clique e de indicador de qual botão gira.
+  const [emCurso, setEmCurso] = useState<number | null>(null);
 
   const options: number[] = [];
   for (
@@ -45,8 +43,6 @@ export function ExtendBooking({
   ) {
     options.push(minutes);
   }
-  const [minutes, setMinutes] = useState(options[0] ?? 0);
-  const chosen = options.includes(minutes) ? minutes : (options[0] ?? 0);
 
   if (options.length === 0) {
     return (
@@ -59,13 +55,9 @@ export function ExtendBooking({
     );
   }
 
-  const price = Math.round((offer.priceCentsPerSlot * chosen) / 30);
-  const until = clock(Date.parse(endAt) + chosen * 60_000, timeZone);
-
-  async function extend() {
-    setSubmitting(true);
+  async function extend(minutes: number) {
+    setEmCurso(minutes);
     setError(null);
-    idempotencyKey.current ??= crypto.randomUUID();
     try {
       const response = await fetch("/api/bookings", {
         method: "POST",
@@ -73,21 +65,23 @@ export function ExtendBooking({
         body: JSON.stringify({
           roomId,
           startAt: new Date(endAt).toISOString(),
-          endAt: new Date(Date.parse(endAt) + chosen * 60_000).toISOString(),
+          endAt: new Date(Date.parse(endAt) + minutes * 60_000).toISOString(),
           paymentMethod: "pix",
-          idempotencyKey: idempotencyKey.current,
+          // Chave nova por clique: a trava `emCurso` já barra o duplo clique, e
+          // uma chave aleatória impede que um terceiro queime a da vítima.
+          idempotencyKey: crypto.randomUUID(),
         }),
       });
       const body = (await response.json()) as { error?: string };
       if (!response.ok)
         throw new Error(body.error ?? "Não foi possível estender.");
-      setDone(until);
+      setDone(clock(Date.parse(endAt) + minutes * 60_000, timeZone));
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Não foi possível estender.",
       );
     } finally {
-      setSubmitting(false);
+      setEmCurso(null);
     }
   }
 
@@ -106,33 +100,33 @@ export function ExtendBooking({
         Precisa de mais tempo?
       </h2>
       <p className="mt-2 text-subheadline text-text-secondary">{offer.reason}</p>
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        {options.map((option) => (
-          <button
-            key={option}
-            type="button"
-            aria-pressed={option === chosen}
-            onClick={() => setMinutes(option)}
-            className={
-              option === chosen
-                ? "h-11 rounded-md border-2 border-action-primary-active bg-action-primary px-4 text-subheadline font-bold text-text-on-accent"
-                : "h-11 rounded-md border border-border-control px-4 text-subheadline font-semibold hover:border-action-primary"
-            }
-          >
-            +{formatDuration(option)}
-          </button>
-        ))}
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        {options.map((option) => {
+          const preco = Math.round((offer.priceCentsPerSlot * option) / 30);
+          const girando = emCurso === option;
+          return (
+            <button
+              key={option}
+              type="button"
+              disabled={emCurso !== null}
+              onClick={() => void extend(option)}
+              data-testid={`extend-${option}`}
+              className="flex h-12 items-center justify-between gap-2 rounded-md border border-border-control px-4 text-subheadline font-semibold hover:border-action-primary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span className="flex items-center gap-2">
+                {girando && (
+                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                )}
+                +{formatDuration(option)}
+              </span>
+              <span className="font-bold">{formatMoney(preco)}</span>
+            </button>
+          );
+        })}
       </div>
-      <Button
-        className="mt-4 w-full"
-        loading={submitting}
-        onClick={() => void extend()}
-        data-testid="extend-booking"
-      >
-        {submitting
-          ? "Estendendo..."
-          : `Estender até ${until} por ${formatMoney(price)}`}
-      </Button>
+      <p className="mt-3 text-caption text-text-secondary">
+        Um toque estende e cobra pelo PIX. O acesso segue no mesmo código.
+      </p>
       {error && (
         <Alert tone="danger" className="mt-3">
           {error}

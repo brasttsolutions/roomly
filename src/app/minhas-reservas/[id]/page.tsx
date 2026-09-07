@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin } from "lucide-react";
+import { FileText, MapPin } from "lucide-react";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ExtendBooking } from "@/components/extend-booking";
@@ -57,6 +58,14 @@ export default async function Page({
               <Fact label="Horário" value={window} />
               <Fact label="Total" value={formatMoney(booking.totalCents)} />
             </dl>
+
+            <Link
+              href={`/minhas-reservas/${booking.id}/comprovante`}
+              className="mt-4 inline-flex h-11 items-center gap-2 rounded-md border border-border-control px-4 text-subheadline font-semibold hover:bg-surface-page"
+            >
+              <FileText size={16} aria-hidden="true" />
+              Baixar comprovante
+            </Link>
 
             {booking.extension && (
               <div className="mt-6">

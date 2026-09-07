@@ -59,6 +59,8 @@ const roomSchema = z.object({
   // no banco permitiriam gravar "-30 minutos depois".
   cleaningNoticeMinutes: z.coerce.number().int().min(0).max(240).default(0),
   cleaningNoticeWhen: z.enum(["antes", "fim", "depois"]).default("fim"),
+  // Minutos antes do fim a partir dos quais a extensão fecha. A sala decide.
+  extensionCutoffMinutes: z.coerce.number().int().min(0).max(240).default(5),
   randomImages: checkbox,
   hasCamera: checkbox,
   // Campos descritivos do espaço. Todos opcionais: campo em branco no formulário
@@ -195,6 +197,7 @@ export async function updateAdminResource(
         capacity: parsed.data.capacity,
         hourly_price_cents: parsed.data.hourlyPriceCents,
         cleaning_notice_offset_minutes: cleaningNoticeOffset(parsed.data),
+        extension_cutoff_minutes: parsed.data.extensionCutoffMinutes,
         ...amenityColumns(parsed.data),
         status: parsed.data.status,
         updated_at: new Date().toISOString(),
@@ -326,6 +329,7 @@ export async function createAdminResource(
         capacity: parsed.data.capacity,
         hourly_price_cents: parsed.data.hourlyPriceCents,
         cleaning_notice_offset_minutes: cleaningNoticeOffset(parsed.data),
+        extension_cutoff_minutes: parsed.data.extensionCutoffMinutes,
         ...amenityColumns(parsed.data),
       })
       .select("id")
