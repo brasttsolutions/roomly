@@ -64,9 +64,9 @@ const DECISOES = [
       "A garantia contra sobreposição está no banco de dados, não na tela. Duas pessoas clicando no mesmo segundo continuam impossibilitadas de comprar o mesmo intervalo, porque a regra é uma restrição do próprio banco, e o preparo da sala entre uma reserva e outra conta como ocupado.",
   },
   {
-    titulo: "Cada coworking só enxerga o que é dele",
+    titulo: "Seus dados ficam separados e protegidos",
     texto:
-      "O isolamento entre operações é aplicado linha a linha dentro do banco, e não confiando que a aplicação vá filtrar direito. Uma consulta que escapasse da regra simplesmente não traria dado nenhum.",
+      "Cada operação acessa somente as informações necessárias para administrar as próprias reservas. A separação é garantida dentro do banco de dados, linha a linha — não depende da tela filtrar certo, e uma consulta que escapasse da regra simplesmente não traria dado nenhum.",
   },
   {
     titulo: "Nada que importa depende do navegador ficar aberto",

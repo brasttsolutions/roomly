@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MapPin, UsersRound } from "lucide-react";
 import { BookingFlow } from "@/components/booking-flow";
+import { TrustBadges } from "@/components/trust-badges";
 import { RoomGallery } from "@/components/room-gallery";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -71,7 +72,9 @@ export default async function RoomPage({
                   <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-subheadline font-semibold text-text-secondary">
                     <span className="flex items-center gap-1.5">
                       <MapPin size={16} aria-hidden="true" />
-                      {[room.location, room.floor].filter(Boolean).join(" · ")}
+                      {[room.location, room.floor]
+                        .filter(Boolean)
+                        .join(" · ") || "Unidade a confirmar"}
                     </span>
                     {/* Quem aluga quer saber de quem é a sala antes de pagar.
                         O rótulo nomeia o coworking em vez de dizer só "perfil":
@@ -130,6 +133,7 @@ export default async function RoomPage({
                   : undefined
               }
             />
+            <TrustBadges className="mt-4 px-1" />
           </div>
         </div>
       </main>

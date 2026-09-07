@@ -8,6 +8,9 @@ export type Room = Readonly<{
   address?: string;
   capacity: number;
   hourlyPriceCents: number;
+  /** Nome do coworking (empresa) dona da sala. */
+  coworking?: string;
+  /** Nome da unidade. Pode vir vazio quando a sala ainda não foi vinculada. */
   location: string;
   floor: string;
   features: readonly string[];
@@ -25,6 +28,7 @@ export const rooms: readonly Room[] = [
     address: "Perini Business Park · Joinville/SC",
     capacity: 8,
     hourlyPriceCents: 12000,
+    coworking: "Ágora Coworking",
     location: "Ágora Tech Park",
     floor: "2º andar",
     features: ['TV 65"', "Videoconferência", "Lousa", "Café", "Wi-Fi"],
@@ -40,6 +44,7 @@ export const rooms: readonly Room[] = [
     address: "Perini Business Park · Joinville/SC",
     capacity: 4,
     hourlyPriceCents: 7500,
+    coworking: "Ágora Coworking",
     location: "Ágora Tech Park",
     floor: "1º andar",
     features: ['TV 50"', "Lousa", "Isolamento acústico", "Wi-Fi"],
@@ -55,6 +60,7 @@ export const rooms: readonly Room[] = [
     address: "Rua do Príncipe, 330 · Joinville/SC",
     capacity: 12,
     hourlyPriceCents: 16500,
+    coworking: "Ágora Coworking",
     location: "Centro Joinville",
     floor: "Térreo",
     features: [

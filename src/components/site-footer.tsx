@@ -87,12 +87,18 @@ export function SiteFooter() {
           </Coluna>
         </div>
 
-        <div className="mt-9 flex flex-col gap-2 border-t border-border-subtle pt-6 text-caption text-text-secondary sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-9 flex flex-col gap-2 border-t border-border-subtle pt-6 text-caption leading-6 text-text-secondary">
+          {/* Identidade jurídica explícita: quem opera a plataforma, com CNPJ e
+              praça. Passa a impressão de empresa de verdade por trás do produto,
+              e é a informação que a pessoa procura antes de confiar num pagamento. */}
           <p>
-            © {new Date().getFullYear()} {site.legalName}. CNPJ{" "}
-            {site.document}.
+            O Roomly é uma plataforma operada por{" "}
+            <span className="font-semibold text-text-primary">
+              {site.legalName}
+            </span>{" "}
+            · CNPJ {site.document} · Joinville, Santa Catarina.
           </p>
-          <p>Feito em Joinville, Santa Catarina.</p>
+          <p>© {new Date().getFullYear()} Roomly. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

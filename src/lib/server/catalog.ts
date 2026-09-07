@@ -15,7 +15,7 @@ export async function catalogRooms(): Promise<readonly Room[]> {
   const { data, error } = await supabase
     .from("rooms")
     .select(
-      "id,slug,name,description,capacity,hourly_price_cents,locations(name,address,city,state),room_images(url,position),room_feature_relations(room_features(name))",
+      "id,slug,name,description,capacity,hourly_price_cents,companies(name),locations(name,address,city,state),room_images(url,position),room_feature_relations(room_features(name))",
     )
     .eq("status", "active")
     .order("name");
@@ -34,6 +34,7 @@ function mapRoom(row: Record<string, unknown>): Room {
     city?: string;
     state?: string;
   } | null;
+  const company = row.companies as { name?: string } | null;
   const images = row.room_images as
     Array<{ url: string; position: number }> | undefined;
   const ordered = [...(images ?? [])]
@@ -60,7 +61,11 @@ function mapRoom(row: Record<string, unknown>): Room {
       .join(" · "),
     capacity: Number(row.capacity),
     hourlyPriceCents: Number(row.hourly_price_cents),
-    location: location?.name ?? "Unidade",
+    coworking: company?.name ?? undefined,
+    // Vazio quando a sala não tem unidade vinculada. O card decide o que
+    // mostrar — "Unidade" fixo aqui era o rótulo genérico que quebrava a
+    // sensação de produto pronto.
+    location: location?.name ?? "",
     floor: "",
     features:
       relations

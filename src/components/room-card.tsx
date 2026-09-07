@@ -74,7 +74,10 @@ export function RoomCard({
         <div>
           <p className="mb-1 flex items-center gap-1.5 text-caption font-semibold text-text-secondary">
             <MapPin size={14} aria-hidden="true" />
-            {room.location}
+            {/* Coworking em primeiro, unidade em seguida. Só o que existe entra:
+                nunca o rótulo genérico "Unidade" para sala sem unidade. */}
+            {[room.coworking, room.location].filter(Boolean).join(" · ") ||
+              "Localização a confirmar"}
           </p>
           {/* h3: o nome da sala vive sob o "Disponíveis hoje" da lista, e um h2
               aqui quebraria o sumário do documento. */}
