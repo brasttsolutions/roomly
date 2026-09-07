@@ -4,6 +4,7 @@ import { z } from "zod";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { internalPath, signInHref } from "@/lib/redirect";
 
 const credentialsSchema = z.object({
   email: z.email().max(254),
@@ -11,16 +12,21 @@ const credentialsSchema = z.object({
 });
 
 export async function signIn(formData: FormData) {
+  // Para onde voltar depois de entrar. Quem foi barrado no meio de uma reserva
+  // volta para a sala, com o horário; quem entrou pela porta da frente segue
+  // para as reservas, como sempre.
+  const destination = internalPath(formData.get("redirecionar"));
+  const failed = `${signInHref(destination)}&erro=credenciais-invalidas`;
   const parsed = credentialsSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
   });
-  if (!parsed.success) redirect("/entrar?erro=credenciais-invalidas");
-  if (integrationMode() === "simulator") redirect("/minhas-reservas");
+  if (!parsed.success) redirect(failed);
+  if (integrationMode() === "simulator") redirect(destination);
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
-  if (error) redirect("/entrar?erro=credenciais-invalidas");
+  if (error) redirect(failed);
   const invitation = data.user.user_metadata.invitation_token;
   const name = data.user.user_metadata.full_name;
   if (typeof invitation === "string" && typeof name === "string") {
@@ -37,7 +43,7 @@ export async function signIn(formData: FormData) {
       );
     }
   }
-  redirect("/minhas-reservas");
+  redirect(destination);
 }
 
 export async function signOut() {

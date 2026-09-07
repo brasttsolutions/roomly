@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { Brand } from "@/components/brand";
+import { internalPath, signUpHref } from "@/lib/redirect";
 import { signIn } from "./actions";
 
 export const metadata: Metadata = { title: "Entrar" };
@@ -8,9 +9,16 @@ export const metadata: Metadata = { title: "Entrar" };
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ erro?: string }>;
+  searchParams: Promise<{
+    erro?: string;
+    cadastro?: string;
+    redirecionar?: string;
+  }>;
 }) {
-  const error = (await searchParams).erro;
+  const { erro: error, cadastro, redirecionar } = await searchParams;
+  const destination = internalPath(redirecionar);
+  // Quem chegou aqui do meio de uma reserva precisa saber que volta para ela.
+  const voltandoParaReserva = destination.startsWith("/salas/");
   return (
     <main id="conteudo" className="grid min-h-screen grid-cols-1 bg-surface-raised lg:grid-cols-[1fr_.9fr]">
       <section className="flex min-h-[640px] flex-col justify-between p-6 sm:p-10 lg:p-14">
@@ -19,9 +27,24 @@ export default async function Page({
           <p className="text-subheadline font-bold text-text-link">BEM-VINDO DE VOLTA</p>
           <h1 className="mt-2 text-title1 font-bold">Entre na sua conta</h1>
           <p className="mt-2 text-subheadline leading-6 text-text-secondary">
-            Acompanhe suas reservas e acesse suas salas.
+            {voltandoParaReserva
+              ? "Entre para concluir sua reserva. O horário escolhido está guardado."
+              : "Acompanhe suas reservas e acesse suas salas."}
           </p>
+          {/* O cadastro terminou pedindo confirmação por e-mail e mandou a
+              pessoa para cá. Sem esta linha, a tela de login aparecia do nada e
+              parecia que o cadastro tinha falhado. */}
+          {cadastro === "confirme-email" && (
+            <p
+              role="status"
+              className="mt-4 rounded-md border border-border-subtle bg-surface-page p-3 text-subheadline leading-6 text-text-secondary"
+            >
+              Conta criada. Confirme o endereço pelo link que enviamos por
+              e-mail e entre aqui em seguida.
+            </p>
+          )}
           <form action={signIn} className="mt-7 space-y-4">
+            <input type="hidden" name="redirecionar" value={destination} />
             <label className="block text-subheadline font-bold">
               E-mail
               <input
@@ -60,7 +83,7 @@ export default async function Page({
           </form>
           <p className="mt-5 text-center text-subheadline text-text-secondary">
             Ainda não tem conta?{" "}
-            <a href="/cadastro" className="font-bold text-text-link">
+            <a href={signUpHref(destination)} className="font-bold text-text-link">
               Cadastre-se
             </a>
           </p>

@@ -9,12 +9,15 @@ import {
   CreditCard,
   KeyRound,
   LockKeyhole,
+  LogIn,
   Minus,
   Plus,
   QrCode,
   ShieldCheck,
+  UserPlus,
 } from "lucide-react";
 import type { Room } from "@/lib/demo-data";
+import { signInHref, signUpHref } from "@/lib/redirect";
 import {
   addIsoMonths,
   formatDuration,
@@ -43,19 +46,34 @@ export function BookingFlow({
   room,
   today,
   mercadoPagoPublicKey,
+  signedIn,
+  resume,
 }: {
   room: Room;
   /** Dia corrente no fuso da operação, calculado no servidor para evitar divergência de hidratação. */
   today: string;
   mercadoPagoPublicKey?: string;
+  /** Se existe cliente autenticado nesta requisição. Decide se o pagamento abre. */
+  signedIn: boolean;
+  /** Horário que a pessoa tinha escolhido antes de ser mandada para o login. */
+  resume?: { day?: string; time?: string; durationMinutes?: number };
 }) {
   const [stage, setStage] = useState<Stage>("schedule");
   // Hoje é reservável: os blocos que já passaram vêm desabilitados da API, com
   // o motivo. Empurrar todo mundo para amanhã escondia metade do estoque.
-  const [selectedDate, setSelectedDate] = useState(today);
-  const [month, setMonth] = useState(() => today.slice(0, 7));
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [duration, setDuration] = useState(60);
+  const [selectedDate, setSelectedDate] = useState(() =>
+    resumedDay(resume?.day, today),
+  );
+  const [month, setMonth] = useState(() =>
+    resumedDay(resume?.day, today).slice(0, 7),
+  );
+  const [selectedTime, setSelectedTime] = useState<string | null>(
+    resume?.time ?? null,
+  );
+  const [duration, setDuration] = useState(resume?.durationMinutes ?? 60);
+  // Só vira `true` quando o servidor recusa por sessão: é o caso de quem entrou,
+  // deixou a aba aberta e voltou depois de o token vencer.
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [method, setMethod] = useState<"pix" | "card">("pix");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,6 +136,18 @@ export function BookingFlow({
       )
     : "--:--";
 
+  // Endereço desta mesma tela com a escolha embutida. Quem sai daqui para
+  // entrar ou criar conta volta com o dia, a hora e a duração no lugar, em vez
+  // de reencontrar a grade em branco e ter que caçar o horário de novo.
+  const returnTo = useMemo(() => {
+    const query = new URLSearchParams({
+      dia: selectedDate,
+      duracao: String(activeDuration),
+    });
+    if (activeTime) query.set("hora", activeTime);
+    return `/salas/${room.slug}?${query.toString()}`;
+  }, [activeDuration, activeTime, room.slug, selectedDate]);
+
   /** O hold venceu: o horário voltou para a grade e o pagamento não vale mais. */
   function expireHold() {
     setHoldExpiresAt(null);
@@ -163,6 +193,12 @@ export function BookingFlow({
       // Mesmo quando o pagamento falha, o hold pode já existir: o contador do
       // resumo passa a valer para quem vai tentar de novo.
       if (body.holdExpiresAt) setHoldExpiresAt(body.holdExpiresAt);
+      // A sessão venceu entre abrir a tela e pagar. "Autenticação necessária"
+      // não diz o que fazer; o caminho de volta, sim.
+      if (response.status === 401) {
+        setSessionExpired(true);
+        return false;
+      }
       if (!response.ok) {
         throw new Error(body.error ?? "Não foi possível criar a reserva.");
       }
@@ -234,6 +270,22 @@ export function BookingFlow({
         >
           Ver minhas reservas
         </Link>
+      </div>
+    );
+  // A sessão caiu no meio do pagamento. Manter o formulário de cartão na tela
+  // convidaria a pessoa a digitar de novo o que já não vai passar.
+  if (stage === "payment" && sessionExpired)
+    return (
+      <div className="rounded-lg border border-border-subtle bg-surface-raised p-6 shadow-[0_18px_50px_rgba(34,56,46,.08)] sm:p-7">
+        <Stepper steps={STEPS} current={1} className="mb-5" />
+        <Alert tone="warning" className="mb-5" title="Sua sessão expirou">
+          Nenhuma cobrança foi feita. Entre de novo para concluir a reserva.
+        </Alert>
+        <AuthGate
+          destination={returnTo}
+          hasSlot={Boolean(selectedBlock)}
+          title="Entre de novo para concluir"
+        />
       </div>
     );
   if (stage === "payment")
@@ -447,14 +499,77 @@ export function BookingFlow({
           Escolha um horário para ver o total.
         </p>
       )}
-      <Button
-        className="w-full"
-        disabled={!selectedBlock}
-        onClick={() => setStage("payment")}
-        data-testid="continue-booking"
-      >
-        Continuar
-      </Button>
+      {/* Sem conta, o pagamento não abre. A recusa já existia no servidor, mas
+          só chegava depois de o cartão ter sido digitado e enviado ao Mercado
+          Pago para virar token — trabalho e dado de cartão gastos numa reserva
+          que nunca poderia nascer. O limite passa a valer aqui, na fronteira
+          entre escolher o horário e pagar. */}
+      {signedIn ? (
+        <Button
+          className="w-full"
+          disabled={!selectedBlock}
+          onClick={() => setStage("payment")}
+          data-testid="continue-booking"
+        >
+          Continuar
+        </Button>
+      ) : (
+        <AuthGate destination={returnTo} hasSlot={Boolean(selectedBlock)} />
+      )}
+    </div>
+  );
+}
+
+/**
+ * O convite para entrar ou criar conta, no lugar do botão de continuar.
+ *
+ * Criar conta vem primeiro porque quem chega de uma busca por sala não tem
+ * conta; quem tem reconhece "Já tenho conta" sem precisar que ela seja o botão
+ * mais forte da tela.
+ */
+function AuthGate({
+  destination,
+  hasSlot,
+  title = "Entre para concluir a reserva",
+}: {
+  destination: string;
+  hasSlot: boolean;
+  title?: string;
+}) {
+  return (
+    <div
+      className="rounded-md border border-border-subtle bg-surface-page p-4"
+      data-testid="auth-gate"
+    >
+      <p className="flex items-center gap-2 text-subheadline font-bold">
+        <LockKeyhole size={17} aria-hidden="true" />
+        {title}
+      </p>
+      <p className="mt-2 text-subheadline leading-6 text-text-secondary">
+        A sala fica reservada no seu nome e o código de acesso vai para a sua
+        conta.{" "}
+        {hasSlot
+          ? "Guardamos o horário escolhido enquanto você entra."
+          : "Escolha o horário e conclua em seguida."}
+      </p>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <Link
+          href={signUpHref(destination)}
+          data-testid="auth-gate-signup"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-action-primary px-4 text-callout font-semibold text-text-on-accent hover:bg-action-primary-hover"
+        >
+          <UserPlus size={17} aria-hidden="true" />
+          Criar conta
+        </Link>
+        <Link
+          href={signInHref(destination)}
+          data-testid="auth-gate-signin"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-border-control bg-surface-raised px-4 text-callout font-semibold hover:bg-surface-page"
+        >
+          <LogIn size={17} aria-hidden="true" />
+          Já tenho conta
+        </Link>
+      </div>
     </div>
   );
 }
@@ -503,6 +618,17 @@ function clockLabel(instant: Date, timeZone: string) {
     minute: "2-digit",
     hour12: false,
   }).format(instant);
+}
+
+/**
+ * Dia retomado do endereço, quando ele ainda faz sentido.
+ *
+ * O valor vem da URL e pode estar no passado — basta a pessoa demorar no login
+ * e virar o dia. Abrir a grade num dia que não vende nada é pior do que abrir
+ * em hoje.
+ */
+function resumedDay(resumed: string | undefined, today: string) {
+  return resumed && resumed >= today ? resumed : today;
 }
 
 /** Múltiplo de 30 minutos entre o mínimo da sala e o teto do bloco escolhido. */

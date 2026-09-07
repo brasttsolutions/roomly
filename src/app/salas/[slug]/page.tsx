@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { companyOfRoom } from "@/lib/server/company-profile";
+import { requestCustomer } from "@/lib/server/customer";
 import { rooms } from "@/lib/demo-data";
 import { isoDay } from "@/lib/utils";
 import { catalogRoomBySlug } from "@/lib/server/catalog";
@@ -34,13 +35,17 @@ export function generateStaticParams() {
 
 export default async function RoomPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ dia?: string; hora?: string; duracao?: string }>;
 }) {
   const { slug } = await params;
-  const [room, coworking] = await Promise.all([
+  const [room, coworking, customer, resume] = await Promise.all([
     catalogRoomBySlug(slug),
     companyOfRoom(slug),
+    requestCustomer(),
+    searchParams.then(retomarSelecao),
   ]);
   if (!room) notFound();
   return (
@@ -117,6 +122,8 @@ export default async function RoomPage({
             <BookingFlow
               room={room}
               today={isoDay()}
+              signedIn={customer !== null}
+              resume={resume}
               mercadoPagoPublicKey={
                 paymentMode() === "mercado_pago"
                   ? process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY
@@ -130,6 +137,37 @@ export default async function RoomPage({
     </>
   );
 }
+const DIA = /^\d{4}-\d{2}-\d{2}$/;
+const HORA = /^\d{2}:\d{2}$/;
+
+/**
+ * A escolha que voltou do login, conferida antes de virar estado da tela.
+ *
+ * Estes três valores vêm da URL, então qualquer um os digita. Nada aqui
+ * autoriza coisa alguma — o preço e a disponibilidade continuam vindo do
+ * servidor —, mas um valor torto viraria uma grade em branco ou uma duração
+ * absurda no resumo, e conferir o formato custa três linhas.
+ */
+function retomarSelecao({
+  dia,
+  hora,
+  duracao,
+}: {
+  dia?: string;
+  hora?: string;
+  duracao?: string;
+}) {
+  const minutos = Number(duracao);
+  return {
+    day: dia && DIA.test(dia) ? dia : undefined,
+    time: hora && HORA.test(hora) ? hora : undefined,
+    durationMinutes:
+      Number.isInteger(minutos) && minutos >= 30 && minutos <= 720
+        ? minutos
+        : undefined,
+  };
+}
+
 function Spec({ label, value }: { label: string; value: string }) {
   return (
     <div>

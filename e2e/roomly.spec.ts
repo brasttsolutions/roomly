@@ -490,3 +490,43 @@ test("aba Como funciona explica a reserva do começo ao fim", async ({
   await page.getByRole("link", { name: "Ver salas disponíveis" }).click();
   await expect(page).toHaveURL(/localhost:3100\/$|127\.0\.0\.1:3100\/$/);
 });
+
+/**
+ * O login devolve a pessoa para onde ela foi interrompida.
+ *
+ * A suíte roda em modo simulador, onde há sempre um cliente autenticado, então
+ * o portão da reserva em si não aparece aqui. O que aparece — e é a metade
+ * sensível — é o destino de volta: ele vem da URL, e um destino externo aceito
+ * transformaria a tela de senha do Roomly num trampolim de phishing.
+ */
+test("login volta para a sala em que a reserva começou", async ({ page }) => {
+  await page.goto(
+    "/entrar?redirecionar=%2Fsalas%2Fsala-executiva%3Fdia%3D2099-01-05",
+  );
+  await expect(
+    page.getByText("Entre para concluir sua reserva", { exact: false }),
+  ).toBeVisible();
+
+  await page.getByLabel("E-mail").fill("cliente@roomly.local");
+  await page.getByLabel("Senha").fill("senha-de-teste");
+  await page.getByRole("button", { name: "Entrar" }).click();
+
+  await expect(page).toHaveURL(/\/salas\/sala-executiva\?dia=2099-01-05/);
+});
+
+test("login recusa destino fora do Roomly", async ({ page }) => {
+  await page.goto("/entrar");
+  // O campo é forjado no navegador de propósito. Conferir só o que a página
+  // desenha testaria a limpeza da página, não a do servidor — e o formulário
+  // pode ser enviado com qualquer valor, sem passar por ela.
+  await page
+    .locator('input[name="redirecionar"]')
+    .evaluate((campo: HTMLInputElement) => {
+      campo.value = "https://sitefalso.example/senha";
+    });
+  await page.getByLabel("E-mail").fill("cliente@roomly.local");
+  await page.getByLabel("Senha").fill("senha-de-teste");
+  await page.getByRole("button", { name: "Entrar" }).click();
+
+  await expect(page).toHaveURL(/\/minhas-reservas$/);
+});
