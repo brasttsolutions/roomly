@@ -7,9 +7,13 @@ const NAVEGACAO = [
   { href: "/", label: "Salas disponíveis" },
   { href: "/minhas-reservas", label: "Minhas reservas" },
   { href: "/como-funciona", label: "Como funciona" },
+  { href: "/para-empresas", label: "Para empresas" },
+  { href: "/faq", label: "Perguntas frequentes" },
 ];
 
 const LEGAL = [
+  { href: "/termos", label: "Termos de Uso" },
+  { href: "/cancelamento", label: "Cancelamento e Reembolso" },
   { href: "/privacidade", label: "Aviso de Privacidade" },
   { href: "/cookies", label: "Cookies" },
 ];

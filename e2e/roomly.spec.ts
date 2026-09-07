@@ -571,3 +571,36 @@ test("confirmação de e-mail só volta para dentro do Roomly", async ({ page })
   await page.goto("/auth/confirmar?proximo=https%3A%2F%2Fsitefalso.example");
   await expect(page).toHaveURL(/\/minhas-reservas$/);
 });
+
+/**
+ * As páginas institucionais novas existem e são alcançáveis pela navegação —
+ * um link de rodapé que leva a 404 é pior do que não ter o link.
+ */
+test("páginas institucionais carregam pela navegação", async ({ page }) => {
+  await page.goto("/");
+
+  const rodape = page.getByRole("contentinfo");
+  for (const [nome, heading] of [
+    ["Termos de Uso", "Termos de Uso do Roomly"],
+    ["Cancelamento e Reembolso", "Política de Cancelamento e Reembolso"],
+    ["Perguntas frequentes", "Perguntas frequentes"],
+  ] as const) {
+    await rodape.getByRole("link", { name: nome, exact: true }).first().click();
+    await expect(
+      page.getByRole("heading", { level: 1, name: heading }),
+    ).toBeVisible();
+    await page.goBack();
+  }
+
+  // "Para empresas" tem chamada para ação e vive no cabeçalho.
+  await page.goto("/para-empresas");
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: /Transforme suas salas/,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /Quero usar o Roomly/ }),
+  ).toBeVisible();
+});

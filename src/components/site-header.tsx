@@ -40,6 +40,14 @@ export async function SiteHeader() {
           >
             Como funciona
           </Link>
+          {/* Deixa claro que o Roomly também é para quem tem o coworking, não só
+              para quem aluga. Some no celular junto de "Como funciona". */}
+          <Link
+            href="/para-empresas"
+            className="hidden h-10 items-center rounded-md px-3 text-subheadline font-semibold text-text-secondary hover:bg-surface-page sm:inline-flex"
+          >
+            Para empresas
+          </Link>
           <Link
             href="/minhas-reservas"
             className="inline-flex h-10 items-center gap-2 rounded-md px-3 text-subheadline font-semibold text-text-secondary hover:bg-surface-page"
