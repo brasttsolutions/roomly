@@ -54,7 +54,7 @@ export default async function RoomPage({
             { label: room.name },
           ]}
         />
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
           <div>
             <RoomGallery
               name={room.name}

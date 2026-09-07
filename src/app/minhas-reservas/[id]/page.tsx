@@ -43,7 +43,7 @@ export default async function Page({
           ]}
         />
 
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
           <div>
             <BookingStatus value={booking.status} />
             <h1 className="mt-3 text-title1 font-bold">{booking.roomName}</h1>

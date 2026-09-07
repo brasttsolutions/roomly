@@ -18,9 +18,14 @@ export function Brand({ inverse = false }: { inverse?: boolean }) {
       >
         <DoorOpen size={20} />
       </span>
+      {/* Abaixo de 360px o ícone carrega a marca sozinho. A palavra custa uns
+          70px, e é ela que empurrava o seletor de tema e a conta para fora da
+          tela num iPhone SE. O `aria-label` do link continua dizendo "roomly". */}
       <span
         className={
-          inverse ? "text-title3 font-bold text-white" : "text-title3 font-bold"
+          inverse
+            ? "hidden text-title3 font-bold text-white min-[360px]:inline"
+            : "hidden text-title3 font-bold min-[360px]:inline"
         }
       >
         roomly

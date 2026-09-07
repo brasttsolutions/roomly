@@ -33,7 +33,7 @@ export function RoomCard({
     <article
       className={cn(
         "group overflow-hidden rounded-lg border border-border-subtle bg-surface-raised",
-        featured && "grid lg:grid-cols-[1.35fr_1fr]",
+        featured && "grid grid-cols-1 lg:grid-cols-[1.35fr_1fr]",
       )}
     >
       {/* Um destino, um link: a foto deixou de ser link para o leitor de tela

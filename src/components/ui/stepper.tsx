@@ -49,9 +49,13 @@ export function Stepper({
                 // Sem truncar: "Pagamen…" não é um passo. O traço entre os
                 // passos absorve a sobra de largura no lugar do rótulo.
                 "shrink-0 whitespace-nowrap text-caption",
+                // Em tela estreita os três rótulos somados não cabem, então só
+                // o passo atual mostra o nome e os outros ficam no número. O
+                // texto completo continua no `sr-only` de cada passo, então
+                // quem usa leitor de tela não perde nada.
                 active
                   ? "font-semibold text-text-primary"
-                  : "text-text-secondary",
+                  : "hidden text-text-secondary sm:inline",
               )}
             >
               {step}

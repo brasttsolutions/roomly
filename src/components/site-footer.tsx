@@ -20,7 +20,7 @@ export function SiteFooter() {
     // uma coluna flex, então isso resolve sem mexer no `main` de cada página.
     <footer className="mt-auto border-t border-border-subtle bg-surface-raised">
       <div className="mx-auto w-full max-w-[1440px] px-4 py-10 sm:px-6 lg:px-10">
-        <div className="grid gap-9 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+        <div className="grid grid-cols-1 gap-9 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
           <div>
             <Brand />
             <p className="mt-3 max-w-xs text-subheadline leading-6 text-text-secondary">

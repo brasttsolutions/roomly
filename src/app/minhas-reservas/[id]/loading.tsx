@@ -11,7 +11,7 @@ export default function Loading() {
       <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-10">
         <LoadingRegion label="Carregando a reserva">
           <Skeleton className="h-4 w-56" />
-          <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_340px]">
+          <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
             <div>
               <Skeleton className="h-6 w-28 rounded-full" />
               <Skeleton className="mt-3 h-9 w-72 max-w-full" />
