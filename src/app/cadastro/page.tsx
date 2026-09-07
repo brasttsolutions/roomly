@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Brand } from "@/components/brand";
+import { PasswordField, SubmitButton } from "@/components/auth-fields";
 import { internalPath, signInHref } from "@/lib/redirect";
 import { signUp } from "./actions";
 
@@ -57,21 +58,35 @@ export default async function Page({
             type="email"
             autoComplete="email"
           />
-          <Field
+          <PasswordField
             label="Senha"
             name="password"
-            type="password"
             autoComplete="new-password"
             minLength={10}
+            requisito
           />
           {erro && (
             <p role="alert" className="text-subheadline leading-6 text-danger-text">
               {MOTIVOS[erro] ?? MOTIVOS["cadastro-falhou"]}
             </p>
           )}
-          <button className="h-11 rounded-md bg-action-primary text-subheadline font-bold text-text-on-accent">
-            Criar conta
-          </button>
+          {/* Termos e privacidade à vista de quem cria a conta: o ato de criar
+              é o aceite, então o link precisa estar aqui, não escondido. */}
+          <p className="text-caption leading-5 text-text-secondary">
+            Ao criar a conta, você concorda com os{" "}
+            <a href="/termos" className="font-semibold text-text-link underline">
+              Termos de Uso
+            </a>{" "}
+            e o{" "}
+            <a
+              href="/privacidade"
+              className="font-semibold text-text-link underline"
+            >
+              Aviso de Privacidade
+            </a>
+            .
+          </p>
+          <SubmitButton pendingLabel="Criando conta...">Criar conta</SubmitButton>
         </form>
         {/* Metade de quem cai aqui já tem conta e só não lembrou. Sem esta
             saída, o caminho de volta era o botão do navegador. */}

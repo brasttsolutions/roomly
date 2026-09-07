@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { Brand } from "@/components/brand";
+import { PasswordField, SubmitButton } from "@/components/auth-fields";
 import { internalPath, signUpHref } from "@/lib/redirect";
 import { MensagemDeEntrada } from "./mensagem";
 import { signIn } from "./actions";
@@ -57,26 +58,25 @@ export default async function Page({
                 className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] px-3 font-normal"
               />
             </label>
-            <label className="block text-subheadline font-bold">
-              Senha
-              <input
-                type="password"
-                name="password"
-                autoComplete="current-password"
-                minLength={8}
-                required
-                placeholder="••••••••"
-                className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] px-3 font-normal"
-              />
-            </label>
+            <PasswordField
+              label="Senha"
+              name="password"
+              autoComplete="current-password"
+              minLength={8}
+            />
+            <div className="text-right">
+              <a
+                href="/recuperar"
+                className="text-caption font-semibold text-text-link hover:underline"
+              >
+                Esqueci minha senha
+              </a>
+            </div>
             <MensagemDeEntrada erro={error} />
-            <button
-              type="submit"
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-action-primary text-subheadline font-bold text-text-on-accent"
-            >
+            <SubmitButton pendingLabel="Entrando...">
               Entrar
               <ArrowRight size={17} />
-            </button>
+            </SubmitButton>
           </form>
           <p className="mt-5 text-center text-subheadline text-text-secondary">
             Ainda não tem conta?{" "}

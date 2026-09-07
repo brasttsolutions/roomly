@@ -21,6 +21,8 @@ const ROTAS = [
   "/conta",
   "/entrar",
   "/cadastro",
+  "/recuperar",
+  "/redefinir",
   "/como-funciona",
   "/para-empresas",
   "/faq",

@@ -513,7 +513,7 @@ test("login volta para a sala em que a reserva começou", async ({ page }) => {
   ).toBeVisible();
 
   await page.getByLabel("E-mail").fill("cliente@roomly.local");
-  await page.getByLabel("Senha").fill("senha-de-teste");
+  await page.getByLabel("Senha", { exact: true }).fill("senha-de-teste");
   await page.getByRole("button", { name: "Entrar" }).click();
 
   await expect(page).toHaveURL(/\/salas\/sala-executiva\?dia=2099-01-05/);
@@ -530,7 +530,7 @@ test("login recusa destino fora do Roomly", async ({ page }) => {
       campo.value = "https://sitefalso.example/senha";
     });
   await page.getByLabel("E-mail").fill("cliente@roomly.local");
-  await page.getByLabel("Senha").fill("senha-de-teste");
+  await page.getByLabel("Senha", { exact: true }).fill("senha-de-teste");
   await page.getByRole("button", { name: "Entrar" }).click();
 
   await expect(page).toHaveURL(/\/minhas-reservas$/);
@@ -602,5 +602,33 @@ test("páginas institucionais carregam pela navegação", async ({ page }) => {
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /Quero usar o Roomly/ }),
+  ).toBeVisible();
+});
+
+/**
+ * Acabamento de login: mostrar/ocultar senha e o caminho de recuperação. O
+ * envio real depende do provedor de e-mail; aqui vale que o caminho existe e
+ * responde sem vazar se a conta existe.
+ */
+test("login tem mostrar/ocultar senha e caminho de recuperação", async ({
+  page,
+}) => {
+  await page.goto("/entrar");
+
+  const senha = page.getByLabel("Senha", { exact: true });
+  await senha.fill("secreto123");
+  await expect(senha).toHaveAttribute("type", "password");
+  await page.getByRole("button", { name: "Mostrar senha" }).click();
+  await expect(senha).toHaveAttribute("type", "text");
+  await page.getByRole("button", { name: "Ocultar senha" }).click();
+  await expect(senha).toHaveAttribute("type", "password");
+
+  await page.getByRole("link", { name: "Esqueci minha senha" }).click();
+  await expect(page).toHaveURL(/\/recuperar/);
+  await page.getByLabel("E-mail").fill("alguem@exemplo.test");
+  await page.getByRole("button", { name: /Enviar link/ }).click();
+  // Resposta neutra: não confirma nem nega a existência da conta.
+  await expect(
+    page.getByRole("heading", { name: "Verifique seu e-mail" }),
   ).toBeVisible();
 });
