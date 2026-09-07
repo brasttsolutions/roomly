@@ -117,9 +117,14 @@ export async function updateAdminResource(
   // A empresa vem da sessão: a RLS recusa alcançar registro de outro inquilino.
   const supabase = await createSupabaseServerClient();
   let error: { message: string } | null = null;
+  // Linhas efetivamente alteradas. Um UPDATE que casa zero linhas — porque o id
+  // é de outro coworking ou a RLS recusou — devolve `error: null`. Sem contar as
+  // linhas, isso virava "Alterações salvas" sem nada ter sido salvo: negação de
+  // autorização indistinguível de sucesso. Por isso todo UPDATE pede `.select()`.
+  let affected: number | null = null;
 
   if (parsed.data.resource === "unidades") {
-    ({ error } = await supabase
+    const result = await supabase
       .from("locations")
       .update({
         name: parsed.data.name,
@@ -131,7 +136,10 @@ export async function updateAdminResource(
         updated_at: new Date().toISOString(),
       })
       .eq("id", parsed.data.id)
-      .eq("company_id", identity.companyId));
+      .eq("company_id", identity.companyId)
+      .select("id");
+    error = result.error;
+    affected = result.data?.length ?? 0;
   } else if (parsed.data.resource === "salas") {
     const automatic = parsed.data.randomImages === "on";
     const files = formData
@@ -141,7 +149,7 @@ export async function updateAdminResource(
       const problem = invalidImage(files);
       if (problem) return { ok: false, error: problem };
     }
-    ({ error } = await supabase
+    const result = await supabase
       .from("rooms")
       .update({
         location_id: parsed.data.locationId,
@@ -155,8 +163,11 @@ export async function updateAdminResource(
         updated_at: new Date().toISOString(),
       })
       .eq("id", parsed.data.id)
-      .eq("company_id", identity.companyId));
-    if (!error) {
+      .eq("company_id", identity.companyId)
+      .select("id");
+    error = result.error;
+    affected = result.data?.length ?? 0;
+    if (!error && affected > 0) {
       try {
         if (automatic) {
           await replaceRoomImages({
@@ -186,7 +197,7 @@ export async function updateAdminResource(
       }
     }
   } else {
-    ({ error } = await supabase
+    const result = await supabase
       .from("locks")
       .update({
         room_id: parsed.data.roomId,
@@ -196,10 +207,16 @@ export async function updateAdminResource(
         updated_at: new Date().toISOString(),
       })
       .eq("id", parsed.data.id)
-      .eq("company_id", identity.companyId));
+      .eq("company_id", identity.companyId)
+      .select("id");
+    error = result.error;
+    affected = result.data?.length ?? 0;
   }
 
   if (error) return { ok: false, error: "Não foi possível salvar." };
+  // Nenhuma linha alterada: o registro não é desta empresa, ou não existe.
+  if (affected === 0)
+    return { ok: false, error: "Registro não encontrado nesta empresa." };
   revalidatePath(`/admin/${parsed.data.resource}`);
   return { ok: true, message: "Alterações salvas." };
 }

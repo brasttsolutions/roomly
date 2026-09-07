@@ -26,7 +26,12 @@ export async function advanceCleaning(
     return { ok: true, message: CLEANING_DONE[parsed.data.step] };
   }
   const identity = await requestIdentity();
-  if (!identity) return { ok: false, error: "Permissão insuficiente." };
+  // Espelha `is_company_staff` da RLS: equipe avança a fila, cliente não. A
+  // política do banco já recusaria a escrita de um cliente, mas toda função
+  // `"use server"` é um endpoint público — a checagem de papel não pode viver só
+  // no banco.
+  if (!identity || identity.role === "customer")
+    return { ok: false, error: "Permissão insuficiente." };
 
   const now = new Date().toISOString();
   const patch =
@@ -37,12 +42,16 @@ export async function advanceCleaning(
         : { status: "completed", completed_at: now, updated_at: now };
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("cleaning_requests")
     .update(patch)
     .eq("id", parsed.data.id)
-    .eq("company_id", identity.companyId);
+    .eq("company_id", identity.companyId)
+    .select("id");
   if (error) return { ok: false, error: "Não foi possível atualizar a fila." };
+  // Zero linhas: o item não é desta empresa. Dizer "concluída" seria mentir.
+  if ((data?.length ?? 0) === 0)
+    return { ok: false, error: "Item não encontrado nesta empresa." };
 
   revalidatePath("/admin/limpeza");
   revalidatePath("/admin");

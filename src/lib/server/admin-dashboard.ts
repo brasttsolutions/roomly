@@ -1,6 +1,7 @@
 import "server-only";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requestIdentity } from "./identity";
 import { BOOKING_TIME_ZONE, isoDay } from "@/lib/utils";
 
 /**
@@ -67,6 +68,14 @@ const OCCUPYING = ["awaiting_payment", "confirmed", "in_progress", "completed"];
 export async function adminDashboard(unit?: string): Promise<DashboardData> {
   if (integrationMode() === "simulator") return simulatorDashboard(unit);
 
+  // Unidades e salas são catálogo público na RLS, logo legíveis entre
+  // inquilinos. No dashboard elas alimentam o seletor de unidade e o
+  // denominador da ocupação — sem o recorte por empresa, o gestor de um
+  // coworking via as unidades do outro e uma taxa de ocupação diluída pelas
+  // salas alheias.
+  const identity = await requestIdentity();
+  if (!identity) throw new Error("admin_identity_required");
+  const companyId = identity.companyId;
   const supabase = await createSupabaseServerClient();
   const day = isoDay();
   const dayStart = new Date(`${day}T00:00:00-03:00`);
@@ -82,9 +91,14 @@ export async function adminDashboard(unit?: string): Promise<DashboardData> {
     supabase
       .from("locations")
       .select("id,name,opening_time,closing_time")
+      .eq("company_id", companyId)
       .eq("status", "active")
       .order("name"),
-    supabase.from("rooms").select("id,name,location_id").eq("status", "active"),
+    supabase
+      .from("rooms")
+      .select("id,name,location_id")
+      .eq("company_id", companyId)
+      .eq("status", "active"),
   ]);
   const locations = linhas(locationResult, "locations");
   const selected = locations.find((location) => location.name === unit) ?? null;

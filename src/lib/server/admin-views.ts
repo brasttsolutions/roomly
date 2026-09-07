@@ -69,8 +69,20 @@ export type DayCalendar = Readonly<{
   bookings: readonly CalendarBooking[];
 }>;
 
+/**
+ * A empresa da sessão, para recortar as leituras do painel. Falha fechado: sem
+ * identidade de equipe não há painel, e é melhor estourar aqui do que rodar uma
+ * consulta sem o filtro de inquilino.
+ */
+async function currentCompanyId(): Promise<string> {
+  const identity = await requestIdentity();
+  if (!identity) throw new Error("admin_identity_required");
+  return identity.companyId;
+}
+
 export async function dayCalendar(day: string): Promise<DayCalendar> {
   if (integrationMode() === "simulator") return simulatorCalendar(day);
+  const companyId = await currentCompanyId();
   const supabase = await createSupabaseServerClient();
   const start = new Date(`${day}T00:00:00-03:00`);
   const end = new Date(start.getTime() + 86_400_000);
@@ -78,6 +90,10 @@ export async function dayCalendar(day: string): Promise<DayCalendar> {
     supabase
       .from("rooms")
       .select("id,name,locations(name,opening_time,closing_time)")
+      // A RLS deixa qualquer sala ativa ser lida — é o catálogo público. No
+      // painel isso significava enxergar as salas de outros coworkings; o
+      // recorte por empresa é o que a leitura pública abre mão de fazer.
+      .eq("company_id", companyId)
       .eq("status", "active")
       .order("name"),
     supabase
@@ -147,6 +163,7 @@ export type MonthReport = Readonly<{
 
 export async function monthReport(month: string): Promise<MonthReport> {
   if (integrationMode() === "simulator") return simulatorReport(month);
+  const companyId = await currentCompanyId();
   const supabase = await createSupabaseServerClient();
   const start = new Date(`${month}-01T00:00:00-03:00`);
   const end = new Date(
@@ -156,6 +173,7 @@ export async function monthReport(month: string): Promise<MonthReport> {
     supabase
       .from("rooms")
       .select("id,name,locations(name,opening_time,closing_time)")
+      .eq("company_id", companyId)
       .eq("status", "active")
       .order("name"),
     supabase
@@ -276,11 +294,13 @@ export async function effectivePolicies(): Promise<readonly Policy[]> {
       ...fixed,
     ];
   }
+  const companyId = await currentCompanyId();
   const supabase = await createSupabaseServerClient();
   const [locationResult, roomResult] = await Promise.all([
     supabase
       .from("locations")
       .select("name,opening_time,closing_time")
+      .eq("company_id", companyId)
       .eq("status", "active")
       .order("name"),
     supabase
@@ -288,6 +308,7 @@ export async function effectivePolicies(): Promise<readonly Policy[]> {
       .select(
         "name,minimum_booking_minutes,maximum_booking_minutes,cleaning_time_minutes,access_before_minutes,access_after_minutes",
       )
+      .eq("company_id", companyId)
       .eq("status", "active")
       .order("name"),
   ]);

@@ -8,6 +8,7 @@ import {
 import { adminMetrics, todayBookings } from "@/lib/demo-data";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requestIdentity } from "./identity";
 import { cleaningNoticeFields } from "@/modules/cleaning/notice";
 
 type AdminMetric = Readonly<{
@@ -65,11 +66,16 @@ export async function adminRows(section: AdminSection): Promise<AdminRow[]> {
     });
   }
   if (section === "salas") {
+    // Sala ativa é catálogo público na RLS; no painel isso mostrava as salas de
+    // outros coworkings. Recorta pela empresa da sessão.
+    const identity = await requestIdentity();
+    if (!identity) throw new Error("admin_identity_required");
     const { data, error } = await supabase
       .from("rooms")
       .select(
         "id,location_id,name,description,capacity,hourly_price_cents,cleaning_notice_offset_minutes,status,locations(name),room_feature_relations(room_features(name))",
       )
+      .eq("company_id", identity.companyId)
       .order("name");
     if (error) throw new Error(`admin_rooms_failed:${error.code}`);
     return (data ?? []).map((row) => ({
@@ -103,9 +109,12 @@ export async function adminRows(section: AdminSection): Promise<AdminRow[]> {
     }));
   }
   if (section === "unidades") {
+    const identity = await requestIdentity();
+    if (!identity) throw new Error("admin_identity_required");
     const { data, error } = await supabase
       .from("locations")
       .select("id,name,address,city,state,zip_code,status,rooms(count)")
+      .eq("company_id", identity.companyId)
       .order("name");
     if (error) throw new Error(`admin_locations_failed:${error.code}`);
     return (data ?? []).map((row) => ({
@@ -296,16 +305,20 @@ export async function adminResourceOptions() {
       ],
     };
   }
+  const identity = await requestIdentity();
+  if (!identity) throw new Error("admin_identity_required");
   const supabase = await createSupabaseServerClient();
   const [locations, rooms] = await Promise.all([
     supabase
       .from("locations")
       .select("id,name")
+      .eq("company_id", identity.companyId)
       .eq("status", "active")
       .order("name"),
     supabase
       .from("rooms")
       .select("id,name")
+      .eq("company_id", identity.companyId)
       .eq("status", "active")
       .order("name"),
   ]);
