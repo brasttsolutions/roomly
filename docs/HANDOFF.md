@@ -1677,3 +1677,53 @@ A sequência desejada neste momento é:
 O objetivo imediato NÃO é adicionar mais features.
 
 O objetivo imediato é transformar um MVP que funciona localmente/simulado em um MVP **validado com infraestrutura e integrações reais**, mantendo segurança, idempotência, observabilidade e isolamento multi-tenant.
+
+# 30. Auditoria de segurança — red team / blue team (2026-09-07)
+
+Exercício conduzido com agentes: três de **red team** (territórios separados —
+autenticação/autorização, dinheiro/integrações, superfície web), um de **blue
+team** (correção) e um **verificador independente** que reproduziu cada ataque
+em vez de confiar na palavra de quem corrigiu.
+
+## Resultado
+
+10 achados, todos fechados e provados. 7 por reprodução do ataque contra
+instância local, 3 (banco) por suíte pgTAP verde depois do `db push`.
+
+| # | Gravidade | Achado | Correção | Prova |
+|---|---|---|---|---|
+| 1 | Alta | Tela cravava "Reserva confirmada / PIX aprovado" no HTTP 201 (só "hold criado"); PIX descartava o `qr_code` | `createBooking` propaga `charge.status`; tela nova "Aguardando pagamento" com copia-e-cola; só `approved` confirma | e2e |
+| 2 | Alta | `record_pending_payment` aceitava `provider_payment_id` livre; repositório engolia `23505` como sucesso | migração **0011**: separa retentativa idempotente de colisão (`payment_id_conflict`/`payment_already_pending`) + índice único parcial; repositório não engole mais o erro | pgTAP `payment_conflict.sql` |
+| 3 | Alta | `customers` UPDATE sem escopo de coluna → cliente reescrevia `email`/`status` via PATCH REST; squat de e-mail alheio | migração **0012**: `revoke update ... from authenticated` + `grant update(name,phone)` | pgTAP `customer_column_scope.sql` + reprodução (`permission denied`) |
+| 4 | Alta | Rate limit usava 1º `X-Forwarded-For` (forjável); rotação zerava o contador | `clientAddress` usa o último salto; mapa com teto/poda | rajada real: 120×200, 15×429 |
+| 5 | Média | Webhook validava `data.id` do query mas processava o do corpo; sem tolerância de tempo → replay permanente | assinatura antes de ler o corpo; corpo amarrado ao `data.id` assinado; `toleranceSeconds: 300` | `webhook.test.ts` |
+| 6 | Média | Guarda de tamanho via header `content-length` (chunked→0); corpo bufferizado antes da assinatura | `readBounded` aborta em 256 KB; em modo MP assina antes de ler | 5 MB chunked → 413 |
+| 7 | Média | `z.url()` (Zod 4) aceita `javascript:`/`data:`/`vbscript:` | allowlist de protocolo (site http/https, logo só https) | script sobre o schema |
+| 8 | Média | Painel reusava catálogo público → gestor via inventário/métricas de outro coworking | `.eq("company_id", ...)` em todas as leituras de rooms/locations do painel | leitura + suíte |
+| 9 | Média | Ação dizia "Alterações salvas" com 0 linhas gravadas (RLS/id de outra empresa) | UPDATE com `.select()`, 0 linhas → erro; `advanceCleaning` exige papel de staff | leitura |
+| 10 | Média | `idempotencyKey` da extensão previsível (`extend:<id>:<dur>`) → terceiro queimava a chave da vítima | `crypto.randomUUID()` por tentativa | leitura |
+
+## Migrações e estado do banco
+
+- **0011** e **0012** aplicadas no remoto (`supabase migration list --linked`
+  confirma local == remote até 0012) e no local.
+- Suíte pgTAP completa: **81 testes, PASS** (`npm run test:db`).
+- Lição de método: o pgTAP acusou o achado 3 como não corrigido porque o banco
+  **local** estava uma migração atrás do remoto — não era defeito da migração.
+  Verificar por execução, e não por leitura, foi o que expôs a defasagem.
+
+## Deliberadamente fora do escopo (decisão do dono)
+
+- **CSP** (`Content-Security-Policy`): ausente. Seria rede de segurança extra
+  para XSS, mas exige `nonce`/`hash` por causa do script de tema inline em
+  `layout.tsx`; pode quebrar terceiros. Nenhum XSS ativo encontrado.
+- **Validação de imagem por magic bytes**: hoje o tipo vem do MIME declarado.
+  Sem caminho de XSS demonstrável (allowlist exclui SVG/HTML; servido de outra
+  origem). Melhoria de defesa em profundidade.
+
+## Pendências
+
+- `git push` dos commits de segurança (`d8a3c9f`, `914d557`, `efd546a`) — não
+  enviado; decisão do dono.
+- Verificação dinâmica dos achados 8/9/10 no remoto exigiria dois inquilinos de
+  teste; cobertos por leitura + suíte verde.
