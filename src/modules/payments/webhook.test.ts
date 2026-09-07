@@ -18,19 +18,24 @@ describe("payment webhook signature", () => {
     expect(validWebhookSignature(body, other, secret)).toBe(false);
   });
 
-  it("validates the Mercado Pago manifest format", () => {
-    const timestamp = "1704908010";
+  /** Assina uma notificação no formato do MP para um dado instante (epoch s). */
+  function assinar(timestamp: number, dataId = "PAYMENT_1") {
     const requestId = "request_1";
-    const dataId = "PAYMENT_1";
     const manifest = `id:${dataId};request-id:${requestId};ts:${timestamp};`;
     const digest = createHmac("sha256", secret).update(manifest).digest("hex");
-    expect(
-      validMercadoPagoSignature({
-        signature: `ts=${timestamp},v1=${digest}`,
-        requestId,
-        dataId,
-        secret,
-      }),
-    ).toBe(true);
+    return { signature: `ts=${timestamp},v1=${digest}`, requestId, dataId, secret };
+  }
+
+  it("validates the Mercado Pago manifest format", () => {
+    const agora = Math.floor(Date.now() / 1000);
+    expect(validMercadoPagoSignature(assinar(agora))).toBe(true);
+  });
+
+  it("recusa uma assinatura legítima porém velha (proteção contra replay)", () => {
+    // Um timestamp de uma hora atrás tem HMAC perfeitamente válido — o que o
+    // barra é a janela de tolerância. Sem ela, uma notificação capturada valia
+    // para sempre.
+    const umaHoraAtras = Math.floor(Date.now() / 1000) - 3600;
+    expect(validMercadoPagoSignature(assinar(umaHoraAtras))).toBe(false);
   });
 });

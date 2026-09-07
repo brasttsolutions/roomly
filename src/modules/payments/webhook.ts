@@ -13,6 +13,14 @@ export function validWebhookSignature(
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
+/**
+ * Janela de tolerância do timestamp assinado. Sem ela, uma notificação legítima
+ * capturada uma vez valia para sempre: bastava reenviar o mesmo trio de
+ * cabeçalhos para reprocessar um pagamento a qualquer momento. Cinco minutos
+ * cobre o atraso normal de entrega e reentrega do Mercado Pago.
+ */
+const TOLERANCIA_SEGUNDOS = 300;
+
 export function validMercadoPagoSignature(input: {
   signature: string | null;
   requestId: string | null;
@@ -25,6 +33,7 @@ export function validMercadoPagoSignature(input: {
       xRequestId: input.requestId,
       dataId: input.dataId,
       secret: input.secret,
+      toleranceSeconds: TOLERANCIA_SEGUNDOS,
     });
     return true;
   } catch {

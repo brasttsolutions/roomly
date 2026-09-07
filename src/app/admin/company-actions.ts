@@ -13,8 +13,15 @@ const schema = z.object({
   // Vazio limpa o campo; a coluna aceita nulo e o perfil simplesmente não mostra
   // a seção. Guardar string vazia faria o link aparecer apontando para lugar
   // nenhum.
-  websiteUrl: z.union([z.literal(""), z.url().max(300)]),
-  logoUrl: z.union([z.literal(""), z.url().max(500)]),
+  //
+  // A allowlist de protocolo não é cosmética: `z.url()` sozinho aceita
+  // `javascript:`, `data:` e `vbscript:`, e o site é renderizado como
+  // `<a href={websiteUrl}>` numa página pública — um `javascript:` gravado ali
+  // seria XSS armazenado servido a qualquer visitante. Até aqui, o único freio
+  // era a CHECK constraint do banco; esta é a primeira camada, na aplicação.
+  // O logo é `<img src>` e só faz sentido por https, como a coluna já exige.
+  websiteUrl: z.union([z.literal(""), z.url({ protocol: /^https?$/ }).max(300)]),
+  logoUrl: z.union([z.literal(""), z.url({ protocol: /^https$/ }).max(500)]),
   cleaningContactPhone: z.string().trim().max(20),
 });
 
