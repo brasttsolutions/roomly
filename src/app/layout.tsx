@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "roomly | Salas no seu tempo", template: "%s | roomly" },
+  title: { default: "Roomly", template: "%s | Roomly" },
   description: "Reserve salas de reunião prontas para receber você.",
 };
 

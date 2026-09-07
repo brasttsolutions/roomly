@@ -15,6 +15,7 @@
     "test:db": "supabase test db --local",
     "test:embeds": "node scripts/check-embeds.mjs",
     "check:responsive": "node scripts/check-responsive.mjs",
+    "build:icons": "node scripts/build-icons.mjs",
     "jobs:run": "node scripts/run-jobs.mjs",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e"
   },

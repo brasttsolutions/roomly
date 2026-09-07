@@ -6,7 +6,8 @@ import { catalogRooms } from "@/lib/server/catalog";
 import { isoDay } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Salas no seu tempo",
+  // Sem título próprio: a home herda o `default` do layout e a aba diz apenas
+  // "Roomly", sem o gabarito "%s | Roomly" que vale para as páginas internas.
   description:
     "Reserve salas de reunião prontas para receber você. Pague, receba o código de acesso e entre.",
 };
