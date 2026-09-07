@@ -6,6 +6,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { integrationMode } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { internalPath, signInHref, signUpHref } from "@/lib/redirect";
+import { appBaseUrl } from "@/lib/app-url";
+import { logEvent } from "@/lib/server/logger";
 
 const signupSchema = z.object({
   // Vazio é o caso normal: quem aluga sala cria a própria conta. O convite
@@ -65,9 +67,20 @@ export async function signUp(formData: FormData) {
         full_name: parsed.data.name,
         invitation_token: parsed.data.invitation,
       },
+      emailRedirectTo: `${appBaseUrl()}/auth/confirmar?proximo=${encodeURIComponent(
+        destination,
+      )}`,
     },
   });
-  if (error) redirect(failed("cadastro-falhou"));
+  if (error) {
+    logEvent("warn", "signup.invited_failed", {
+      errorCode: error.code,
+      status: error.status,
+    });
+    if (error.code === "over_email_send_rate_limit" || error.status === 429)
+      redirect(failed("aguarde-um-minuto"));
+    redirect(failed("cadastro-falhou"));
+  }
   if (data.session) {
     const accepted = await supabase.rpc("accept_company_invitation", {
       target_token: parsed.data.invitation,
@@ -96,9 +109,31 @@ async function signUpCustomer(
   const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
-    options: { data: { full_name: input.name } },
+    options: {
+      data: { full_name: input.name },
+      // Sem isto o link do e-mail vai parar no "Site URL" do painel do
+      // Supabase, que não sabe nada da reserva em curso — e, se ele estiver
+      // desatualizado, o link chega vivo e não abre em lugar nenhum.
+      emailRedirectTo: `${appBaseUrl()}/auth/confirmar?proximo=${encodeURIComponent(
+        destination,
+      )}`,
+    },
   });
-  if (error) redirect(failed("cadastro-falhou"));
+  if (error) {
+    // O motivo vinha do Supabase e era jogado fora aqui. Quem tentava criar a
+    // conta lia "não foi possível validar o convite" — sem ter convite nenhum —
+    // e do lado de cá não sobrava linha nenhuma dizendo o que tinha acontecido.
+    logEvent("warn", "signup.failed", {
+      errorCode: error.code,
+      status: error.status,
+    });
+    // O Supabase deixa pedir um e-mail por minuto. É o erro que mais aparece,
+    // porque quem não vê confirmação na tela tenta de novo na hora — e a espera
+    // é a resposta certa, não "tente mais tarde".
+    if (error.code === "over_email_send_rate_limit" || error.status === 429)
+      redirect(failed("aguarde-um-minuto"));
+    redirect(failed("cadastro-falhou"));
+  }
   // Sem sessão significa que o Supabase exige confirmação por e-mail. O destino
   // segue junto: depois de confirmar, a pessoa entra e cai na sala que escolheu.
   if (!data.session)

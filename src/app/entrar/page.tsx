@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { internalPath, signUpHref } from "@/lib/redirect";
+import { MensagemDeEntrada } from "./mensagem";
 import { signIn } from "./actions";
 
 export const metadata: Metadata = { title: "Entrar" };
@@ -68,11 +69,7 @@ export default async function Page({
                 className="mt-2 h-11 w-full rounded-md border border-[var(--border-control)] px-3 font-normal"
               />
             </label>
-            {error && (
-              <p role="alert" className="text-subheadline font-semibold text-danger-text">
-                E-mail ou senha inválidos.
-              </p>
-            )}
+            <MensagemDeEntrada erro={error} />
             <button
               type="submit"
               className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-action-primary text-subheadline font-bold text-text-on-accent"

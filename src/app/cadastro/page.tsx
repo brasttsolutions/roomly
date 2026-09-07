@@ -5,6 +5,24 @@ import { signUp } from "./actions";
 
 export const metadata: Metadata = { title: "Criar conta" };
 
+/**
+ * Uma frase por causa.
+ *
+ * Antes as quatro caíam em "Não foi possível validar o convite ou criar a
+ * conta" — que falava de convite com quem nunca teve um, não dizia o que
+ * corrigir, e escondia justamente o caso mais comum, o de esperar um minuto.
+ */
+const MOTIVOS: Record<string, string> = {
+  "dados-invalidos":
+    "Confira os campos: o nome precisa de pelo menos 2 letras e a senha, de 10 caracteres.",
+  "aguarde-um-minuto":
+    "Já enviamos um e-mail de confirmação há pouco. Espere um minuto antes de pedir outro — e olhe também a caixa de spam.",
+  "convite-invalido":
+    "Este convite não vale mais, ou foi enviado para outro e-mail. Peça um novo a quem administra o coworking.",
+  "cadastro-falhou":
+    "Não foi possível criar a conta agora. Tente de novo em alguns instantes.",
+};
+
 export default async function Page({
   searchParams,
 }: {
@@ -47,8 +65,8 @@ export default async function Page({
             minLength={10}
           />
           {erro && (
-            <p role="alert" className="text-subheadline text-danger-text">
-              Não foi possível validar o convite ou criar a conta.
+            <p role="alert" className="text-subheadline leading-6 text-danger-text">
+              {MOTIVOS[erro] ?? MOTIVOS["cadastro-falhou"]}
             </p>
           )}
           <button className="h-11 rounded-md bg-action-primary text-subheadline font-bold text-text-on-accent">

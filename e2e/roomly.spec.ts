@@ -530,3 +530,39 @@ test("login recusa destino fora do Roomly", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/minhas-reservas$/);
 });
+
+/**
+ * As quatro causas de falha no cadastro tinham uma frase só — que falava de
+ * convite com quem nunca teve um e escondia a mais comum, a de esperar o
+ * minuto que o Supabase exige entre dois e-mails.
+ */
+test("cadastro diz qual foi o problema, um por vez", async ({ page }) => {
+  // Escopado ao `main`: o anunciador de rotas do Next também tem role=alert.
+  const aviso = page.getByRole("main").getByRole("alert");
+
+  await page.goto("/cadastro?erro=aguarde-um-minuto");
+  await expect(aviso).toContainText("Espere um minuto");
+  await expect(aviso).not.toContainText("convite");
+
+  await page.goto("/cadastro?erro=dados-invalidos");
+  await expect(aviso).toContainText("10 caracteres");
+  await expect(aviso).not.toContainText("convite");
+
+  await page.goto("/cadastro?erro=convite-invalido");
+  await expect(aviso).toContainText("Peça um novo");
+});
+
+/**
+ * A rota que fecha o cadastro por e-mail. O destino dela viaja dentro de um
+ * link de e-mail, que é onde um endereço forjado tem mais chance de ser
+ * clicado — então ela passa pela mesma conferência do login.
+ */
+test("confirmação de e-mail só volta para dentro do Roomly", async ({ page }) => {
+  await page.goto(
+    "/auth/confirmar?proximo=%2Fsalas%2Fsala-executiva%3Fdia%3D2099-01-05",
+  );
+  await expect(page).toHaveURL(/\/salas\/sala-executiva\?dia=2099-01-05/);
+
+  await page.goto("/auth/confirmar?proximo=https%3A%2F%2Fsitefalso.example");
+  await expect(page).toHaveURL(/\/minhas-reservas$/);
+});

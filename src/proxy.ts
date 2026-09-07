@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { integrationMode } from "@/lib/modes";
+import { internalPath, signInHref } from "@/lib/redirect";
 import { hardenedCookie } from "@/lib/supabase/cookies";
 
 export async function proxy(request: NextRequest) {
@@ -38,10 +39,17 @@ export async function proxy(request: NextRequest) {
     "/conta",
   ].some((route) => request.nextUrl.pathname.startsWith(route));
   if (protectedRoute && !user) {
-    return NextResponse.redirect(new URL("/entrar", request.url));
+    // Leva junto de onde a pessoa veio. Sem isto, quem abre o link de uma
+    // reserva sem sessão entra e cai na lista, tendo que procurar de novo o que
+    // já tinha em mãos.
+    const alvo = request.nextUrl.pathname + request.nextUrl.search;
+    return NextResponse.redirect(new URL(signInHref(alvo), request.url));
   }
   if (request.nextUrl.pathname === "/entrar" && user) {
-    return NextResponse.redirect(new URL("/minhas-reservas", request.url));
+    // Já logado, mas com destino no endereço: honra o destino em vez de
+    // despejar todo mundo na lista de reservas.
+    const destino = internalPath(request.nextUrl.searchParams.get("redirecionar"));
+    return NextResponse.redirect(new URL(destino, request.url));
   }
   return response;
 }
