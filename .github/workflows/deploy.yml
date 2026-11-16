@@ -1,0 +1,110 @@
+name: deploy
+
+# Promoção controlada entre ambientes (docs/gcs/PLANO_GCS.md, seção 7).
+#   merge em main ............ staging
+#   tag vX.Y.Z (baseline) .... staging -> [aprovação do revisor obrigatório] -> production
+#
+# Os environments `staging` e `production` são criados em Settings > Environments
+# (passo a passo em docs/gcs/CONFIGURACAO_GITHUB.md). A publicação no Railway só
+# acontece quando o environment tem o segredo RAILWAY_TOKEN; sem ele, o job
+# valida a imagem e registra a implantação no GitHub, sem publicar em lugar nenhum.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: staging
+    env:
+      # Variáveis públicas que o Next embute no bundle. Sem valor no environment,
+      # o teste de fumaça usa marcadores e roda tudo no modo simulador.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder' }}
+      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
+      TEM_RAILWAY: ${{ secrets.RAILWAY_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construir a imagem
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY \
+            --build-arg NEXT_PUBLIC_APP_URL \
+            --build-arg NEXT_PUBLIC_SENTRY_ENVIRONMENT=staging \
+            --tag "roomly:${GITHUB_SHA}" .
+
+      - name: Teste de fumaça em /api/health
+        run: |
+          docker run --detach --name roomly --publish 3000:3000 \
+            --env HOSTNAME=0.0.0.0 "roomly:${GITHUB_SHA}"
+          for tentativa in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/api/health; then
+              echo
+              echo "Aplicação respondeu na tentativa ${tentativa}."
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs roomly
+          exit 1
+
+      - name: Publicar no Railway (staging)
+        if: env.TEM_RAILWAY == 'true'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
+        run: npx --yes @railway/cli up --ci --service "$RAILWAY_SERVICE"
+
+  production:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # O job fica em "Waiting for review" até o revisor obrigatório do
+    # environment aprovar. Os segredos de produção só são liberados depois disso.
+    environment:
+      name: production
+    permissions:
+      contents: write
+    env:
+      TEM_RAILWAY: ${{ secrets.RAILWAY_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conferir versão da baseline
+        run: |
+          versao_pacote="$(node -p "require('./package.json').version")"
+          versao_tag="${GITHUB_REF_NAME#v}"
+          if [ "$versao_pacote" != "$versao_tag" ]; then
+            echo "::error::package.json está em ${versao_pacote}, mas a tag é ${GITHUB_REF_NAME}."
+            exit 1
+          fi
+
+      - name: Publicar no Railway (production)
+        if: env.TEM_RAILWAY == 'true'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
+        run: npx --yes @railway/cli up --ci --service "$RAILWAY_SERVICE"
+
+      - name: Registrar a baseline como release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes \
+                 --title "Roomly ${GITHUB_REF_NAME}"

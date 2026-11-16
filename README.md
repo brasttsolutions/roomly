@@ -1,6 +1,27 @@
 # Roomly
 
-MVP da plataforma multi-tenant de reservas descrita em `Cowork Booking Platform (roomly).md`.
+[![verify](https://github.com/brasttsolutions/roomly/actions/workflows/verify.yml/badge.svg)](https://github.com/brasttsolutions/roomly/actions/workflows/verify.yml)
+
+MVP da plataforma multi-tenant de reservas descrita na [especificação do produto](docs/especificacao/roomly-especificacao.md).
+
+## Gestão de configuração
+
+- [Plano de GCS](docs/gcs/PLANO_GCS.md): itens de configuração, branches, baselines, controle de mudanças, ambientes e auditoria.
+- [Configuração do GitHub](docs/gcs/CONFIGURACAO_GITHUB.md): proteção da `main`, revisor par e environments `staging`/`production`.
+- [Evidências](docs/gcs/evidencias/README.md) da execução do plano.
+- [Como contribuir](CONTRIBUTING.md) e [registro de mudanças](CHANGELOG.md).
+
+## Estrutura
+
+```text
+.github/     CI/CD, Dependabot, CODEOWNERS, modelos de PR e issue
+docs/        gcs/, especificacao/, integracoes/, design-system/ e documentação técnica
+e2e/         testes Playwright
+public/      recursos estáticos
+scripts/     build, verificação e operação
+src/         aplicação Next.js (app/, modules/, integrations/, lib/, components/)
+supabase/    migrations, seed e testes de banco
+```
 
 ## Execução local
 
