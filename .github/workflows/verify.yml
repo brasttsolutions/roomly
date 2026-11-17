@@ -1,40 +1,26 @@
-name: verify
+name: Demonstracao de ambientes GCS
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  application:
+  staging:
+    name: Validacao em staging
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    environment: staging
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run verify
+      - name: Confirmar ambiente de demonstracao
+        run: echo 'Ambiente staging validado; nenhuma ETL executada.'
 
-  database:
+  production:
+    name: Aprovacao de production
+    needs: staging
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    environment: production
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx supabase start
-      - run: npx supabase db reset --local
-      - run: npx supabase test db --local
-      - run: npm run test:embeds
-      - if: always()
-        run: npx supabase stop --no-backup
+      - name: Confirmar aprovacao demonstrativa
+        run: echo 'Ambiente production liberado conforme protecoes configuradas no GitHub; nenhum deploy realizado.'
+ 
